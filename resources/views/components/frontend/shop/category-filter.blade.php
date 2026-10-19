@@ -9,6 +9,6 @@
         <x-frontend.shop.category-checkbox-tree :categories="$categories" />
     </flux:checkbox.group>
     @if ($hasMore)
-        <button type="button" wire:click="loadMoreCategories" class="mt-3 text-sm font-medium text-brand-600 hover:text-brand-700 dark:text-brand-300">{{ __('Load more') }}</button>
+        <button type="button" wire:click="loadMoreCategories" class="mt-3 text-sm font-medium text-brand-text hover:underline">{{ __('Load more') }}</button>
     @endif
 </div>

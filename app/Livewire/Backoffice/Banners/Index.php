@@ -16,6 +16,9 @@ use Livewire\Features\SupportFileUploads\TemporaryUploadedFile;
 use Livewire\WithFileUploads;
 use Livewire\WithPagination;
 
+/**
+ * @property-read string|null $imageUrl
+ */
 class Index extends Component
 {
     use InteractsWithTable, WithFileUploads, WithPagination;
@@ -51,7 +54,19 @@ class Index extends Component
 
     public string $endsAt = '';
 
+    public bool $showMediaPreview = false;
+
+    public ?int $previewBannerId = null;
+
+    public bool $showImageViewer = false;
+
+    public bool $showMediaUpload = false;
+
+    public ?int $mediaBannerId = null;
+
     public ?TemporaryUploadedFile $imageUpload = null;
+
+    public bool $removeImage = false;
 
     protected BannerService $bannerService;
 
@@ -92,12 +107,13 @@ class Index extends Component
             __('Title') => $banner->title,
             __('Subtitle') => $banner->subtitle,
             __('Link') => $banner->link,
-            __('Display order') => (string) $banner->sort_order,
+            __('Display Order') => (string) $banner->sort_order,
             __('Status') => $banner->status->label(),
-            __('Show text') => $banner->show_text,
-            __('Show from') => formatDateTime($banner->starts_at),
-            __('Show until') => formatDateTime($banner->ends_at),
-            __('Last updated by') => $banner->lastUpdateLabel(),
+            __('Show Text') => $banner->show_text,
+            __('Show From') => formatDateTime($banner->starts_at),
+            __('Show Until') => formatDateTime($banner->ends_at),
+            __('Created') => formatDateTime($banner->created_at),
+            __('Last Updated by') => $banner->lastUpdateLabel(),
         ];
         $this->showDetails = true;
     }
@@ -129,7 +145,6 @@ class Index extends Component
             'bannerStatus' => ['required', Rule::enum(BannerStatusEnum::class)],
             'startsAt' => ['nullable', 'date'],
             'endsAt' => ['nullable', 'date', 'after:startsAt'],
-            'imageUpload' => mediaValidationRules('banner.media.image', required: $this->editingBannerId === null),
         ]);
 
         $data = [
@@ -144,10 +159,10 @@ class Index extends Component
         ];
 
         if ($this->editingBannerId) {
-            $this->bannerService->update($this->editingBannerId, $data, $this->imageUpload);
+            $this->bannerService->update($this->editingBannerId, $data);
             $message = __('Banner updated successfully.');
         } else {
-            $this->bannerService->create($data, $this->imageUpload);
+            $this->bannerService->create($data);
             $message = __('Banner created successfully.');
         }
 
@@ -155,6 +170,66 @@ class Index extends Component
         $this->resetForm();
         unset($this->banners);
         $this->dispatch('toast-show', slots: ['text' => $message], dataset: ['variant' => 'success']);
+    }
+
+    public function updatedShowMediaPreview(bool $showMediaPreview): void
+    {
+        if (! $showMediaPreview) {
+            $this->reset(['previewBannerId', 'showImageViewer']);
+        }
+    }
+
+    public function updatedShowMediaUpload(bool $showMediaUpload): void
+    {
+        if (! $showMediaUpload) {
+            $this->resetMediaUpload();
+        }
+    }
+
+    public function viewMedia(int $bannerId): void
+    {
+        $this->previewBannerId = $this->bannerService->getBannerById($bannerId)->id;
+        unset($this->previewField, $this->imageUrl);
+        $this->showMediaPreview = true;
+    }
+
+    public function viewImage(): void
+    {
+        if (! $this->imageUrl) {
+            throw ValidationException::withMessages([
+                'imageUpload' => __('This banner does not have an image.'),
+            ]);
+        }
+
+        $this->showImageViewer = true;
+    }
+
+    public function uploadMedia(int $bannerId): void
+    {
+        $this->resetMediaUpload();
+        $this->mediaBannerId = $bannerId;
+        unset($this->uploadField);
+        $this->showMediaUpload = true;
+    }
+
+    public function saveMedia(): void
+    {
+        if (! $this->mediaBannerId) {
+            throw ValidationException::withMessages([
+                'mediaBannerId' => __('Select a banner before uploading media.'),
+            ]);
+        }
+
+        $this->validate([
+            'imageUpload' => mediaValidationRules('banner.media.image'),
+        ]);
+
+        $this->bannerService->updateImage($this->mediaBannerId, $this->imageUpload, $this->removeImage);
+
+        $this->showMediaUpload = false;
+        $this->resetMediaUpload();
+        unset($this->banners);
+        $this->dispatch('toast-show', slots: ['text' => __('Banner media updated successfully.')], dataset: ['variant' => 'success']);
     }
 
     public function confirmDeleteBanner(int $bannerId): void
@@ -214,11 +289,24 @@ class Index extends Component
      * @return array<string, mixed>
      */
     #[Computed]
-    public function imageField(): array
+    public function uploadField(): array
     {
-        return $this->editingBannerId
-            ? $this->bannerService->getBannerById($this->editingBannerId)->mediaField('banner.media.image', 'regular')
-            : ['image' => true, 'accept' => mediaAccept('banner.media.image'), 'hint' => mediaUploadHint('banner.media.image'), 'media' => null, 'previewUrl' => null];
+        return $this->mediaBannerId ? $this->bannerService->imageField($this->mediaBannerId) : [];
+    }
+
+    /**
+     * @return array<string, mixed>
+     */
+    #[Computed]
+    public function previewField(): array
+    {
+        return $this->previewBannerId ? $this->bannerService->imageField($this->previewBannerId) : [];
+    }
+
+    #[Computed]
+    public function imageUrl(): ?string
+    {
+        return $this->previewBannerId ? $this->bannerService->imageUrl($this->previewBannerId, 'regular') : null;
     }
 
     public function render(): View
@@ -228,11 +316,16 @@ class Index extends Component
 
     private function resetForm(): void
     {
-        $this->reset(['editingBannerId', 'title', 'subtitle', 'link', 'startsAt', 'endsAt', 'imageUpload']);
+        $this->reset(['editingBannerId', 'title', 'subtitle', 'link', 'startsAt', 'endsAt']);
         $this->sortOrder = '1';
         $this->showText = true;
         $this->bannerStatus = BannerStatusEnum::Active->value;
-        unset($this->imageField);
+        $this->resetValidation();
+    }
+
+    private function resetMediaUpload(): void
+    {
+        $this->reset(['mediaBannerId', 'imageUpload', 'removeImage']);
         $this->resetValidation();
     }
 }

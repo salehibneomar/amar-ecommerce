@@ -3,6 +3,7 @@
 namespace App\Services\Payment;
 
 use App\Models\Order;
+use App\Models\StaffPayment;
 use App\Models\User;
 use App\Traits\Pdf\MpdfTrait;
 use Illuminate\Support\Facades\Cache;
@@ -28,6 +29,20 @@ class InvoiceService
             'logo' => $this->logo(),
             'supportEmail' => shopSupportEmail(),
         ]), $this->invoiceNumber($order).'.pdf');
+    }
+
+    public function downloadStaffPayment(StaffPayment $payment): Response
+    {
+        $payment->loadMissing(['user', 'paidBy']);
+        $number = 'PAY-'.$payment->period_year.str_pad((string) $payment->period_month, 2, '0', STR_PAD_LEFT).'-'.$payment->id;
+
+        return $this->downloadMpdf(view('pdf.staff-payment', [
+            'payment' => $payment,
+            'currency' => appCurrency(),
+            'invoiceNumber' => $number,
+            'logo' => $this->logo(),
+            'shopName' => config('app.name'),
+        ]), $number.'.pdf');
     }
 
     private function invoiceNumber(Order $order): string

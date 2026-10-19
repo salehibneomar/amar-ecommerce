@@ -8,23 +8,23 @@
                 @endforeach
             </div>
         @else
-            <flux:callout icon="information-circle" :heading="__('Nothing to show yet')"
+            <x-ui.alert icon="information-circle" :heading="__('Nothing to show yet')"
                 :text="__('Ask an admin to grant you access to a backoffice area.')" />
         @endif
 
         @isset($panels['orders'])
             <x-backoffice.dashboard.panel :title="__('Orders')" :description="__('Customer orders that need your attention')">
                 <x-slot:actions>
-                    <flux:button size="sm" variant="ghost" icon-trailing="arrow-right"
-                        :href="route('manage.orders.index')" wire:navigate>{{ __('Manage orders') }}</flux:button>
+                    <x-ui.button size="sm" variant="ghost" icon-trailing="arrow-right"
+                        :href="route('manage.orders.index')" wire:navigate>{{ __('Manage Orders') }}</x-ui.button>
                 </x-slot:actions>
 
                 <div class="grid grid-cols-1 gap-6 lg:grid-cols-3">
                     <div class="min-w-0 space-y-5">
-                        <x-backoffice.dashboard.pipeline :total="$panels['orders']['pipeline']['total']" :label="__('orders this month')" :stages="$panels['orders']['pipeline']['stages']" />
+                        <x-backoffice.dashboard.pipeline :total="$panels['orders']['pipeline']['total']" :label="__('Orders This Month')" :stages="$panels['orders']['pipeline']['stages']" />
 
                         @if ($panels['orders']['pipeline']['pending'])
-                            <flux:callout variant="warning" icon="exclamation-triangle"
+                            <x-ui.alert variant="warning" icon="exclamation-triangle"
                                 :heading="trans_choice(':count open order|:count open orders', $panels['orders']['pipeline'][
                                     'pending'
                                 ], ['count' => $panels['orders']['pipeline']['pending']])"
@@ -32,11 +32,11 @@
                         @endif
                     </div>
 
-                    <div
-                        class="min-w-0 divide-y divide-zinc-200 rounded-xl shadow-card border border-zinc-200/80 bg-white lg:col-span-2 dark:divide-zinc-800 dark:border-zinc-800 dark:bg-zinc-950">
+                    <x-ui.card
+                        class="min-w-0 divide-y divide-line lg:col-span-2">
                         @forelse ($panels['orders']['recent'] as $order)
                             <div class="flex items-center gap-3 px-3 py-3 sm:px-4">
-                                <flux:avatar size="sm" class="max-sm:hidden" :name="$order['email']" />
+                                <x-ui.avatar size="sm" class="max-sm:hidden" :name="$order['email']" />
                                 <div class="min-w-0 flex-1">
                                     <p class="truncate text-sm font-medium text-zinc-900 dark:text-white">
                                         {{ $order['email'] }}</p>
@@ -45,13 +45,13 @@
                                 </div>
                                 <span
                                     class="shrink-0 text-sm font-medium text-zinc-900 dark:text-white">{{ $order['amount'] }}</span>
-                                <flux:badge size="sm" :color="$order['payment_color']">{{ $order['payment'] }}
-                                </flux:badge>
+                                <x-ui.badge :color="$order['payment_color']">{{ $order['payment'] }}
+                                </x-ui.badge>
                             </div>
                         @empty
                             <flux:text class="px-4 py-6 text-center">{{ __('No orders yet.') }}</flux:text>
                         @endforelse
-                    </div>
+                    </x-ui.card>
                 </div>
             </x-backoffice.dashboard.panel>
         @endisset
@@ -60,14 +60,14 @@
             @isset($panels['registrations'])
                 <x-backoffice.dashboard.panel class="min-w-0 lg:flex-[2]" :title="__('Recent registrations')" :description="__('Newest customers in the shop')">
                     <x-slot:actions>
-                        <flux:button size="sm" variant="ghost" icon-trailing="arrow-right"
-                            :href="route('manage.users.index')" wire:navigate>{{ __('View all') }}</flux:button>
+                        <x-ui.button size="sm" variant="ghost" icon-trailing="arrow-right"
+                            :href="route('manage.users.index')" wire:navigate>{{ __('View All') }}</x-ui.button>
                     </x-slot:actions>
 
-                    <div class="divide-y divide-zinc-200 dark:divide-zinc-800">
+                    <div class="divide-y divide-line">
                         @forelse ($panels['registrations'] as $customer)
                             <div class="flex items-center gap-3 py-3">
-                                <flux:avatar size="sm" :name="$customer['name']" />
+                                <x-ui.avatar size="sm" :name="$customer['name']" />
                                 <div class="min-w-0 flex-1">
                                     <p class="truncate text-sm font-medium text-zinc-900 dark:text-white">
                                         {{ $customer['name'] }}</p>
@@ -76,8 +76,8 @@
                                 </div>
                                 <span
                                     class="hidden text-xs text-zinc-500 sm:block dark:text-zinc-400">{{ $customer['joined'] }}</span>
-                                <flux:badge size="sm" :color="$customer['status_color']">{{ $customer['status'] }}
-                                </flux:badge>
+                                <x-ui.badge :color="$customer['status_color']">{{ $customer['status'] }}
+                                </x-ui.badge>
                             </div>
                         @empty
                             <flux:text class="py-6 text-center">{{ __('No customers yet.') }}</flux:text>

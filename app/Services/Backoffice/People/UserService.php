@@ -48,6 +48,11 @@ class UserService
         return User::findOrFail($id);
     }
 
+    public function getCustomerDetailsById(int|string $id): User
+    {
+        return User::query()->customers()->withCount('orders')->findOrFail($id);
+    }
+
     public function block(User $user): bool
     {
         return $this->updateStatus($user, UserStatusEnum::Blocked);

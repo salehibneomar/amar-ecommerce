@@ -12,16 +12,16 @@
             <x-slot:toolbar>
                 <div class="flex items-center gap-2">
                     <x-backoffice.management.per-page :placeholder="__('Select')" />
-                    <x-backoffice.management.filter model="status" :label="__('Filter by status')" :options="$this->statusOptions" />
+                    <x-backoffice.management.filter model="status" :label="__('Filter by Status')" :options="$this->statusOptions" />
                     <x-backoffice.management.category-level-select model="categoryFilter" :levels="$this->categoryFilterOptions" :labels="[__('Sub-categories of'), __('Sub-category')]" filter />
                     <div class="flex shrink-0 items-center md:h-10">
                         <flux:switch wire:model.live="rootOnly" :label="__('Root Categories')" align="left" />
                     </div>
                 </div>
                 <div class="flex items-end gap-2">
-                    <x-backoffice.management.search model="search" :placeholder="__('Search categories...')" :label="__('Search categories')"
+                    <x-backoffice.management.search model="search" :placeholder="__('Search categories...')" :label="__('Search Categories')"
                         class="max-w-xs" />
-                    <flux:button variant="primary" wire:click="createCategory">{{ __('Add New') }}</flux:button>
+                    <x-ui.button variant="primary" wire:click="createCategory">{{ __('Add New') }}</x-ui.button>
                 </div>
             </x-slot:toolbar>
 
@@ -33,7 +33,7 @@
                             <div class="flex items-center gap-2">
                                 <span class="font-medium">{{ $category->name }}</span>
                                 @if ($category->is_featured)
-                                    <flux:badge size="sm" color="amber">{{ __('Featured') }}</flux:badge>
+                                    <x-ui.badge color="amber">{{ __('Featured') }}</x-ui.badge>
                                 @endif
                             </div>
                         </flux:table.cell>
@@ -41,31 +41,25 @@
                             @if ($category->image_thumbnail_url)
                                 <img src="{{ $category->image_thumbnail_url }}" alt="{{ $category->name }}" width="40" height="40" loading="lazy" class="size-10 rounded object-cover ring-1 ring-zinc-950/10" />
                             @else
-                                <span class="text-zinc-400">-</span>
+                                <x-ui.empty-value />
                             @endif
                         </flux:table.cell>
                         <flux:table.cell>{{ $category->parent?->name ?? __('Root') }}</flux:table.cell>
                         <flux:table.cell>{{ $category->sort_order }}</flux:table.cell>
                         <flux:table.cell>
-                            <flux:badge size="sm" :color="$category->status->color()">
-                                {{ $category->status->label() }}</flux:badge>
+                            <x-ui.badge :color="$category->status->color()">
+                                {{ $category->status->label() }}</x-ui.badge>
                         </flux:table.cell>
                         <flux:table.cell>
-                            <div class="flex flex-wrap gap-2">
+                            <x-backoffice.management.actions>
+                                <x-backoffice.management.action icon="eye" :label="__('View')" variant="filled" wire:click="viewCategory({{ $category->id }})" />
+                                <x-backoffice.management.action icon="pencil-square" :label="__('Edit')" variant="filled" color="sky" wire:click="editCategory({{ $category->id }})" />
                                 @if ($category->image_thumbnail_url)
-                                    <flux:button size="xs" variant="filled" color="green"
-                                        wire:click="viewMedia({{ $category->id }})">{{ __('Media') }}</flux:button>
+                                    <x-backoffice.management.action icon="photo" :label="__('Media')" variant="filled" color="green" wire:click="viewMedia({{ $category->id }})" />
                                 @endif
-                                <flux:button size="xs" variant="filled" color="violet"
-                                    wire:click="uploadMedia({{ $category->id }})">{{ __('Upload') }}</flux:button>
-                                <flux:button size="xs" variant="filled"
-                                    wire:click="viewCategory({{ $category->id }})">{{ __('View') }}</flux:button>
-                                <flux:button size="xs" variant="filled" color="sky"
-                                    wire:click="editCategory({{ $category->id }})">{{ __('Edit') }}</flux:button>
-                                <flux:button size="xs" variant="danger"
-                                    wire:click="confirmDeleteCategory({{ $category->id }})">{{ __('Delete') }}
-                                </flux:button>
-                            </div>
+                                <x-backoffice.management.action icon="arrow-up-tray" :label="__('Upload')" variant="filled" color="violet" wire:click="uploadMedia({{ $category->id }})" />
+                                <x-backoffice.management.action icon="trash" :label="__('Delete')" variant="danger" wire:click="confirmDeleteCategory({{ $category->id }})" />
+                            </x-backoffice.management.actions>
                         </flux:table.cell>
                     </flux:table.row>
                 @empty
@@ -90,9 +84,9 @@
                         <flux:select.option value="{{ $value }}">{{ $label }}</flux:select.option>
                     @endforeach
                 </flux:select>
-                <flux:input wire:model="sortOrder" type="number" min="1" :label="__('Display order')" />
+                <flux:input wire:model="sortOrder" type="number" min="1" :label="__('Display Order')" />
             </div>
-            <x-backoffice.form.toggle-field wire:model="isFeatured" :label="__('Featured category')" />
+            <x-backoffice.form.toggle-field wire:model="isFeatured" :label="__('Featured Category')" />
         </x-backoffice.management.form-modal>
 
         <x-backoffice.management.form-modal wire:model="showDeleteConfirmation" size="md" :title="__('Delete category?')">
@@ -100,9 +94,9 @@
             <x-slot:footer>
                 <div class="flex justify-end gap-2">
                     <flux:modal.close>
-                        <flux:button type="button">{{ __('Close') }}</flux:button>
+                        <x-ui.button type="button">{{ __('Close') }}</x-ui.button>
                     </flux:modal.close>
-                    <flux:button variant="danger" wire:click="deleteCategory">{{ __('Delete') }}</flux:button>
+                    <x-ui.button variant="danger" wire:click="deleteCategory">{{ __('Delete') }}</x-ui.button>
                 </div>
             </x-slot:footer>
         </x-backoffice.management.form-modal>
@@ -119,7 +113,7 @@
 
         <x-backoffice.management.form-modal wire:model="showMediaPreview" :title="__('Media')" :show-default-footer="false">
             @if ($this->previewField)
-                <x-media.preview :label="__('Category image')" :field="$this->previewField" :action-label="__('View image')" wire:click="viewImage" />
+                <x-media.preview :label="__('Category Image')" :field="$this->previewField" :action-label="__('View Image')" wire:click="viewImage" />
             @endif
         </x-backoffice.management.form-modal>
 

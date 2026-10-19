@@ -20,7 +20,7 @@
                 'email' => __('Email'),
                 'created_at' => __('Registered'),
                 'status' => __('Status'),
-                'actions' => __('Action'),
+                'actions' => __('Actions'),
             ]"
             :sort-by="$sortBy"
             :sort-direction="$sortDirection"
@@ -30,7 +30,7 @@
                     <x-backoffice.management.per-page :placeholder="__('Select')" />
                     <x-backoffice.management.filter
                         model="status"
-                        :label="__('Filter by status')"
+                        :label="__('Filter by Status')"
                         :options="$this->statusOptions"
                         :placeholder="__('All')"
                     />
@@ -39,7 +39,7 @@
                     <x-backoffice.management.search
                         model="search"
                         :placeholder="__('Search users...')"
-                        :label="__('Search users')"
+                        :label="__('Search Users')"
                         class="max-w-xs"
                     />
                 </div>
@@ -53,20 +53,21 @@
                         <flux:table.cell>{{ $user->email }}</flux:table.cell>
                         <flux:table.cell>{{ $user->created_at?->format('d/m/Y') }}</flux:table.cell>
                         <flux:table.cell>
-                            <flux:badge size="sm" :color="$user->status->color()">
+                            <x-ui.badge :color="$user->status->color()">
                                 {{ $user->status->label() }}
-                            </flux:badge>
+                            </x-ui.badge>
                         </flux:table.cell>
                         <flux:table.cell>
-                            <flux:button
-                                size="xs"
-                                class="cursor-pointer"
-                                variant="{{ $user->isBlocked() ? 'primary' : 'danger' }}"
-                                x-on:click="openConfirmation('{{ $user->isBlocked() ? 'unblock' : 'block' }}', {{ $user->id }}, $el.dataset.userName)"
-                                data-user-name="{{ $user->name }}"
-                            >
-                                {{ $user->isBlocked() ? __('Unblock') : __('Block') }}
-                            </flux:button>
+                            <x-backoffice.management.actions>
+                                <x-backoffice.management.action icon="eye" :label="__('View')" variant="filled" wire:click="viewUser({{ $user->id }})" />
+                                <x-backoffice.management.action
+                                    :icon="$user->isBlocked() ? 'lock-open' : 'no-symbol'"
+                                    :label="$user->isBlocked() ? __('Unblock') : __('Block')"
+                                    :variant="$user->isBlocked() ? 'primary' : 'danger'"
+                                    x-on:click="openConfirmation('{{ $user->isBlocked() ? 'unblock' : 'block' }}', {{ $user->id }}, $el.dataset.userName)"
+                                    data-user-name="{{ $user->name }}"
+                                />
+                            </x-backoffice.management.actions>
                         </flux:table.cell>
                     </flux:table.row>
                 @empty
@@ -95,14 +96,15 @@
             <x-slot:footer>
                 <div class="flex justify-end gap-2">
                     <flux:modal.close>
-                        <flux:button type="button">{{ __('Close') }}</flux:button>
+                        <x-ui.button type="button">{{ __('Close') }}</x-ui.button>
                     </flux:modal.close>
-                    <flux:button type="button" wire:click="performUserAction" variant="danger">
+                    <x-ui.button type="button" wire:click="performUserAction" variant="danger">
                         {{ __('Confirm') }}
-                    </flux:button>
+                    </x-ui.button>
                 </div>
             </x-slot:footer>
         </x-backoffice.management.form-modal>
 
+        <x-backoffice.management.details-modal wire:model="showDetails" size="2xl" :title="__('Customer Details')" :items="$details" :wide="[__('Address')]" />
     </x-backoffice.layout.main-content-container>
 </div>

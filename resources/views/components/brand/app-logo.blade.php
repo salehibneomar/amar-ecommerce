@@ -6,12 +6,13 @@
     <a {{ $attributes->merge(['class' => 'flex h-[60px] w-full min-w-0 items-center justify-center px-2']) }}>
         <img
             src="{{ $brandUrls['logo'] }}"
-            alt="{{ config('app.name', 'নতুন কৃষক') }}"
+            alt="{{ config('app.name', 'AmarEcommerce') }}"
             class="in-data-flux-sidebar-collapsed-desktop:hidden h-12 w-auto object-contain"
         >
+        <x-brand.edition class="ms-1.5 in-data-flux-sidebar-collapsed-desktop:hidden" />
         <img
             src="{{ $brandUrls['icon'] }}"
-            alt="{{ config('app.name', 'নতুন কৃষক') }}"
+            alt="{{ config('app.name', 'AmarEcommerce') }}"
             class="hidden in-data-flux-sidebar-collapsed-desktop:block size-12 object-contain"
         >
     </a>

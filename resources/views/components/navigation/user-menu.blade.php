@@ -1,26 +1,28 @@
 @props([
     'settingsUrl' => route('settings.index'),
-    'inverse' => false,
+    'bar' => false,
 ])
 
 <x-ui.dropdown>
     <x-slot:trigger>
-        <flux:button
+        <x-ui.button
             variant="subtle"
-            class="cursor-pointer gap-2 max-sm:h-8! max-sm:px-1! {{ $inverse ? 'text-white! hover:bg-white/15!' : '' }}"
+            :bar="$bar"
+            class="cursor-pointer gap-2 max-sm:h-8! max-sm:px-1!"
             data-test="topbar-menu-button"
         >
-            <flux:avatar
+            <x-ui.avatar
                 :src="auth()->user()->avatar_url"
                 :initials="auth()->user()->initials()"
                 size="sm"
+                :bar="$bar"
             />
             <span class="material-symbols-outlined max-sm:hidden!">expand_more</span>
-        </flux:button>
+        </x-ui.button>
     </x-slot:trigger>
 
     <div class="flex items-center gap-2 px-1 py-1.5 text-start text-sm">
-        <flux:avatar
+        <x-ui.avatar
             :src="auth()->user()->avatar_url"
             :name="auth()->user()->name"
             :initials="auth()->user()->initials()"
@@ -33,23 +35,23 @@
     <flux:menu.separator />
     <flux:menu.radio.group>
         @if ($slot->isEmpty())
-            <flux:menu.item :href="$settingsUrl" icon="cog" wire:navigate>
+            <x-ui.menu-item :href="$settingsUrl" icon="cog" wire:navigate>
                 {{ __('Settings') }}
-            </flux:menu.item>
+            </x-ui.menu-item>
         @else
             {{ $slot }}
         @endif
         <form method="POST" action="{{ route('logout') }}" class="w-full">
             @csrf
-            <flux:menu.item
+            <x-ui.menu-item
                 as="button"
                 type="submit"
                 icon="arrow-right-start-on-rectangle"
                 class="w-full cursor-pointer"
                 data-test="logout-button"
             >
-                {{ __('Log out') }}
-            </flux:menu.item>
+                {{ __('Log Out') }}
+            </x-ui.menu-item>
         </form>
     </flux:menu.radio.group>
 </x-ui.dropdown>

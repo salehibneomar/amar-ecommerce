@@ -2,7 +2,9 @@ import tailwindcss from '@tailwindcss/vite';
 import laravel from 'laravel-vite-plugin';
 import { bunny } from 'laravel-vite-plugin/fonts';
 import { fileURLToPath } from 'node:url';
-import { defineConfig, lazyPlugins } from 'vite-plus';
+import { defineConfig, lazyPlugins, loadEnv } from 'vite-plus';
+
+const lanHost = loadEnv('development', process.cwd(), '').VITE_DEV_HOST;
 
 export default defineConfig({
     plugins: lazyPlugins(() => [
@@ -22,8 +24,9 @@ export default defineConfig({
         tailwindcss({ optimize: false }),
     ]),
     server: {
-        host: '127.0.0.1',
-        port: 5791,
+        host: lanHost ? '0.0.0.0' : '127.0.0.1',
+        port: 5792,
+        hmr: lanHost ? { host: lanHost } : undefined,
         strictPort: true,
         cors: true,
         watch: {

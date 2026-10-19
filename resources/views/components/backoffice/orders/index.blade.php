@@ -24,7 +24,7 @@
                 <x-backoffice.management.filter model="paymentStatus" :label="__('Payment')" :options="$this->paymentStatusOptions" />
             </div>
             <div class="ms-auto">
-                <x-backoffice.management.search model="search" :placeholder="__('Order ID, email, phone or TrxID...')" :label="__('Search orders')" class="max-w-xs" />
+                <x-backoffice.management.search model="search" :placeholder="__('Order ID, email, phone or TrxID...')" :label="__('Search Orders')" class="max-w-xs" />
             </div>
         </x-slot:toolbar>
 
@@ -41,28 +41,28 @@
                         <div class="text-xs text-zinc-500">{{ trans_choice(':count item|:count items', $order->items_count, ['count' => $order->items_count]) }}</div>
                     </flux:table.cell>
                     <flux:table.cell>
-                        <flux:badge size="sm" :color="$order->payment_status->color()">{{ $order->payment_status->label() }}</flux:badge>
+                        <x-ui.badge :color="$order->payment_status->color()">{{ $order->payment_status->label() }}</x-ui.badge>
                     </flux:table.cell>
                     <flux:table.cell>
-                        <div class="font-mono text-xs">{{ $order->transaction_id ?? '-' }}</div>
+                        <div class="font-mono text-xs">{{ $order->transaction_id ?? appEmptyValue() }}</div>
                         <div class="text-xs text-zinc-500">{{ $order->payment_method?->label() }}</div>
                     </flux:table.cell>
                     <flux:table.cell>
                         <span title="{{ formatDateTime($order->created_at) }}">{{ $order->created_at->diffForHumans() }}</span>
                     </flux:table.cell>
                     <flux:table.cell>
-                        <flux:badge size="sm" :color="$order->status->color()">{{ $order->status->label() }}</flux:badge>
+                        <x-ui.badge :color="$order->status->color()">{{ $order->status->label() }}</x-ui.badge>
                     </flux:table.cell>
                     <flux:table.cell>
-                        <div class="flex flex-wrap gap-1">
-                            <flux:button size="xs" variant="filled" wire:click="viewDetails({{ $order->id }})">{{ __('Details') }}</flux:button>
+                        <x-backoffice.management.actions>
+                            <x-backoffice.management.action icon="eye" :label="__('Details')" variant="filled" wire:click="viewDetails({{ $order->id }})" />
                             @unless ($order->status->isCancelled())
-                                <flux:button size="xs" variant="filled" color="sky" wire:click="viewOrder({{ $order->id }})">{{ __('Manage') }}</flux:button>
+                                <x-backoffice.management.action icon="adjustments-horizontal" :label="__('Manage')" variant="filled" color="sky" wire:click="viewOrder({{ $order->id }})" />
                             @endunless
                             @if ($order->has_invoice)
-                                <flux:button size="xs" variant="filled" :href="route('manage.orders.invoice', $order)">{{ __('Invoice') }}</flux:button>
+                                <x-backoffice.management.action icon="document-arrow-down" :label="__('Invoice')" variant="filled" :href="route('manage.orders.invoice', $order)" />
                             @endif
-                        </div>
+                        </x-backoffice.management.actions>
                     </flux:table.cell>
                 </flux:table.row>
             @empty
@@ -87,14 +87,14 @@
                     @endunless
 
                     <dl class="grid gap-4 sm:grid-cols-2">
-                        <x-backoffice.management.detail-item :label="__('Contact mode')">{{ $order->customer_contact_label }}</x-backoffice.management.detail-item>
-                        <x-backoffice.management.detail-item :label="__('Completed')">{{ formatDateTime($order->completed_at) ?: '-' }} {{ $order->completedBy?->name }}</x-backoffice.management.detail-item>
-                        <x-backoffice.management.detail-item :label="__('Last updated by')">{{ $order->lastUpdateLabel() }}</x-backoffice.management.detail-item>
+                        <x-backoffice.management.detail-item :label="__('Contact Mode')">{{ $order->customer_contact_label }}</x-backoffice.management.detail-item>
+                        <x-backoffice.management.detail-item :label="__('Completed')">{{ formatDateTime($order->completed_at) ?: appEmptyValue() }} {{ $order->completedBy?->name }}</x-backoffice.management.detail-item>
+                        <x-backoffice.management.detail-item :label="__('Last Updated by')">{{ $order->lastUpdateLabel() }}</x-backoffice.management.detail-item>
                         @if ($order->shipping_address)
-                            <x-backoffice.management.detail-item :label="__('Delivery address')">{{ $order->shipping_address }}</x-backoffice.management.detail-item>
+                            <x-backoffice.management.detail-item :label="__('Delivery Address')">{{ $order->shipping_address }}</x-backoffice.management.detail-item>
                         @endif
                         @if ($order->notes)
-                            <x-backoffice.management.detail-item :label="__('Customer note')">{{ $order->notes }}</x-backoffice.management.detail-item>
+                            <x-backoffice.management.detail-item :label="__('Customer Note')">{{ $order->notes }}</x-backoffice.management.detail-item>
                         @endif
                     </dl>
 
@@ -112,13 +112,13 @@
             <x-slot:footer>
                 <div class="flex flex-wrap justify-end gap-2">
                     <flux:modal.close>
-                        <flux:button type="button">{{ __('Close') }}</flux:button>
+                        <x-ui.button type="button">{{ __('Close') }}</x-ui.button>
                     </flux:modal.close>
                     @if ($order->has_invoice)
-                        <flux:button icon="arrow-down-tray" :href="route('manage.orders.invoice', $order)">{{ __('Invoice') }}</flux:button>
+                        <x-ui.button icon="arrow-down-tray" :href="route('manage.orders.invoice', $order)">{{ __('Invoice') }}</x-ui.button>
                     @endif
                     @unless ($order->status->isCancelled())
-                        <flux:button variant="filled" color="sky" wire:click="viewOrder({{ $order->id }})">{{ __('Manage') }}</flux:button>
+                        <x-ui.button variant="filled" color="sky" wire:click="viewOrder({{ $order->id }})">{{ __('Manage') }}</x-ui.button>
                     @endunless
                 </div>
             </x-slot:footer>
@@ -134,12 +134,12 @@
                     <x-backoffice.orders.customer-card :order="$order" :extra-discount="$this->extraDiscountPreview" />
 
                     <div class="grid gap-4 sm:grid-cols-[1fr_9rem_1.5fr]">
-                        <flux:select wire:model.live="orderPaymentStatus" :label="__('Payment status')">
+                        <flux:select wire:model.live="orderPaymentStatus" :label="__('Payment Status')">
                             @foreach ($this->paymentStatusOptions as $value => $label)
                                 <flux:select.option :value="$value">{{ $label }}</flux:select.option>
                             @endforeach
                         </flux:select>
-                        <flux:select wire:model="paymentMethod" :label="__('Payment mode')">
+                        <flux:select wire:model="paymentMethod" :label="__('Payment Mode')">
                             @foreach ($this->paymentMethodOptions as $value => $label)
                                 <flux:select.option :value="$value">{{ $label }}</flux:select.option>
                             @endforeach
@@ -150,20 +150,20 @@
                     <flux:text class="text-xs">{{ __('Marking the payment as paid completes the order and unlocks the books in the customer\'s library.') }}</flux:text>
 
                     <div class="grid gap-4 sm:grid-cols-3">
-                        <flux:select wire:model="contactMode" :label="__('Contact mode')" :placeholder="__('Not yet')">
+                        <flux:select wire:model="contactMode" :label="__('Contact Mode')" :placeholder="__('Not yet')">
                             @foreach ($this->contactModeOptions as $value => $label)
                                 <flux:select.option :value="$value">{{ $label }}</flux:select.option>
                             @endforeach
                         </flux:select>
-                        <flux:select wire:model="orderStatus" :label="__('Order status')">
+                        <flux:select wire:model="orderStatus" :label="__('Order Status')">
                             @foreach ($this->editableStatusOptions as $value => $option)
                                 <flux:select.option :value="$value" :disabled="$option['disabled']">{{ $option['label'] }}</flux:select.option>
                             @endforeach
                         </flux:select>
-                        <flux:input type="number" step="1" min="0" :max="shopMaxExtraDiscount()" wire:model.live.debounce.400ms="extraDiscountPercentage" :disabled="! $order->isExtraDiscountEditable()" :label="__('Extra discount (%)')" :placeholder="__('Max :max%', ['max' => shopMaxExtraDiscount()])" />
+                        <flux:input type="number" step="1" min="0" :max="shopMaxExtraDiscount()" wire:model.live.debounce.400ms="extraDiscountPercentage" :disabled="! $order->isExtraDiscountEditable()" :label="__('Extra Discount (%)')" :placeholder="__('Max :max%', ['max' => shopMaxExtraDiscount()])" />
                     </div>
 
-                    <flux:textarea wire:model="internalNote" :label="__('Internal note')" rows="2" :placeholder="__('Only visible to staff')" />
+                    <flux:textarea wire:model="internalNote" :label="__('Internal Note')" rows="2" :placeholder="__('Only visible to staff')" />
                 </x-ui.tab-panel>
 
                 <x-ui.tab-panel name="items">
@@ -173,7 +173,7 @@
 
             @if ($order->isCancellable())
                 <x-slot:footerActions>
-                    <flux:button type="button" variant="danger" class="w-full sm:w-auto" wire:click="$set('showCancelConfirmation', true)">{{ __('Cancel order') }}</flux:button>
+                    <x-ui.button type="button" variant="danger" class="w-full sm:w-auto" wire:click="$set('showCancelConfirmation', true)">{{ __('Cancel Order') }}</x-ui.button>
                 </x-slot:footerActions>
             @endif
         @endif
@@ -184,9 +184,9 @@
         <x-slot:footer>
             <div class="flex justify-end gap-2">
                 <flux:modal.close>
-                    <flux:button type="button">{{ __('Close') }}</flux:button>
+                    <x-ui.button type="button">{{ __('Close') }}</x-ui.button>
                 </flux:modal.close>
-                <flux:button type="button" variant="danger" wire:click="cancelOrder">{{ __('Cancel order') }}</flux:button>
+                <x-ui.button type="button" variant="danger" wire:click="cancelOrder">{{ __('Cancel Order') }}</x-ui.button>
             </div>
         </x-slot:footer>
     </x-backoffice.management.form-modal>

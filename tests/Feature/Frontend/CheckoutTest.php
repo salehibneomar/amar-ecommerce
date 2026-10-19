@@ -181,7 +181,7 @@ test('guests must create an account before placing an order', function () {
 
     Livewire::test(Checkout::class)
         ->assertSee('Create a free account')
-        ->assertSee('Create account')
+        ->assertSee('Create Account')
         ->assertSee('Log in')
         ->assertDontSee('Place order');
 });
@@ -269,10 +269,10 @@ test('signed in customers get an order email without a password link', function 
 
 test('anyone can track an order with its id and the order email only', function () {
     $customer = User::factory()->create(['email' => 'buyer@example.com']);
-    $order = Order::factory()->for($customer)->create(['public_order_id' => 'NK-TRACK1']);
+    $order = Order::factory()->for($customer)->create(['public_order_id' => 'AE-TRACK1']);
 
     Livewire::test(Track::class)
-        ->set('orderId', 'nk-track1')
+        ->set('orderId', 'ae-track1')
         ->set('email', 'someone@example.com')
         ->call('track')
         ->assertHasErrors('orderId')
@@ -281,7 +281,7 @@ test('anyone can track an order with its id and the order email only', function 
         ->call('track')
         ->assertHasNoErrors()
         ->assertSet('foundOrderId', $order->id)
-        ->assertSee('NK-TRACK1');
+        ->assertSee('AE-TRACK1');
 
     $this->get(route('orders.track'))->assertOk();
 });

@@ -95,7 +95,7 @@ function shopConfig(string $key, mixed $default = null): mixed
 
 function shopOrderPrefix(): string
 {
-    return (string) shopConfig('order_prefix', 'NK');
+    return (string) shopConfig('order_prefix', 'AE');
 }
 
 function isGlobalOfferOnly(): bool
@@ -106,6 +106,16 @@ function isGlobalOfferOnly(): bool
 function shopMaxExtraDiscount(): int
 {
     return max(0, min(100, (int) shopConfig('max_extra_discount', 50)));
+}
+
+function appServerHost(): string
+{
+    return (string) config('app.server_host', '127.0.0.1');
+}
+
+function appEdition(): string
+{
+    return (string) config('app.edition', '');
 }
 
 function appServerPort(): int
@@ -121,6 +131,11 @@ function appCurrency(): string
 function appCurrencySymbol(): string
 {
     return (string) config('app.currency_symbol', '৳');
+}
+
+function appEmptyValue(): string
+{
+    return (string) config('app.empty_value', 'N/A');
 }
 
 function adminRoutePrefix(): string
@@ -409,4 +424,27 @@ function bookType(): string
 function backofficeNavigation(): array
 {
     return config('backoffice.navigation', []);
+}
+
+/**
+ * @return array<string, array<int, string>>
+ */
+function themePalettes(): array
+{
+    return config('theme.palettes', []);
+}
+
+function themeBrandColor(): string
+{
+    return themePalettes()['brand'][(int) config('theme.brand', 600)] ?? '#000000';
+}
+
+function themeBrandDarkColor(): string
+{
+    return themePalettes()['brand'][(int) config('theme.brand_dark', 500)] ?? themeBrandColor();
+}
+
+function themeBrandForeground(): string
+{
+    return (string) config('theme.brand_foreground', '#ffffff');
 }

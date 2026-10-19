@@ -53,7 +53,7 @@ test('the dropdown shows the latest five and opening one marks it read', functio
     $latest = $admin->notifications()->latest()->first();
 
     $component = Livewire::actingAs($admin)->test(Dropdown::class)
-        ->assertSee(__('View all notifications'))
+        ->assertSee(__('View All Notifications'))
         ->assertSee($orders->last()->public_order_id)
         ->assertDontSee($orders->first()->public_order_id);
 

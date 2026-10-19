@@ -28,13 +28,13 @@
             x-bind:aria-modal="open"
             aria-label="{{ $label }}"
             {{ $attributes->class([
-                'invisible fixed inset-y-0 z-50 flex w-full max-w-md flex-col bg-surface shadow-xl transition-[translate,visibility] duration-200 ease-out data-open:visible data-open:translate-x-0',
+                'invisible fixed inset-y-0 z-50 flex w-full max-w-md flex-col glass-solid transition-[translate,visibility] duration-200 ease-out data-open:visible data-open:translate-x-0',
                 'end-0 translate-x-full rtl:-translate-x-full' => $side === 'end',
                 'start-0 -translate-x-full rtl:translate-x-full' => $side === 'start',
-                'lg:visible lg:sticky lg:top-24 lg:bottom-auto lg:z-auto lg:w-auto lg:max-w-none lg:translate-none lg:bg-transparent lg:shadow-none lg:transition-none dark:lg:bg-transparent' => $static,
+                'lg:visible lg:sticky lg:top-24 lg:bottom-auto lg:z-auto lg:w-auto lg:max-w-none lg:translate-none lg:bg-transparent lg:shadow-none lg:backdrop-filter-none lg:transition-none dark:lg:bg-transparent' => $static,
             ]) }}
         >
-            <div @class(['flex h-16 shrink-0 items-center justify-between gap-2 border-b border-zinc-200/80 px-4 dark:border-zinc-800', 'lg:hidden' => $static])>
+            <div @class(['flex h-16 shrink-0 items-center justify-between gap-2 border-b border-glass-line px-4', 'lg:hidden' => $static])>
                 {{ $header }}
             </div>
 
@@ -43,7 +43,7 @@
             </div>
 
             @isset($footer)
-                <div @class(['shrink-0 border-t border-zinc-200/80 p-4 dark:border-zinc-800', 'lg:hidden' => $static])>
+                <div @class(['shrink-0 border-t border-glass-line p-4', 'lg:hidden' => $static])>
                     {{ $footer }}
                 </div>
             @endisset

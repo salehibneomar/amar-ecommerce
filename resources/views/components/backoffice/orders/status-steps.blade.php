@@ -6,7 +6,7 @@
             <span @class([
                 'flex size-6 shrink-0 items-center justify-center rounded-full text-xs font-semibold',
                 'bg-emerald-500 text-white' => $step['reached'] && ! $step['current'],
-                'bg-blue-600 text-white ring-4 ring-blue-100 dark:ring-blue-950' => $step['current'],
+                'bg-brand-600 text-brand-foreground ring-4 ring-brand-100 dark:ring-brand-950' => $step['current'],
                 'bg-zinc-200 text-zinc-500 dark:bg-zinc-700 dark:text-zinc-400' => ! $step['reached'],
             ])>
                 @if ($step['reached'] && ! $step['current'])

@@ -7,7 +7,7 @@ return [
 
     'navigation' => [
         [
-            'heading' => null,
+            'heading' => 'Sales',
             'items' => [
                 ['label' => 'Orders', 'icon' => 'shopping-bag', 'route' => 'manage.orders.index', 'active' => 'manage.orders.*', 'permission' => PermissionEnum::ManageOrders->value],
                 ['label' => 'Sales Reports', 'icon' => 'chart-bar', 'route' => 'manage.sales-reports.index', 'active' => 'manage.sales-reports.*', 'permission' => PermissionEnum::ViewReports->value],
@@ -21,7 +21,7 @@ return [
             ],
         ],
         [
-            'heading' => 'Content',
+            'heading' => 'Shop Content',
             'items' => [
                 ['label' => 'Banners', 'icon' => 'photo', 'route' => 'manage.banners.index', 'active' => 'manage.banners.*', 'permission' => PermissionEnum::ManageBanners->value],
                 ['label' => 'FAQs', 'icon' => 'question-mark-circle', 'route' => 'manage.faqs.index', 'active' => 'manage.faqs.*', 'permission' => PermissionEnum::ManageFaqs->value],

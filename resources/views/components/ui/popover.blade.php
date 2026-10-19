@@ -29,7 +29,7 @@
             x-on:click.outside="open && ! $refs.trigger.contains($event.target) && (open = false)"
             role="dialog"
             aria-label="{{ $label }}"
-            {{ $attributes->class(['invisible fixed inset-x-0 z-50 mx-auto -translate-y-2 border-y border-line bg-surface opacity-0 shadow-md transition-[opacity,translate,visibility] duration-200 data-open:visible data-open:translate-y-0 data-open:opacity-100 sm:inset-x-4 sm:max-w-xl sm:rounded-lg sm:border-x']) }}
+            {{ $attributes->class(['invisible fixed inset-x-0 z-50 mx-auto -translate-y-2 border-y glass-solid opacity-0 transition-[opacity,translate,visibility] duration-200 data-open:visible data-open:translate-y-0 data-open:opacity-100 sm:inset-x-4 sm:max-w-xl sm:rounded-xl sm:border-x']) }}
         >
             {{ $slot }}
         </div>

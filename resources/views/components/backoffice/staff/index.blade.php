@@ -2,11 +2,11 @@
     <x-backoffice.layout.main-content-container :title="__('Manage Staff')" :subtitle="__('Staff sign in on the admin login page and see the sections their role allows.')">
         <x-backoffice.management.table :sortable="$this->tableSortableColumns" :columns="[
             'id' => __('ID'),
-            'name' => __('Staff member'),
+            'name' => __('Staff Member'),
             'role' => __('Role'),
             'tenure' => __('Joined'),
             'compensation' => __('Compensation'),
-            'permissions' => __('Extra permissions'),
+            'permissions' => __('Extra Permissions'),
             'status' => __('Status'),
             'actions' => __('Actions'),
         ]" :sort-by="$sortBy" :sort-direction="$sortDirection">
@@ -15,8 +15,8 @@
                     <x-backoffice.management.per-page :placeholder="__('Select')" />
                 </div>
                 <div class="flex items-end gap-2">
-                    <x-backoffice.management.search model="search" :placeholder="__('Search staff...')" :label="__('Search staff')" class="max-w-xs" />
-                    <flux:button variant="primary" wire:click="createStaff">{{ __('Add Staff') }}</flux:button>
+                    <x-backoffice.management.search model="search" :placeholder="__('Search staff...')" :label="__('Search Staff')" class="max-w-xs" />
+                    <x-ui.button variant="primary" wire:click="createStaff">{{ __('Add Staff') }}</x-ui.button>
                 </div>
             </x-slot:toolbar>
 
@@ -26,7 +26,7 @@
                         <flux:table.cell>{{ $member->id }}</flux:table.cell>
                         <flux:table.cell>
                             <div class="flex items-center gap-3">
-                                <flux:avatar size="sm" :name="$member->name" />
+                                <x-ui.avatar size="sm" :name="$member->name" />
                                 <div class="min-w-0">
                                     <p class="truncate font-medium">{{ $member->name }}</p>
                                     <p class="truncate text-xs text-zinc-500">{{ $member->email }}</p>
@@ -35,52 +35,47 @@
                         </flux:table.cell>
                         <flux:table.cell>
                             @foreach ($member->roles as $role)
-                                <flux:badge size="sm" color="violet">{{ $role->label }}</flux:badge>
+                                <x-ui.badge color="violet">{{ $role->label }}</x-ui.badge>
                             @endforeach
                         </flux:table.cell>
                         <flux:table.cell>
-                            <p>{{ $member->staffProfile?->joined_at?->format('d/m/Y') ?? '-' }}</p>
+                            <p>{{ $member->staffProfile?->joined_at?->format('d/m/Y') ?? appEmptyValue() }}</p>
                             @if ($member->staffProfile?->left_at)
                                 <p class="text-xs text-zinc-500">{{ __('Left :date', ['date' => $member->staffProfile->left_at->format('d/m/Y')]) }}</p>
                             @endif
                         </flux:table.cell>
                         <flux:table.cell>
                             @if ($profile = $member->staffProfile)
-                                <p class="font-medium">
-                                    @if ($profile->compensation_type->isPercentage())
-                                        {{ __(':value% of monthly sales', ['value' => (float) $profile->compensation_value]) }}
-                                    @else
-                                        {{ __(':value per month', ['value' => formatMoney($profile->compensation_value)]) }}
-                                    @endif
-                                </p>
+                                <p class="font-medium">{{ $profile->compensationLabel() }}</p>
                                 <p class="text-xs text-zinc-500">{{ $profile->compensation_type->label() }}</p>
                             @else
-                                <span class="text-zinc-400">-</span>
+                                <x-ui.empty-value />
                             @endif
                         </flux:table.cell>
                         <flux:table.cell>
                             <div class="flex max-w-xs flex-wrap gap-1">
                                 @forelse ($member->permissions as $permission)
-                                    <flux:badge size="sm" color="green">{{ $this->permissionOptions[$permission->name] ?? $permission->name }}</flux:badge>
+                                    <x-ui.badge color="green">{{ $this->permissionOptions[$permission->name] ?? $permission->name }}</x-ui.badge>
                                 @empty
                                     <span class="text-xs text-zinc-400">{{ __('Role only') }}</span>
                                 @endforelse
                             </div>
                         </flux:table.cell>
                         <flux:table.cell>
-                            <flux:badge size="sm" :color="$member->status->color()">{{ $member->status->label() }}</flux:badge>
+                            <x-ui.badge :color="$member->status->color()">{{ $member->status->label() }}</x-ui.badge>
                         </flux:table.cell>
                         <flux:table.cell>
-                            <div class="flex flex-wrap gap-1">
-                                <flux:button size="xs" variant="filled" color="sky" wire:click="editStaff({{ $member->id }})">{{ __('Edit') }}</flux:button>
-                                <flux:button size="xs" variant="filled" color="violet" wire:click="editPermissions({{ $member->id }})">{{ __('Permissions') }}</flux:button>
-                                <flux:button size="xs" variant="filled" color="green" :href="route('manage.staff.payments', $member->id)" wire:navigate>{{ __('Payments') }}</flux:button>
+                            <x-backoffice.management.actions>
+                                <x-backoffice.management.action icon="eye" :label="__('View')" variant="filled" wire:click="viewStaff({{ $member->id }})" />
+                                <x-backoffice.management.action icon="pencil-square" :label="__('Edit')" variant="filled" color="sky" wire:click="editStaff({{ $member->id }})" />
+                                <x-backoffice.management.action icon="key" :label="__('Permissions')" variant="filled" color="violet" wire:click="editPermissions({{ $member->id }})" />
+                                <x-backoffice.management.action icon="banknotes" :label="__('Payments')" variant="filled" color="green" :href="route('manage.staff.payments', $member->id)" wire:navigate />
                                 @if ($member->status->isActive())
-                                    <flux:button size="xs" variant="danger" wire:click="confirmToggleStatus({{ $member->id }})">{{ __('Deactivate') }}</flux:button>
+                                    <x-backoffice.management.action icon="no-symbol" :label="__('Deactivate')" variant="danger" wire:click="confirmToggleStatus({{ $member->id }})" />
                                 @else
-                                    <flux:button size="xs" variant="filled" wire:click="confirmToggleStatus({{ $member->id }})">{{ __('Activate') }}</flux:button>
+                                    <x-backoffice.management.action icon="check-circle" :label="__('Activate')" variant="filled" wire:click="confirmToggleStatus({{ $member->id }})" />
                                 @endif
-                            </div>
+                            </x-backoffice.management.actions>
                         </flux:table.cell>
                     </flux:table.row>
                 @empty
@@ -105,12 +100,12 @@
                 </flux:select>
             </div>
             @if ($this->isAdminRole)
-                <flux:callout icon="shield-check" :heading="__('Admins can do anything by default')" :text="__('A new admin gets every permission. Use Permissions to give a particular admin less.')" />
+                <x-ui.alert icon="shield-check" :heading="__('Admins can do anything by default')" :text="__('A new admin gets every permission. Use Permissions to give a particular admin less.')" />
             @endif
 
             <div class="grid grid-cols-1 gap-4 sm:grid-cols-2 [&_input]:min-w-0">
-                <flux:input wire:model="joinedAt" type="date" :label="__('Joining date')" />
-                <flux:input wire:model="leftAt" type="date" :label="__('Leaving date')" />
+                <flux:input wire:model="joinedAt" type="date" :label="__('Joining Date')" />
+                <flux:input wire:model="leftAt" type="date" :label="__('Leaving Date')" />
             </div>
 
             <flux:radio.group wire:model.live="compensationType" :label="__('Compensation')" :description="__('Choose one: a fixed monthly salary or a share of the month\'s total sales.')" variant="segmented">
@@ -138,13 +133,15 @@
             <x-slot:footer>
                 <div class="flex justify-end gap-2">
                     <flux:modal.close>
-                        <flux:button type="button">{{ __('Close') }}</flux:button>
+                        <x-ui.button type="button">{{ __('Close') }}</x-ui.button>
                     </flux:modal.close>
-                    <flux:button :variant="$statusStaffIsActive ? 'danger' : 'primary'" wire:click="toggleStatus">
+                    <x-ui.button :variant="$statusStaffIsActive ? 'danger' : 'primary'" wire:click="toggleStatus">
                         {{ $statusStaffIsActive ? __('Deactivate') : __('Activate') }}
-                    </flux:button>
+                    </x-ui.button>
                 </div>
             </x-slot:footer>
         </x-backoffice.management.form-modal>
+
+        <x-backoffice.management.details-modal wire:model="showDetails" size="2xl" :title="__('Staff Details')" :items="$details" :wide="[__('Extra permissions')]" />
     </x-backoffice.layout.main-content-container>
 </div>

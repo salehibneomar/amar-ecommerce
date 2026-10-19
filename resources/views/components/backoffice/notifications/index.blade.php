@@ -9,10 +9,10 @@
             <x-slot:toolbar>
                 <div class="flex items-center gap-2">
                     <x-backoffice.management.per-page :placeholder="__('Select')" />
-                    <x-backoffice.management.filter model="status" :label="__('Filter by status')" :options="$this->statusOptions" />
+                    <x-backoffice.management.filter model="status" :label="__('Filter by Status')" :options="$this->statusOptions" />
                 </div>
                 <div class="flex items-end gap-2">
-                    <x-backoffice.management.search model="search" :placeholder="__('Search notifications...')" :label="__('Search notifications')" class="max-w-xs" />
+                    <x-backoffice.management.search model="search" :placeholder="__('Search notifications...')" :label="__('Search Notifications')" class="max-w-xs" />
                 </div>
             </x-slot:toolbar>
 
@@ -30,12 +30,10 @@
                         </flux:table.cell>
                         <flux:table.cell>{{ $notification['date'] }}</flux:table.cell>
                         <flux:table.cell>
-                            <flux:badge size="sm" :color="$notification['status']->color()">{{ $notification['status']->label() }}</flux:badge>
+                            <x-ui.badge :color="$notification['status']->color()">{{ $notification['status']->label() }}</x-ui.badge>
                         </flux:table.cell>
                         <flux:table.cell>
-                            <flux:button size="xs" variant="filled" wire:click="toggleNotification('{{ $notification['id'] }}')">
-                                {{ $notification['status']->toggleLabel() }}
-                            </flux:button>
+                            <x-backoffice.management.action :icon="$notification['status']->isRead() ? 'envelope' : 'envelope-open'" :label="$notification['status']->toggleLabel()" wire:click="toggleNotification('{{ $notification['id'] }}')" />
                         </flux:table.cell>
                     </flux:table.row>
                 @empty

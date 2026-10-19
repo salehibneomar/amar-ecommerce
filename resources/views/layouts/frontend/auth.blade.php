@@ -3,9 +3,9 @@
 ])
 
 <x-layouts::frontend :title="$title">
-    <div class="flex justify-center px-4 py-12 sm:py-16">
-        <div class="w-full max-w-md rounded-2xl border border-zinc-200/80 bg-white shadow-card p-6 sm:p-8 dark:border-zinc-800 dark:bg-zinc-900">
+    <div class="flex justify-center px-4 py-12 sm:py-20">
+        <x-ui.card class="w-full max-w-md p-6 sm:p-8">
             {{ $slot }}
-        </div>
+        </x-ui.card>
     </div>
 </x-layouts::frontend>

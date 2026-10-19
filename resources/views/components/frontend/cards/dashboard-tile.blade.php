@@ -6,17 +6,11 @@
     'tone' => 'brand',
 ])
 
-<div {{ $attributes->class(['rounded-2xl shadow-card border border-line bg-surface p-5']) }}>
+<x-ui.card {{ $attributes->class('p-5') }}>
     <div class="flex items-start gap-4">
-        <span @class([
-            'flex size-11 shrink-0 items-center justify-center rounded-xl',
-            'bg-brand-50 text-brand-700 dark:bg-brand-950 dark:text-brand-300' => $tone === 'brand',
-            'bg-green-50 text-green-700 dark:bg-green-950 dark:text-green-300' => $tone === 'success',
-            'bg-amber-50 text-amber-700 dark:bg-amber-950 dark:text-amber-300' => $tone === 'warning',
-            'bg-zinc-100 text-zinc-600 dark:bg-zinc-800 dark:text-zinc-300' => $tone === 'muted',
-        ])>
+        <x-ui.icon-badge size="lg" :tone="match ($tone) { 'success' => 'success', 'warning' => 'warning', 'muted' => 'neutral', default => 'brand' }">
             <span class="material-symbols-outlined">{{ $icon }}</span>
-        </span>
+        </x-ui.icon-badge>
         <div class="min-w-0">
             <p class="text-sm text-zinc-500 dark:text-zinc-400">{{ $label }}</p>
             <p class="text-lg font-semibold text-zinc-900 dark:text-white">{{ $value }}</p>
@@ -28,4 +22,4 @@
             @endif
         </div>
     </div>
-</div>
+</x-ui.card>

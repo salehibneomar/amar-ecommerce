@@ -8,7 +8,7 @@
             <!-- Email Address -->
             <flux:input
                 name="email"
-                :label="__('Email address')"
+                :label="__('Email Address')"
                 :value="old('email')"
                 type="email"
                 required
@@ -32,7 +32,7 @@
 
             <!-- Remember Me -->
             <div class="flex items-center justify-between gap-4">
-                <flux:checkbox name="remember" :label="__('Remember me')" :checked="old('remember')" />
+                <flux:checkbox name="remember" :label="__('Remember Me')" :checked="old('remember')" />
 
                 @if (Route::has('password.request'))
                     <flux:link class="shrink-0 text-sm" :href="route('password.request')" wire:navigate>
@@ -42,9 +42,9 @@
             </div>
 
             <div class="flex items-center justify-end">
-                <flux:button variant="primary" type="submit" class="w-full" data-test="login-button">
+                <x-ui.button variant="primary" type="submit" class="w-full" data-test="login-button">
                     {{ __('Log in') }}
-                </flux:button>
+                </x-ui.button>
             </div>
         </form>
 

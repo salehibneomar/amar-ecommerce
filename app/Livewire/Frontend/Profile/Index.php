@@ -49,12 +49,13 @@ class Index extends Component
     }
 
     /**
-     * @return list<array{label: string, connected: bool}>
+     * @return list<array{provider: string, label: string, connected: bool}>
      */
     #[Computed]
     public function socialAccounts(): array
     {
         return array_map(fn (SocialProviderEnum $provider): array => [
+            'provider' => $provider->value,
             'label' => $provider->label(),
             'connected' => filled(Auth::user()->{$provider->column()}),
         ], SocialProviderEnum::cases());

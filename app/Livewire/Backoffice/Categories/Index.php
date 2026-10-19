@@ -133,10 +133,10 @@ class Index extends Component
             __('Slug') => $category->slug,
             __('Parent') => $category->parent?->name,
             __('Status') => $category->status->label(),
-            __('Display order') => (string) $category->sort_order,
+            __('Display Order') => (string) $category->sort_order,
             __('Featured') => $category->is_featured,
             __('Created') => formatDateTime($category->created_at),
-            __('Last updated by') => $category->lastUpdateLabel(),
+            __('Last Updated by') => $category->lastUpdateLabel(),
             __('Description') => $category->description,
         ];
         $this->showDetails = true;

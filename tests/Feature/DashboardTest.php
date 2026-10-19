@@ -33,7 +33,7 @@ test('the dashboard summarises customers revenue orders and books', function () 
     User::factory()->blocked()->create(['name' => 'Blocked Customer']);
     User::factory()->moderator()->create(['name' => 'Staff Member']);
 
-    Order::factory()->for($customer)->paid()->create(['public_order_id' => 'NK-DONE01', 'total' => 400, 'created_at' => '2026-10-05 10:00:00']);
+    Order::factory()->for($customer)->paid()->create(['public_order_id' => 'AE-DONE01', 'total' => 400, 'created_at' => '2026-10-05 10:00:00']);
     Order::factory()->for($customer)->paid()->create(['total' => 200, 'created_at' => '2026-09-05 10:00:00']);
     Order::factory()->for($customer)->create(['total' => 999]);
     Order::factory()->for($customer)->create(['status' => OrderStatusEnum::Cancelled, 'created_at' => '2026-09-20 10:00:00']);
@@ -52,13 +52,13 @@ test('the dashboard summarises customers revenue orders and books', function () 
             && array_column($panels['orders']['pipeline']['stages'], 'value') === [1, 0, 1, 0]
             && array_column($panels['inventory'], 'value') === [2, 0, 1])
         ->assertSeeInOrder(['Blocked Customer', 'New Customer', 'Old Customer'])
-        ->assertSee(['NK-DONE01', '1 open order'])
+        ->assertSee(['AE-DONE01', '1 open order'])
         ->assertDontSee('Staff Member');
 });
 
 test('moderators only see dashboard sections they have permission for', function () {
     User::factory()->create(['name' => 'Private Customer']);
-    Order::factory()->create(['public_order_id' => 'NK-HIDDEN']);
+    Order::factory()->create(['public_order_id' => 'AE-HIDDEN']);
     $moderator = User::factory()->moderator()->create();
 
     $this->actingAs($moderator)
@@ -66,7 +66,7 @@ test('moderators only see dashboard sections they have permission for', function
         ->assertOk()
         ->assertViewHas('stats', [])
         ->assertViewHas('panels', [])
-        ->assertDontSee(['Private Customer', 'NK-HIDDEN', __('Revenue this month'), __('Book inventory')]);
+        ->assertDontSee(['Private Customer', 'AE-HIDDEN', __('Revenue this month'), __('Book inventory')]);
 
     $moderator->givePermissionTo(PermissionEnum::ManageOrders->value);
 
@@ -74,6 +74,6 @@ test('moderators only see dashboard sections they have permission for', function
         ->get(route('dashboard'))
         ->assertViewHas('stats', fn (array $stats): bool => array_column($stats, 'label') === [__('Orders this month')])
         ->assertViewHas('panels', fn (array $panels): bool => array_keys($panels) === ['orders'])
-        ->assertSee('NK-HIDDEN')
+        ->assertSee('AE-HIDDEN')
         ->assertDontSee(['Private Customer', __('Revenue this month'), __('Book inventory')]);
 });

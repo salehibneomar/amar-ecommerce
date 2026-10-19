@@ -7,16 +7,16 @@
 
         <form wire:submit="updatePassword" class="space-y-6">
             @if ($this->hasPassword)
-                <flux:input wire:model="current_password" :label="__('Current password')" type="password" required
+                <flux:input wire:model="current_password" :label="__('Current Password')" type="password" required
                     autocomplete="current-password" viewable />
             @endif
-            <flux:input wire:model="password" :label="__('New password')" type="password" required
+            <flux:input wire:model="password" :label="__('New Password')" type="password" required
                 autocomplete="new-password" viewable />
-            <flux:input wire:model="password_confirmation" :label="__('Confirm password')" type="password" required
+            <flux:input wire:model="password_confirmation" :label="__('Confirm Password')" type="password" required
                 autocomplete="new-password" viewable />
 
             <div class="flex justify-end">
-                <flux:button variant="primary" type="submit" data-test="update-password-button">{{ __('Save') }}</flux:button>
+                <x-ui.button variant="primary" type="submit" data-test="update-password-button">{{ __('Save') }}</x-ui.button>
             </div>
         </form>
     </x-frontend.cards.card>

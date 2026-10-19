@@ -1,4 +1,4 @@
-<x-navigation.user-menu inverse>
+<x-navigation.user-menu bar>
     <x-frontend.layout.user-menu-item icon="squares-2x2" :href="route('user.dashboard')" :current="request()->routeIs('user.dashboard')" wire:navigate>
         {{ __('Dashboard') }}
     </x-frontend.layout.user-menu-item>

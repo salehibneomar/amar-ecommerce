@@ -6,7 +6,7 @@
 @if ($paginator->hasPages())
     <div class="flex flex-col items-start gap-2">
         <nav class="flex items-center gap-1" aria-label="{{ __('Pagination') }}">
-            <flux:button
+            <x-ui.button
                 size="sm"
                 variant="subtle"
                 icon="chevron-left"
@@ -22,20 +22,18 @@
                     @continue
                 @endif
 
-                <flux:button
+                <x-ui.button
                     size="sm"
-                    variant="subtle"
+                    :variant="$page === $paginator->currentPage() ? 'primary' : 'subtle'"
                     wire:click="setPage({{ $page }})"
-                    class="{{ $page === $paginator->currentPage()
-                        ? '!min-w-8 !border-brand-600 !bg-transparent !px-2 !text-brand-700 !shadow-none dark:!border-brand-400 dark:!bg-transparent dark:!text-brand-300'
-                        : '!min-w-8 !px-2 !shadow-none' }}"
+                    class="!min-w-8 !px-2 !shadow-none"
                     aria-current="{{ $page === $paginator->currentPage() ? 'page' : 'false' }}"
                 >
                     {{ $page }}
-                </flux:button>
+                </x-ui.button>
             @endforeach
 
-            <flux:button
+            <x-ui.button
                 size="sm"
                 variant="subtle"
                 icon="chevron-right"

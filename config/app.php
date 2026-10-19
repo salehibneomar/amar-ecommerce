@@ -13,7 +13,7 @@ return [
     |
     */
 
-    'name' => env('APP_NAME', 'MSc প্রস্তুতি'),
+    'name' => env('APP_NAME', 'AmarEcommerce'),
 
     /*
     |--------------------------------------------------------------------------
@@ -55,6 +55,8 @@ return [
     */
 
     'url' => env('APP_URL', 'http://localhost'),
+
+    'server_host' => env('SERVER_HOST', '127.0.0.1'),
 
     'server_port' => (int) env('SERVER_PORT', 8000),
 
@@ -140,6 +142,8 @@ return [
     */
 
     'owner' => env('APP_OWNER', 'Application Owner'),
+
+    'edition' => env('APP_EDITION', 'Lite'),
     'developer' => env('APP_DEVELOPER', 'Application Developer'),
 
     /*
@@ -150,6 +154,8 @@ return [
 
     'currency' => env('APP_CURRENCY', 'BDT'),
     'currency_symbol' => env('APP_CURRENCY_SYMBOL', '৳'),
+
+    'empty_value' => env('APP_EMPTY_VALUE', 'N/A'),
 
     'valid_phone_length' => (int) env('VALID_PHONE_LENGTH', 11),
 

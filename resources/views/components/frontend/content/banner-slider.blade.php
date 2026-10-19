@@ -45,11 +45,13 @@
                 @if ($slide['image'])
                     <img src="{{ $slide['image'] }}" alt="{{ $slide['title'] }}" class="size-full object-cover" draggable="false" @if ($index > 0) loading="lazy" @endif />
                 @else
-                    <div class="size-full bg-brand-100 dark:bg-brand-900"></div>
+                    <div class="size-full bg-linear-to-br from-brand-500 to-brand-800"></div>
                 @endif
 
                 @if ($slide['show_text'])
-                    <div class="absolute inset-0 bg-zinc-950/35"></div>
+                    @if ($slide['image'])
+                        <div class="absolute inset-0 bg-zinc-950/35"></div>
+                    @endif
                     <div class="absolute inset-0 flex items-center">
                         <div class="max-w-xl space-y-3 px-6 sm:space-y-4 sm:px-12">
                             <h2 class="text-2xl font-bold leading-tight text-white sm:text-4xl lg:text-5xl">{{ $slide['title'] }}</h2>

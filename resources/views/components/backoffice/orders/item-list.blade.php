@@ -1,6 +1,6 @@
 @props(['order'])
 
-<div {{ $attributes->class(['divide-y divide-zinc-200 rounded-lg border border-zinc-200 dark:divide-zinc-700 dark:border-zinc-700']) }}>
+<div {{ $attributes->class(['divide-y divide-line rounded-lg border border-line']) }}>
     @foreach ($order->items as $item)
         <div wire:key="order-item-{{ $item->id }}" class="flex items-center justify-between gap-3 px-3 py-2 text-sm">
             <div class="min-w-0">
@@ -18,7 +18,7 @@
             <span class="font-medium">{{ formatMoney($item->line_total) }}</span>
         </div>
     @endforeach
-    <div class="space-y-1 bg-zinc-50 px-3 py-2 text-sm dark:bg-zinc-800/50">
+    <div class="space-y-1 bg-subtle px-3 py-2 text-sm">
         <div class="flex justify-between text-zinc-500"><span>{{ __('Subtotal') }}</span><span>{{ formatMoney($order->subtotal) }}</span></div>
         @forelse ($order->applied_offers ?? [] as $offer)
             <div class="flex justify-between text-zinc-500"><span>{{ __(':name (:percent% off)', ['name' => $offer['name'], 'percent' => $offer['percentage']]) }}</span><span>− {{ formatMoney($offer['amount']) }}</span></div>

@@ -10,11 +10,11 @@
             <x-slot:toolbar>
                 <div class="flex items-center gap-2">
                     <x-backoffice.management.per-page :placeholder="__('Select')" />
-                    <x-backoffice.management.filter model="status" :label="__('Filter by status')" :options="$this->statusOptions" />
+                    <x-backoffice.management.filter model="status" :label="__('Filter by Status')" :options="$this->statusOptions" />
                 </div>
                 <div class="flex items-end gap-2">
                     <x-backoffice.management.search model="search" :placeholder="__('Search FAQs...')" :label="__('Search FAQs')" class="max-w-xs" />
-                    <flux:button variant="primary" wire:click="createFaq">{{ __('Add New') }}</flux:button>
+                    <x-ui.button variant="primary" wire:click="createFaq">{{ __('Add New') }}</x-ui.button>
                 </div>
             </x-slot:toolbar>
 
@@ -24,15 +24,15 @@
                         <flux:table.cell>{{ $faq->id }}</flux:table.cell>
                         <flux:table.cell class="max-w-md truncate">{{ $faq->title }}</flux:table.cell>
                         <flux:table.cell>
-                            <flux:badge size="sm" :color="$faq->status->color()">{{ $faq->status->label() }}</flux:badge>
+                            <x-ui.badge :color="$faq->status->color()">{{ $faq->status->label() }}</x-ui.badge>
                         </flux:table.cell>
                         <flux:table.cell>{{ $faq->created_at?->format('d/m/Y') }}</flux:table.cell>
                         <flux:table.cell>
-                            <div class="flex gap-2">
-                                <flux:button size="xs" variant="filled" wire:click="viewFaq({{ $faq->id }})">{{ __('View') }}</flux:button>
-                                <flux:button size="xs" variant="filled" color="sky" wire:click="editFaq({{ $faq->id }})">{{ __('Edit') }}</flux:button>
-                                <flux:button size="xs" variant="danger" wire:click="confirmDeleteFaq({{ $faq->id }})">{{ __('Delete') }}</flux:button>
-                            </div>
+                            <x-backoffice.management.actions>
+                                <x-backoffice.management.action icon="eye" :label="__('View')" variant="filled" wire:click="viewFaq({{ $faq->id }})" />
+                                <x-backoffice.management.action icon="pencil-square" :label="__('Edit')" variant="filled" color="sky" wire:click="editFaq({{ $faq->id }})" />
+                                <x-backoffice.management.action icon="trash" :label="__('Delete')" variant="danger" wire:click="confirmDeleteFaq({{ $faq->id }})" />
+                            </x-backoffice.management.actions>
                         </flux:table.cell>
                     </flux:table.row>
                 @empty
@@ -60,9 +60,9 @@
             <x-slot:footer>
                 <div class="flex justify-end gap-2">
                     <flux:modal.close>
-                        <flux:button type="button">{{ __('Close') }}</flux:button>
+                        <x-ui.button type="button">{{ __('Close') }}</x-ui.button>
                     </flux:modal.close>
-                    <flux:button variant="danger" wire:click="deleteFaq">{{ __('Delete') }}</flux:button>
+                    <x-ui.button variant="danger" wire:click="deleteFaq">{{ __('Delete') }}</x-ui.button>
                 </div>
             </x-slot:footer>
         </x-backoffice.management.form-modal>

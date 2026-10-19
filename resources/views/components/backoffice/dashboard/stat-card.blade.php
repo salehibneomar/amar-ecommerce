@@ -6,7 +6,7 @@
     'trendUp' => true,
 ])
 
-<flux:card {{ $attributes->class(['shadow-card flex items-start justify-between gap-4 border-line bg-surface']) }}>
+<flux:card {{ $attributes->class(['flex items-start justify-between gap-4']) }}>
     <div class="space-y-1">
         <flux:text>{{ $label }}</flux:text>
         <flux:heading size="xl">{{ $value }}</flux:heading>
@@ -22,7 +22,7 @@
         @endif
     </div>
 
-    <div class="flex size-11 shrink-0 items-center justify-center rounded-xl bg-brand-50 text-brand-700 dark:bg-brand-950 dark:text-brand-300">
+    <x-ui.icon-badge size="lg">
         <flux:icon :icon="$icon" variant="outline" class="size-5" />
-    </div>
+    </x-ui.icon-badge>
 </flux:card>

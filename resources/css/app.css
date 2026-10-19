@@ -47,34 +47,276 @@
     }
 }
 
-.icon-bold .material-symbols-outlined {
-    font-variation-settings: 'FILL' 1, 'wght' 600;
+/* Badges use the `sm` step of the radius scale (see `--radius-*` in @theme). */
+@layer utilities {
+    [data-flux-badge][data-flux-badge]:not([class*='rounded-full']) {
+        border-radius: var(--radius-sm);
+    }
 }
 
-[data-frontend] [data-flux-button] {
-    @apply rounded-lg;
-}
+/*
+ * One button style for the whole app: a soft tint of the button's tone (the "Save" look), with a matching border.
+ * `x-ui.button` sets `data-tone` from its variant and color: primary = brand, danger = red, outline and filled = neutral,
+ * a Flux `color` = that color. Ghost and subtle buttons get no tone and stay transparent. Change button colors here.
+ */
+[data-flux-button][data-tone='brand'] { --button-tone: var(--color-accent); }
+[data-flux-button][data-tone='neutral'] { --button-tone: var(--color-zinc-500); }
+[data-flux-button][data-tone='danger'] { --button-tone: var(--color-red-500); }
+[data-flux-button][data-tone='red'] { --button-tone: var(--color-red-500); }
+[data-flux-button][data-tone='orange'] { --button-tone: var(--color-orange-500); }
+[data-flux-button][data-tone='amber'] { --button-tone: var(--color-amber-500); }
+[data-flux-button][data-tone='yellow'] { --button-tone: var(--color-yellow-500); }
+[data-flux-button][data-tone='lime'] { --button-tone: var(--color-lime-500); }
+[data-flux-button][data-tone='green'] { --button-tone: var(--color-green-500); }
+[data-flux-button][data-tone='emerald'] { --button-tone: var(--color-emerald-500); }
+[data-flux-button][data-tone='teal'] { --button-tone: var(--color-teal-500); }
+[data-flux-button][data-tone='cyan'] { --button-tone: var(--color-cyan-500); }
+[data-flux-button][data-tone='sky'] { --button-tone: var(--color-sky-500); }
+[data-flux-button][data-tone='blue'] { --button-tone: var(--color-blue-500); }
+[data-flux-button][data-tone='indigo'] { --button-tone: var(--color-indigo-500); }
+[data-flux-button][data-tone='violet'] { --button-tone: var(--color-violet-500); }
+[data-flux-button][data-tone='purple'] { --button-tone: var(--color-purple-500); }
+[data-flux-button][data-tone='fuchsia'] { --button-tone: var(--color-fuchsia-500); }
+[data-flux-button][data-tone='pink'] { --button-tone: var(--color-pink-500); }
+[data-flux-button][data-tone='rose'] { --button-tone: var(--color-rose-500); }
+[data-flux-button][data-tone='zinc'] { --button-tone: var(--color-zinc-500); }
 
-[data-flux-button][class*='bg-[var(--color-accent)]'] {
-    background-color: color-mix(in oklab, var(--color-accent) 14%, transparent);
-    color: color-mix(in oklab, var(--color-accent) 80%, black);
-    border-color: color-mix(in oklab, var(--color-accent) 22%, transparent);
+[data-flux-button][data-tone] {
+    background-color: color-mix(in oklab, var(--button-tone) 14%, transparent);
+    background-image: none;
+    color: color-mix(in oklab, var(--button-tone) 80%, black);
+    border: 1px solid color-mix(in oklab, var(--button-tone) 22%, transparent);
     box-shadow: none;
     font-weight: 600;
+    -webkit-backdrop-filter: none;
+    backdrop-filter: none;
 }
 
-[data-flux-button][class*='bg-[var(--color-accent)]']:hover {
-    background-color: color-mix(in oklab, var(--color-accent) 24%, transparent);
+[data-flux-button][data-tone]:hover {
+    background-color: color-mix(in oklab, var(--button-tone) 24%, transparent);
 }
 
-.dark [data-flux-button][class*='bg-[var(--color-accent)]'] {
-    background-color: color-mix(in oklab, var(--color-accent) 26%, transparent);
+.dark [data-flux-button][data-tone] {
+    background-color: color-mix(in oklab, var(--button-tone) 26%, transparent);
+    color: color-mix(in oklab, var(--button-tone) 45%, white);
+    border-color: color-mix(in oklab, var(--button-tone) 35%, transparent);
+}
+
+.dark [data-flux-button][data-tone]:hover {
+    background-color: color-mix(in oklab, var(--button-tone) 36%, transparent);
+}
+
+/* Storefront neutral buttons take a lighter brand tint, so secondary actions match the brand UI while primary stays stronger. */
+[data-frontend] [data-flux-button][data-tone='neutral'] {
+    --button-tone: var(--color-accent);
+    background-color: color-mix(in oklab, var(--button-tone) 7%, transparent);
+    border-color: color-mix(in oklab, var(--button-tone) 20%, transparent);
+}
+
+[data-frontend] [data-flux-button][data-tone='neutral']:hover {
+    background-color: color-mix(in oklab, var(--button-tone) 15%, transparent);
+}
+
+[data-frontend].dark [data-flux-button][data-tone='neutral'] {
+    background-color: color-mix(in oklab, var(--button-tone) 14%, transparent);
+    border-color: color-mix(in oklab, var(--button-tone) 28%, transparent);
+}
+
+[data-frontend].dark [data-flux-button][data-tone='neutral']:hover {
+    background-color: color-mix(in oklab, var(--button-tone) 24%, transparent);
+}
+
+/*
+ * Checkboxes follow the button look: a checked box is a soft tint of the brand with a brand border and a brand check.
+ */
+ui-checkbox:is([data-checked], [data-indeterminate]) [data-flux-checkbox-indicator] {
+    background-color: color-mix(in oklab, var(--color-accent) 16%, var(--color-surface));
+    border-color: color-mix(in oklab, var(--color-accent) 45%, transparent);
+}
+
+ui-checkbox:is([data-checked], [data-indeterminate]) [data-flux-checkbox-indicator] svg {
+    color: color-mix(in oklab, var(--color-accent) 85%, black);
+}
+
+.dark ui-checkbox:is([data-checked], [data-indeterminate]) [data-flux-checkbox-indicator] {
+    background-color: color-mix(in oklab, var(--color-accent) 28%, var(--color-surface));
+    border-color: color-mix(in oklab, var(--color-accent) 50%, transparent);
+}
+
+.dark ui-checkbox:is([data-checked], [data-indeterminate]) [data-flux-checkbox-indicator] svg {
     color: color-mix(in oklab, var(--color-accent) 45%, white);
-    border-color: color-mix(in oklab, var(--color-accent) 35%, transparent);
 }
 
-.dark [data-flux-button][class*='bg-[var(--color-accent)]']:hover {
-    background-color: color-mix(in oklab, var(--color-accent) 36%, transparent);
+/*
+ * Surface buttons (`color="surface"`, third-party sign in): card-colored with a brand-tinted border and brand hover, so the provider logo carries the color.
+ * Secondary (neutral) buttons inside a tinted banner use the same look, so they stand apart from the banner and from the primary button.
+ */
+:is([data-flux-button][data-tone='surface'], [data-banner] [data-flux-button][data-tone='neutral']) {
+    --button-tone: var(--color-accent);
+    background-color: var(--color-surface);
+    color: var(--color-zinc-800);
+    border-color: color-mix(in oklab, var(--button-tone) 25%, var(--color-line));
+    box-shadow: var(--shadow-card);
+}
+
+:is([data-flux-button][data-tone='surface'], [data-banner] [data-flux-button][data-tone='neutral']):hover {
+    background-color: var(--color-menu-hover);
+    color: var(--color-bar-active-foreground);
+}
+
+.dark :is([data-flux-button][data-tone='surface'], [data-banner] [data-flux-button][data-tone='neutral']) {
+    background-color: var(--color-zinc-800);
+    color: var(--color-zinc-100);
+    border-color: color-mix(in oklab, var(--button-tone) 30%, transparent);
+}
+
+.dark :is([data-flux-button][data-tone='surface'], [data-banner] [data-flux-button][data-tone='neutral']):hover {
+    background-color: var(--color-menu-hover);
+    color: var(--color-bar-active-foreground);
+}
+
+/*
+ * More button colors for special places, all set through `x-ui.button color="…"`:
+ * `field` looks like an input (a control beside selects and search fields), `overlay` sits on an image,
+ * `transparent` is see-through with the primary border. A ghost or subtle button with a `color` keeps no fill
+ * and only takes that color for its text (a red remove icon).
+ */
+[data-flux-button][data-tone='field'] {
+    --button-tone: var(--color-zinc-500);
+    background-color: var(--color-white);
+    color: var(--color-zinc-800);
+    border-color: var(--color-zinc-200);
+    border-bottom-color: color-mix(in oklab, var(--color-zinc-300) 80%, transparent);
+    box-shadow: 0 1px 2px 0 rgb(0 0 0 / 0.05);
+    font-weight: 500;
+}
+
+[data-flux-button][data-tone='field']:hover {
+    background-color: var(--color-zinc-50);
+}
+
+[data-flux-button][data-tone='overlay'] {
+    --button-tone: var(--color-zinc-500);
+    background-color: color-mix(in oklab, var(--color-surface) 90%, transparent);
+    color: var(--color-zinc-800);
+    border-color: var(--color-line);
+    -webkit-backdrop-filter: blur(8px);
+    backdrop-filter: blur(8px);
+}
+
+[data-flux-button][data-tone='overlay']:hover {
+    background-color: var(--color-menu-hover);
+    color: var(--color-bar-active-foreground);
+}
+
+[data-flux-button][data-tone='transparent'] {
+    --button-tone: var(--color-accent);
+    background-color: transparent;
+    color: var(--color-zinc-800);
+    border-color: color-mix(in oklab, var(--button-tone) 22%, transparent);
+}
+
+[data-flux-button][data-tone='transparent']:hover {
+    background-color: color-mix(in oklab, var(--button-tone) 7%, transparent);
+}
+
+[data-flux-button][data-tone][data-ghost] {
+    background-color: transparent;
+    color: color-mix(in oklab, var(--button-tone) 85%, black);
+    border-color: transparent;
+}
+
+[data-flux-button][data-tone][data-ghost]:hover {
+    background-color: color-mix(in oklab, var(--button-tone) 10%, transparent);
+}
+
+.dark [data-flux-button][data-tone='field'] {
+    background-color: color-mix(in oklab, var(--color-white) 10%, transparent);
+    color: var(--color-zinc-100);
+    border-color: color-mix(in oklab, var(--color-white) 10%, transparent);
+}
+
+.dark [data-flux-button][data-tone='field']:hover {
+    background-color: color-mix(in oklab, var(--color-white) 15%, transparent);
+}
+
+.dark [data-flux-button][data-tone='overlay'] {
+    background-color: color-mix(in oklab, var(--color-zinc-900) 90%, transparent);
+    color: var(--color-zinc-100);
+    border-color: var(--color-line);
+}
+
+.dark [data-flux-button][data-tone='overlay']:hover {
+    background-color: var(--color-menu-hover);
+    color: var(--color-bar-active-foreground);
+}
+
+.dark [data-flux-button][data-tone='transparent'] {
+    background-color: transparent;
+    color: var(--color-zinc-100);
+    border-color: color-mix(in oklab, var(--button-tone) 35%, transparent);
+}
+
+.dark [data-flux-button][data-tone='transparent']:hover {
+    background-color: color-mix(in oklab, var(--button-tone) 14%, transparent);
+}
+
+.dark [data-flux-button][data-tone][data-ghost] {
+    background-color: transparent;
+    color: color-mix(in oklab, var(--button-tone) 70%, white);
+    border-color: transparent;
+}
+
+.dark [data-flux-button][data-tone][data-ghost]:hover {
+    background-color: color-mix(in oklab, var(--button-tone) 18%, transparent);
+}
+
+/* Buttons on the header bars and the admin sidebar (`x-ui.button bar`): bar text, bar hover. */
+[data-flux-button][data-bar] {
+    color: var(--color-bar-foreground);
+}
+
+[data-flux-button][data-bar]:hover {
+    background-color: var(--color-bar-hover);
+    color: var(--color-bar-active-foreground);
+}
+
+/*
+ * Alerts (`x-ui.alert`, Flux callouts) and banners (`x-ui.banner`, tinted panels) share one set of tones.
+ * Each gets a light tint and a border in its tone. Body text stays neutral gray, headings take the tone.
+ */
+:is([data-flux-callout], [data-banner])[data-tone='brand'] { --alert-tone: var(--color-brand-500); }
+:is([data-flux-callout], [data-banner])[data-tone='accent'] { --alert-tone: var(--color-gold-500); }
+:is([data-flux-callout], [data-banner])[data-tone='info'] { --alert-tone: var(--color-sky-500); }
+:is([data-flux-callout], [data-banner])[data-tone='success'] { --alert-tone: var(--color-green-500); }
+:is([data-flux-callout], [data-banner])[data-tone='warning'] { --alert-tone: var(--color-amber-500); }
+:is([data-flux-callout], [data-banner])[data-tone='danger'] { --alert-tone: var(--color-red-500); }
+:is([data-flux-callout], [data-banner])[data-tone='neutral'] { --alert-tone: var(--color-zinc-500); }
+
+[data-flux-callout][data-tone] {
+    --callout-border: color-mix(in oklab, var(--alert-tone) 32%, transparent);
+    --callout-background: color-mix(in oklab, var(--alert-tone) 8%, transparent);
+    --callout-heading: color-mix(in oklab, var(--alert-tone) 70%, black);
+    --callout-text: var(--color-zinc-600);
+    --callout-icon: var(--alert-tone);
+}
+
+.dark [data-flux-callout][data-tone] {
+    --callout-border: color-mix(in oklab, var(--alert-tone) 40%, transparent);
+    --callout-background: color-mix(in oklab, var(--alert-tone) 14%, transparent);
+    --callout-heading: color-mix(in oklab, var(--alert-tone) 45%, white);
+    --callout-text: var(--color-zinc-300);
+}
+
+[data-banner][data-tone] {
+    background-color: color-mix(in oklab, var(--alert-tone) 8%, transparent);
+    border-width: 1px;
+    border-color: color-mix(in oklab, var(--alert-tone) 32%, transparent);
+}
+
+.dark [data-banner][data-tone] {
+    background-color: color-mix(in oklab, var(--alert-tone) 14%, transparent);
+    border-color: color-mix(in oklab, var(--alert-tone) 40%, transparent);
 }
 
 [data-flux-toast-dialog][data-variant='success'] > div {
@@ -116,51 +358,66 @@
 @theme {
     --shadow-card: 0 1px rgb(0 0 0 / 0.05);
 
+    /*
+     * Corner radius scale for the whole app (both panels, Flux included). Change the values here, never per view.
+     * xs: tiny marks. sm: badges, small thumbnails. md: menu items, small buttons, inline notices, small icon badges.
+     * lg: buttons, inputs, selects, nav links, icon badges, nested boxes inside cards. xl: cards, panels, popovers,
+     * modals, empty states. 2xl: large page sections (banners, offer and call-to-action blocks). Nested elements
+     * step down one or two sizes from their container.
+     */
+    --radius-xs: 0.25rem;
+    --radius-sm: 0.375rem;
+    --radius-md: 0.5rem;
+    --radius-lg: 0.625rem;
+    --radius-xl: 0.875rem;
+    --radius-2xl: 1.25rem;
+    --radius-3xl: 1.75rem;
+
     --container-shell: 86.25rem;
     --container-main: 70rem;
 
     --font-sans: 'Instrument Sans', ui-sans-serif, system-ui, sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji', 'Segoe UI Symbol', 'Noto Color Emoji';
 
     --color-zinc-50: #fafafa;
-    --color-zinc-100: #f5f5f5;
-    --color-zinc-200: #e5e5e5;
-    --color-zinc-300: #d4d4d4;
-    --color-zinc-400: #a3a3a3;
-    --color-zinc-500: #737373;
-    --color-zinc-600: #525252;
-    --color-zinc-700: #404040;
-    --color-zinc-800: #262626;
-    --color-zinc-900: #171717;
-    --color-zinc-950: #0a0a0a;
+    --color-zinc-100: #f4f4f5;
+    --color-zinc-200: #e4e4e7;
+    --color-zinc-300: #d4d4d8;
+    --color-zinc-400: #a1a1aa;
+    --color-zinc-500: #71717a;
+    --color-zinc-600: #52525b;
+    --color-zinc-700: #3f3f46;
+    --color-zinc-800: #27272a;
+    --color-zinc-900: #18181b;
+    --color-zinc-950: #09090b;
 
     /*
-     * Brand palette: update these color codes to rebrand the application.
-     * `brand` utilities and Flux primary controls both use this palette.
+     * Brand and gold palettes come from config/theme.php through <x-brand.theme-colors />.
+     * Change the colors there, never here.
      */
-    --color-brand-50: #f0fbf2;
-    --color-brand-100: #dcf6e1;
-    --color-brand-200: #bbebc5;
-    --color-brand-300: #8bdb9c;
-    --color-brand-400: #55c26c;
-    --color-brand-500: #31a74b;
-    --color-brand-600: #22893a;
-    --color-brand-700: #1d6d31;
-    --color-brand-800: #1b572b;
-    --color-brand-900: #174825;
-    --color-brand-950: #072812;
-    --color-brand: var(--color-brand-600);
-    --color-brand-foreground: #ffffff;
+    --color-brand-50: var(--theme-brand-50);
+    --color-brand-100: var(--theme-brand-100);
+    --color-brand-200: var(--theme-brand-200);
+    --color-brand-300: var(--theme-brand-300);
+    --color-brand-400: var(--theme-brand-400);
+    --color-brand-500: var(--theme-brand-500);
+    --color-brand-600: var(--theme-brand-600);
+    --color-brand-700: var(--theme-brand-700);
+    --color-brand-800: var(--theme-brand-800);
+    --color-brand-900: var(--theme-brand-900);
+    --color-brand-950: var(--theme-brand-950);
+    --color-brand: var(--theme-brand);
+    --color-brand-foreground: var(--theme-brand-foreground);
 
-    --color-gold-50: #fefce8;
-    --color-gold-100: #fef9c3;
-    --color-gold-200: #fef08a;
-    --color-gold-300: #fde047;
-    --color-gold-400: #facc15;
-    --color-gold-500: #eab308;
-    --color-gold-600: #ca8a04;
-    --color-gold-700: #a16207;
-    --color-gold-800: #854d0e;
-    --color-gold-900: #713f12;
+    --color-gold-50: var(--theme-gold-50);
+    --color-gold-100: var(--theme-gold-100);
+    --color-gold-200: var(--theme-gold-200);
+    --color-gold-300: var(--theme-gold-300);
+    --color-gold-400: var(--theme-gold-400);
+    --color-gold-500: var(--theme-gold-500);
+    --color-gold-600: var(--theme-gold-600);
+    --color-gold-700: var(--theme-gold-700);
+    --color-gold-800: var(--theme-gold-800);
+    --color-gold-900: var(--theme-gold-900);
 
     /* Flux uses accent tokens for all `variant="primary"` controls. */
     --color-accent: var(--color-brand);
@@ -168,13 +425,43 @@
     --color-accent-foreground: var(--color-brand-foreground);
 
     /*
-     * Surface colors: page background, cards/bars, their borders and alternate (muted) sections.
-     * Dark-mode values are in the `.dark` block below.
+     * Surface colors for both panels: page background, cards/bars, their borders and alternate (muted) sections,
+     * lightly tinted with the brand. Dark-mode values are in the `.dark` block below.
      */
-    --color-canvas: var(--color-zinc-50);
-    --color-surface: #ffffff;
-    --color-line: var(--color-zinc-200);
-    --color-subtle: var(--color-zinc-100);
+    --color-canvas: var(--color-brand-50);
+    --color-surface: color-mix(in oklab, var(--color-brand-50) 20%, var(--color-white));
+    --color-line: color-mix(in oklab, var(--color-brand-200) 60%, var(--color-zinc-200));
+    --color-subtle: color-mix(in oklab, var(--color-brand-50) 50%, var(--color-white));
+    --color-media: color-mix(in oklab, var(--color-brand-100) 70%, var(--color-brand-50));
+
+    /*
+     * Storefront header and footer bars. Point `--color-bar` at a brand shade (and the foreground at white)
+     * for a colored bar, but keep enough contrast for the logo.
+     */
+    --color-bar: color-mix(in oklab, var(--color-brand-200) 55%, var(--color-brand-100));
+    --color-bar-line: color-mix(in oklab, var(--color-brand-300) 70%, var(--color-brand-200));
+    --color-bar-foreground: var(--color-zinc-800);
+    --color-bar-muted: var(--color-zinc-700);
+    --color-bar-hover: color-mix(in oklab, var(--color-brand-300) 60%, var(--color-brand-200));
+    --color-bar-active: color-mix(in oklab, var(--color-accent) 14%, var(--color-bar));
+    --color-bar-active-line: color-mix(in oklab, var(--color-accent) 22%, transparent);
+    --color-bar-active-foreground: color-mix(in oklab, var(--color-accent) 80%, black);
+    --color-tint: color-mix(in oklab, var(--color-accent) 14%, var(--color-surface));
+    --color-tint-line: color-mix(in oklab, var(--color-accent) 22%, transparent);
+    --color-tint-foreground: color-mix(in oklab, var(--color-accent) 80%, black);
+    --color-menu-hover: var(--color-bar);
+    --color-row-hover: color-mix(in oklab, var(--color-brand-50) 60%, transparent);
+    --color-brand-text: var(--color-brand-700);
+
+    /*
+     * Storefront glass: floating panels (`glass`, `glass-solid` for drawers and menus), header and footer (`glass-bar`)
+     * Floating panels only, never the page background.
+     */
+    --blur-glass: 16px;
+    --color-glass: color-mix(in oklab, var(--color-surface) 62%, transparent);
+    --color-glass-solid: color-mix(in oklab, var(--color-surface) 80%, transparent);
+    --color-glass-line: color-mix(in oklab, var(--color-white) 70%, transparent);
+    --shadow-glass: 0 8px 32px -8px color-mix(in oklab, var(--color-brand-900) 22%, transparent);
 
     --color-tech-500: #64748b;
     --color-tech-600: #475569;
@@ -182,17 +469,101 @@
 
 @layer theme {
     .dark {
-        /* Change this code when the primary color needs a distinct dark-mode value. */
-        --color-brand-dark: #2b9c4f;
+        --color-brand-dark: var(--theme-brand-dark);
         --color-accent: var(--color-brand-dark);
         --color-accent-content: var(--color-brand-dark);
         --color-accent-foreground: var(--color-brand-foreground);
 
-        --color-canvas: var(--color-zinc-950);
+        /*
+         * Dark mode follows the brand everywhere (both panels, Flux included): the surface shades (zinc 500 to 950)
+         * are the neutral gray with a small mix of the brand. Text shades (zinc 50 to 400) stay neutral gray on purpose.
+         */
+        --color-zinc-500: color-mix(in oklab, #71717a 94%, var(--theme-brand-500));
+        --color-zinc-600: color-mix(in oklab, #52525b 93%, var(--theme-brand-500));
+        --color-zinc-700: color-mix(in oklab, #3f3f46 92%, var(--theme-brand-500));
+        --color-zinc-800: color-mix(in oklab, #27272a 92%, var(--theme-brand-500));
+        --color-zinc-900: color-mix(in oklab, #18181b 92%, var(--theme-brand-500));
+        --color-zinc-950: color-mix(in oklab, #09090b 93%, var(--theme-brand-500));
+
+        --color-canvas: #000000;
         --color-surface: var(--color-zinc-900);
-        --color-line: var(--color-zinc-800);
+        --color-line: color-mix(in oklab, var(--color-white) 9%, transparent);
         --color-subtle: var(--color-zinc-900);
+        --color-media: var(--color-zinc-800);
+
+        --color-bar: color-mix(in oklab, var(--color-brand-500) 12%, var(--color-zinc-950));
+        --color-bar-line: color-mix(in oklab, var(--color-white) 8%, transparent);
+        --color-bar-foreground: var(--color-zinc-200);
+        --color-bar-muted: var(--color-zinc-400);
+        --color-bar-hover: color-mix(in oklab, var(--color-brand-500) 22%, transparent);
+        --color-bar-active: color-mix(in oklab, var(--color-accent) 26%, transparent);
+        --color-bar-active-line: color-mix(in oklab, var(--color-accent) 35%, transparent);
+        --color-bar-active-foreground: color-mix(in oklab, var(--color-accent) 45%, white);
+        --color-tint: color-mix(in oklab, var(--color-accent) 26%, var(--color-surface));
+        --color-tint-line: color-mix(in oklab, var(--color-accent) 35%, transparent);
+        --color-tint-foreground: color-mix(in oklab, var(--color-accent) 45%, white);
+        --color-menu-hover: var(--color-bar-hover);
+        --color-row-hover: color-mix(in oklab, var(--color-zinc-800) 60%, transparent);
+        --color-brand-text: var(--color-brand-300);
+
+        --color-glass: color-mix(in oklab, var(--color-zinc-900) 58%, transparent);
+        --color-glass-solid: color-mix(in oklab, var(--color-zinc-900) 80%, transparent);
+        --color-glass-line: color-mix(in oklab, var(--color-white) 10%, transparent);
+        --shadow-glass: 0 8px 32px -8px rgb(0 0 0 / 0.55);
     }
+}
+
+@utility glass {
+    background-color: var(--color-glass);
+    border-color: var(--color-glass-line);
+    box-shadow: var(--shadow-glass);
+    -webkit-backdrop-filter: blur(var(--blur-glass)) saturate(180%);
+    backdrop-filter: blur(var(--blur-glass)) saturate(180%);
+}
+
+@utility glass-solid {
+    @apply glass;
+    background-color: var(--color-glass-solid);
+}
+
+/* Icon badges (feature, contact and dashboard tiles, empty states, avatars in chat): a soft edge tinted by the icon color. */
+@utility icon-badge {
+    border: 1px solid color-mix(in oklab, currentColor 18%, transparent);
+}
+
+/* Brand icon chips use the brand tint (the brand button shade, `--color-tint*` tokens). */
+.icon-badge[data-tone='brand'] {
+    background-color: var(--color-tint);
+    color: var(--color-tint-foreground);
+    border-color: var(--color-tint-line);
+}
+
+@utility glass-bar {
+    background-color: color-mix(in oklab, var(--color-bar) 72%, transparent);
+    border-color: color-mix(in oklab, var(--color-bar-line) 80%, transparent);
+    -webkit-backdrop-filter: blur(var(--blur-glass)) saturate(180%);
+    backdrop-filter: blur(var(--blur-glass)) saturate(180%);
+}
+
+[data-flux-menu] {
+    @apply glass-solid;
+}
+
+[data-flux-menu] [data-flux-menu-item-icon] {
+    color: var(--color-zinc-600);
+}
+
+[data-flux-menu] [data-flux-menu-item][data-active]:not([class*='text-red']) {
+    background-color: var(--color-menu-hover);
+    color: var(--color-bar-active-foreground);
+}
+
+[data-flux-menu] [data-flux-menu-item][data-active]:not([class*='text-red']) [data-flux-menu-item-icon] {
+    color: currentColor;
+}
+
+.dark [data-flux-menu] [data-flux-menu-item-icon] {
+    color: var(--color-zinc-300);
 }
 
 @layer base {
@@ -299,4 +670,46 @@ trix-editor.rich-text {
 
 .rich-text blockquote {
     @apply border-s-2 border-zinc-300 ps-3 text-zinc-500 dark:border-zinc-600;
+}
+
+/*
+ * Top bar icons (storefront navbar, admin header) use the lighter icon weight. Change the weight here.
+ */
+header .material-symbols-outlined {
+    font-variation-settings: 'wght' 300;
+}
+
+/*
+ * Separators (Flux `separator`, menu separators) use the same line color as card borders and dividers.
+ */
+[data-flux-separator]:not(:has(> div)),
+[data-flux-separator] > div {
+    background-color: var(--color-line) !important;
+}
+
+/* Flux cards (admin panels, tables, settings) take the same card surface, border and shadow as `x-ui.card`. */
+[data-flux-card][data-flux-card-variant='default'] {
+    border-color: var(--color-line);
+    background-color: var(--color-surface);
+    box-shadow: var(--shadow-card);
+}
+
+/* Segmented controls (theme picker, the offer "Applies to" switch): brand-tinted track, the selected option takes the brand tint. */
+ui-radio-group[data-flux-radio-group-segmented] {
+    background-color: var(--color-subtle);
+    box-shadow: inset 0 0 0 1px var(--color-line);
+}
+
+ui-radio[data-flux-radio-segmented]:hover {
+    color: var(--color-bar-active-foreground);
+}
+
+ui-radio[data-flux-radio-segmented][data-checked] {
+    background-color: var(--color-tint);
+    color: var(--color-tint-foreground);
+    box-shadow: inset 0 0 0 1px var(--color-tint-line);
+}
+
+ui-radio[data-flux-radio-segmented][data-checked] svg {
+    color: var(--color-tint-foreground);
 }

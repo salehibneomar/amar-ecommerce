@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "688b7f452b4e051ebefb6c26ada5a05a",
+    "content-hash": "5f254c9090bc3f55b80dce583dcdd4ea",
     "packages": [
         {
             "name": "bacon/bacon-qr-code",
@@ -612,16 +612,16 @@
         },
         {
             "name": "dragonmantank/cron-expression",
-            "version": "v3.6.0",
+            "version": "v3.6.1",
             "source": {
                 "type": "git",
                 "url": "https://github.com/dragonmantank/cron-expression.git",
-                "reference": "d61a8a9604ec1f8c3d150d09db6ce98b32675013"
+                "reference": "4189372ffeff09bf14f731f67a9de90c7b413ebe"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/dragonmantank/cron-expression/zipball/d61a8a9604ec1f8c3d150d09db6ce98b32675013",
-                "reference": "d61a8a9604ec1f8c3d150d09db6ce98b32675013",
+                "url": "https://api.github.com/repos/dragonmantank/cron-expression/zipball/4189372ffeff09bf14f731f67a9de90c7b413ebe",
+                "reference": "4189372ffeff09bf14f731f67a9de90c7b413ebe",
                 "shasum": ""
             },
             "require": {
@@ -632,8 +632,8 @@
             },
             "require-dev": {
                 "phpstan/extension-installer": "^1.4.3",
-                "phpstan/phpstan": "^1.12.32|^2.1.31",
-                "phpunit/phpunit": "^8.5.48|^9.0"
+                "phpstan/phpstan": "^2.1.31",
+                "phpunit/phpunit": "^11.5.43 || ^12.4"
             },
             "type": "library",
             "extra": {
@@ -664,7 +664,7 @@
             ],
             "support": {
                 "issues": "https://github.com/dragonmantank/cron-expression/issues",
-                "source": "https://github.com/dragonmantank/cron-expression/tree/v3.6.0"
+                "source": "https://github.com/dragonmantank/cron-expression/tree/v3.6.1"
             },
             "funding": [
                 {
@@ -672,7 +672,7 @@
                     "type": "github"
                 }
             ],
-            "time": "2025-10-31T18:51:33+00:00"
+            "time": "2026-10-19T17:53:57+00:00"
         },
         {
             "name": "egulias/email-validator",
@@ -5102,16 +5102,16 @@
         },
         {
             "name": "spatie/laravel-medialibrary",
-            "version": "11.23.9",
+            "version": "11.23.10",
             "source": {
                 "type": "git",
                 "url": "https://github.com/spatie/laravel-medialibrary.git",
-                "reference": "afe6e389994ada7f33b731a837ea79301a7ec6c1"
+                "reference": "e32803a1295c001ad53a1e9c8468f5a39b4df37f"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/spatie/laravel-medialibrary/zipball/afe6e389994ada7f33b731a837ea79301a7ec6c1",
-                "reference": "afe6e389994ada7f33b731a837ea79301a7ec6c1",
+                "url": "https://api.github.com/repos/spatie/laravel-medialibrary/zipball/e32803a1295c001ad53a1e9c8468f5a39b4df37f",
+                "reference": "e32803a1295c001ad53a1e9c8468f5a39b4df37f",
                 "shasum": ""
             },
             "require": {
@@ -5119,12 +5119,12 @@
                 "ext-exif": "*",
                 "ext-fileinfo": "*",
                 "ext-json": "*",
-                "illuminate/bus": "^10.2|^11.0|^12.0|^13.0",
-                "illuminate/conditionable": "^10.2|^11.0|^12.0|^13.0",
-                "illuminate/console": "^10.2|^11.0|^12.0|^13.0",
-                "illuminate/database": "^10.2|^11.0|^12.0|^13.0",
-                "illuminate/pipeline": "^10.2|^11.0|^12.0|^13.0",
-                "illuminate/support": "^10.2|^11.0|^12.0|^13.0",
+                "illuminate/bus": "^12.0|^13.0",
+                "illuminate/conditionable": "^12.0|^13.0",
+                "illuminate/console": "^12.0|^13.0",
+                "illuminate/database": "^12.0|^13.0",
+                "illuminate/pipeline": "^12.0|^13.0",
+                "illuminate/support": "^12.0|^13.0",
                 "maennchen/zipstream-php": "^3.1",
                 "php": "^8.2",
                 "spatie/image": "^3.3.2",
@@ -5141,16 +5141,16 @@
                 "ext-pdo_sqlite": "*",
                 "ext-zip": "*",
                 "guzzlehttp/guzzle": "^7.8.1",
-                "larastan/larastan": "^2.7|^3.0",
+                "larastan/larastan": "^3.13",
                 "league/flysystem-aws-s3-v3": "^3.22",
                 "mockery/mockery": "^1.6.7",
-                "orchestra/testbench": "^8.36|^9.15|^10.8|^11.0",
-                "pestphp/pest": "^2.36|^3.0|^4.0",
+                "orchestra/testbench": "^10.12|^11.3",
+                "pestphp/pest": "^3.8.7|^4.7.8|^5.3.3",
                 "phpstan/extension-installer": "^1.3.1",
                 "spatie/laravel-ray": "^1.33",
                 "spatie/pdf-to-image": "^2.2|^3.0",
                 "spatie/pest-expectations": "^1.13",
-                "spatie/pest-plugin-snapshots": "^2.1"
+                "spatie/pest-plugin-snapshots": "^2.3.1"
             },
             "suggest": {
                 "league/flysystem-aws-s3-v3": "Required to use AWS S3 file storage",
@@ -5196,7 +5196,7 @@
             ],
             "support": {
                 "issues": "https://github.com/spatie/laravel-medialibrary/issues",
-                "source": "https://github.com/spatie/laravel-medialibrary/tree/11.23.9"
+                "source": "https://github.com/spatie/laravel-medialibrary/tree/11.23.10"
             },
             "funding": [
                 {
@@ -5208,7 +5208,7 @@
                     "type": "github"
                 }
             ],
-            "time": "2026-10-05T08:08:06+00:00"
+            "time": "2026-10-19T12:45:53+00:00"
         },
         {
             "name": "spatie/laravel-package-tools",
@@ -5273,16 +5273,16 @@
         },
         {
             "name": "spatie/laravel-permission",
-            "version": "8.3.1",
+            "version": "8.3.2",
             "source": {
                 "type": "git",
                 "url": "https://github.com/spatie/laravel-permission.git",
-                "reference": "1ab5d33f9db4ee6d5509e5c012a8f37f7e22bc84"
+                "reference": "e4e906f8ca5fe10fbe4b6a81f6c4e544a01d8053"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/spatie/laravel-permission/zipball/1ab5d33f9db4ee6d5509e5c012a8f37f7e22bc84",
-                "reference": "1ab5d33f9db4ee6d5509e5c012a8f37f7e22bc84",
+                "url": "https://api.github.com/repos/spatie/laravel-permission/zipball/e4e906f8ca5fe10fbe4b6a81f6c4e544a01d8053",
+                "reference": "e4e906f8ca5fe10fbe4b6a81f6c4e544a01d8053",
                 "shasum": ""
             },
             "require": {
@@ -5349,7 +5349,7 @@
             ],
             "support": {
                 "issues": "https://github.com/spatie/laravel-permission/issues",
-                "source": "https://github.com/spatie/laravel-permission/tree/8.3.1"
+                "source": "https://github.com/spatie/laravel-permission/tree/8.3.2"
             },
             "funding": [
                 {
@@ -5357,7 +5357,7 @@
                     "type": "github"
                 }
             ],
-            "time": "2026-10-19T12:22:20+00:00"
+            "time": "2026-10-19T16:31:21+00:00"
         },
         {
             "name": "spatie/temporary-directory",
@@ -13139,7 +13139,7 @@
     "prefer-stable": true,
     "prefer-lowest": false,
     "platform": {
-        "php": "^8.3"
+        "php": "^8.4"
     },
     "platform-dev": {},
     "plugin-api-version": "2.9.0"

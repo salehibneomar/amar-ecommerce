@@ -1,5 +1,5 @@
 <x-layouts::frontend :title="__('Privacy')">
-    <x-frontend.layout.page :title="__('Privacy policy')" :subtitle="__('Last updated: 14 October 2026')" width="max-w-3xl">
+    <x-frontend.layout.page :title="__('Privacy policy')">
         <x-frontend.cards.card>
             <x-frontend.content.legal-section :title="__('What we collect')">
                 <ul>
@@ -38,7 +38,7 @@
         <x-frontend.cards.card>
             <x-frontend.content.legal-section :title="__('Contact')">
                 <p>{{ __('Questions about your privacy? Reach us from the contact page.') }}</p>
-                <flux:button size="sm" variant="outline" :href="route('contact')" wire:navigate>{{ __('Contact us') }}</flux:button>
+                <x-ui.button size="sm" variant="outline" :href="route('contact')" wire:navigate>{{ __('Contact Us') }}</x-ui.button>
             </x-frontend.content.legal-section>
         </x-frontend.cards.card>
     </x-frontend.layout.page>

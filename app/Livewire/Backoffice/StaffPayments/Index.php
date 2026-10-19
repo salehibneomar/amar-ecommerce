@@ -32,7 +32,14 @@ class Index extends Component
 
     public bool $showDeleteConfirmation = false;
 
+    public bool $showCompensationRequired = false;
+
     public ?int $deletingPaymentId = null;
+
+    public bool $showDetails = false;
+
+    /** @var array<string, string|bool|null> */
+    public array $details = [];
 
     public int $periodMonth;
 
@@ -87,6 +94,12 @@ class Index extends Component
 
     public function savePayment(): void
     {
+        if (! $this->calculation) {
+            $this->showCompensationRequired = true;
+
+            return;
+        }
+
         $validated = $this->validate([
             'periodMonth' => ['required', 'integer', 'between:1,12'],
             'periodYear' => ['required', 'integer', 'between:2020,'.now()->year],
@@ -108,6 +121,24 @@ class Index extends Component
         $this->resetPage();
         unset($this->payments);
         $this->dispatch('toast-show', slots: ['text' => __('Payment recorded.')], dataset: ['variant' => 'success']);
+    }
+
+    public function viewPayment(int $paymentId): void
+    {
+        $payment = $this->staffPaymentService->getPaymentById($this->staffId, $paymentId);
+        $isPercentage = $payment->compensation_type_snapshot->isPercentage();
+
+        $this->details = [
+            __('Period') => $payment->periodLabel(),
+            __('Amount') => formatMoney($payment->amount),
+            __('Compensation Type') => $payment->compensation_type_snapshot->label(),
+            __('Rate') => $payment->rateLabel(),
+            __('Monthly Sales') => $isPercentage ? formatMoney((int) $payment->total_sales_snapshot) : null,
+            __('Paid on') => formatDateTime($payment->paid_at),
+            __('Paid by') => $payment->paidBy?->name,
+            __('Notes') => $payment->notes,
+        ];
+        $this->showDetails = true;
     }
 
     public function confirmDeletePayment(int $paymentId): void

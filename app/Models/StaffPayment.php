@@ -67,6 +67,20 @@ class StaffPayment extends Model
         return $this->belongsTo(User::class, 'paid_by');
     }
 
+    public function basisLabel(?string $symbol = null): string
+    {
+        return $this->compensation_type_snapshot->isPercentage()
+            ? __(':value% of :sales', ['value' => $this->compensation_value_snapshot, 'sales' => formatMoney($this->total_sales_snapshot, $symbol)])
+            : __('Salary :value', ['value' => formatMoney($this->compensation_value_snapshot, $symbol)]);
+    }
+
+    public function rateLabel(): string
+    {
+        return $this->compensation_type_snapshot->isPercentage()
+            ? __(':value% of monthly sales', ['value' => $this->compensation_value_snapshot])
+            : formatMoney($this->compensation_value_snapshot);
+    }
+
     public function periodLabel(): string
     {
         return CarbonImmutable::createFromDate($this->period_year, $this->period_month, 1)->format('F Y');

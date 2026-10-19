@@ -9,6 +9,7 @@ Before planning or editing, find the row whose globs match the file's path and r
 | app/Livewire/** | .ai/rules/livewire.md |
 | app/Models/**, database/** | .ai/rules/models-database.md |
 | app/**, database/**, resources/views/** | .ai/rules/money.md |
+| app/** | .ai/rules/structure.md |
 | app/Services/** | .ai/rules/services.md |
 | tests/** | .ai/rules/tests.md |
 | resources/views/** | .ai/rules/views.md |

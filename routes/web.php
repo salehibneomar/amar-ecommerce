@@ -168,6 +168,7 @@ Route::prefix(adminRoutePrefix())->group(function () {
                     ->group(function () {
                         Route::get('/', 'index')->name('index');
                         Route::get('{member}/payments', 'payments')->whereNumber('member')->name('payments');
+                        Route::get('{member}/payments/{payment}/invoice', 'paymentInvoice')->whereNumber(['member', 'payment'])->name('payments.invoice');
                     });
 
                 Route::controller(RoleController::class)

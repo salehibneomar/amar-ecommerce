@@ -277,3 +277,56 @@ test('staff joining and leaving dates are saved and validated', function () {
     expect($profile->joined_at->format('Y-m-d'))->toBe('2026-03-01')
         ->and($profile->left_at->format('Y-m-d'))->toBe('2026-09-30');
 });
+
+test('administrators view a staff member\'s details from the row actions', function () {
+    $moderator = User::factory()->moderator()->create(['name' => 'Detail Person']);
+    $moderator->staffProfile()->create(['compensation_type' => StaffCompensationTypeEnum::Salary, 'compensation_value' => 5000, 'joined_at' => '2026-01-15']);
+
+    Livewire::actingAs(User::factory()->superAdmin()->create())->test(Index::class)
+        ->assertSeeHtml('wire:click="viewStaff('.$moderator->id.')"')
+        ->call('viewStaff', $moderator->id)
+        ->assertSet('showDetails', true)
+        ->assertSee(['Detail Person', '15/01/2026', __(':value per month', ['value' => formatMoney(5000)])]);
+});
+
+test('administrators view a payment and download its invoice, only for its own staff member', function () {
+    $moderator = User::factory()->moderator()->create(['name' => 'Paid Person']);
+    $other = User::factory()->moderator()->create();
+    $payment = StaffPayment::create([
+        'user_id' => $moderator->id,
+        'amount' => 4200,
+        'period_month' => 3,
+        'period_year' => 2026,
+        'compensation_type_snapshot' => StaffCompensationTypeEnum::Salary,
+        'compensation_value_snapshot' => 4200,
+        'notes' => 'March salary',
+        'paid_at' => now(),
+    ]);
+    $admin = User::factory()->superAdmin()->create();
+
+    Livewire::actingAs($admin)->test(PaymentsIndex::class, ['staffId' => $moderator->id, 'staffName' => $moderator->name])
+        ->assertSeeHtml(route('manage.staff.payments.invoice', [$moderator->id, $payment->id]))
+        ->call('viewPayment', $payment->id)
+        ->assertSet('showDetails', true)
+        ->assertSee(['March 2026', formatMoney(4200), 'March salary']);
+
+    $this->actingAs($admin)->get(route('manage.staff.payments.invoice', [$moderator->id, $payment->id]))
+        ->assertOk()
+        ->assertHeader('content-type', 'application/pdf');
+
+    $this->actingAs($admin)->get(route('manage.staff.payments.invoice', [$other->id, $payment->id]))->assertNotFound();
+    $this->actingAs($moderator)->get(route('manage.staff.payments.invoice', [$moderator->id, $payment->id]))->assertRedirect(route('dashboard'));
+});
+
+test('saving a payment for a staff member without compensation explains what to do instead of saving', function () {
+    $moderator = User::factory()->moderator()->create();
+
+    Livewire::actingAs(User::factory()->superAdmin()->create())->test(PaymentsIndex::class, ['staffId' => $moderator->id, 'staffName' => $moderator->name])
+        ->call('createPayment')
+        ->set('amount', '600')
+        ->call('savePayment')
+        ->assertSet('showCompensationRequired', true)
+        ->assertSet('showForm', true);
+
+    expect(StaffPayment::count())->toBe(0);
+});

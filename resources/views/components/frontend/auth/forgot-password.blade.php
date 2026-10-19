@@ -3,12 +3,12 @@
 
     <form wire:submit="sendResetLink">
         <x-auth.resend-countdown :seconds="$this->resendAvailableIn" wire:key="resend-countdown-{{ $this->resendAvailableIn }}">
-            <flux:input wire:model="email" :label="__('Email address')" type="email" required autofocus
+            <flux:input wire:model="email" :label="__('Email Address')" type="email" required autofocus
                 autocomplete="email" placeholder="email@example.com" />
 
-            <flux:button variant="primary" type="submit" class="w-full" data-test="email-password-reset-link-button">
-                {{ __('Email password reset link') }}
-            </flux:button>
+            <x-ui.button variant="primary" type="submit" class="w-full" data-test="email-password-reset-link-button">
+                {{ __('Email Password Reset Link') }}
+            </x-ui.button>
         </x-auth.resend-countdown>
     </form>
 

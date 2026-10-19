@@ -2,7 +2,7 @@
     <x-backoffice.layout.main-content-container :title="__('Offers')" :breadcrumbs="[['label' => __('Settings'), 'href' => route('settings.index')], ['label' => __('Offers')]]" :subtitle="$this->globalOnly ? __('Discounts for the whole shop, applied at checkout. One offer can be live at a time.') : __('Discounts for the whole shop or for chosen categories, applied at checkout.')">
         @if ($this->globalOnly)
             <x-slot:badge>
-                <flux:badge size="sm" color="zinc">{{ __('All offers are global') }}</flux:badge>
+                <x-ui.badge color="zinc">{{ __('All offers are global') }}</x-ui.badge>
             </x-slot:badge>
         @endif
 
@@ -20,8 +20,8 @@
                     <x-backoffice.management.per-page :placeholder="__('Select')" />
                 </div>
                 <div class="flex items-end gap-2">
-                    <x-backoffice.management.search model="search" :placeholder="__('Search offers...')" :label="__('Search offers')" class="max-w-xs" />
-                    <flux:button variant="primary" wire:click="createOffer">{{ __('Add New') }}</flux:button>
+                    <x-backoffice.management.search model="search" :placeholder="__('Search offers...')" :label="__('Search Offers')" class="max-w-xs" />
+                    <x-ui.button variant="primary" wire:click="createOffer">{{ __('Add New') }}</x-ui.button>
                 </div>
             </x-slot:toolbar>
 
@@ -35,31 +35,27 @@
                         </flux:table.cell>
                         @unless ($this->globalOnly)
                             <flux:table.cell>
-                                <flux:badge size="sm" :color="$offer->type->color()">{{ $offer->type->label() }}
-                                </flux:badge>
+                                <x-ui.badge :color="$offer->type->color()">{{ $offer->type->label() }}
+                                </x-ui.badge>
                             </flux:table.cell>
                         @endunless
                         <flux:table.cell><span class="font-semibold">{{ $offer->discount_percentage }}%</span>
                         </flux:table.cell>
                         <flux:table.cell>
-                            <flux:badge size="sm" :color="$offer->isCurrentlyActive() ? 'green' : 'zinc'">
+                            <x-ui.badge :color="$offer->isCurrentlyActive() ? 'green' : 'zinc'">
                                 {{ $offer->isCurrentlyActive() ? __('Live') : __('Not live') }}
-                            </flux:badge>
+                            </x-ui.badge>
                         </flux:table.cell>
                         <flux:table.cell class="text-xs text-zinc-500">
-                            {{ $offer->starts_at?->format('d/m/Y') ?? '-' }} →
+                            {{ $offer->starts_at?->format('d/m/Y') ?? appEmptyValue() }} →
                             {{ $offer->ends_at?->format('d/m/Y') ?? '∞' }}
                         </flux:table.cell>
                         <flux:table.cell>
-                            <div class="flex gap-2">
-                                <flux:button size="xs" variant="filled"
-                                    wire:click="viewOffer({{ $offer->id }})">{{ __('View') }}</flux:button>
-                                <flux:button size="xs" variant="filled" color="sky"
-                                    wire:click="editOffer({{ $offer->id }})">{{ __('Edit') }}</flux:button>
-                                <flux:button size="xs" variant="danger"
-                                    wire:click="confirmDeleteOffer({{ $offer->id }})">{{ __('Delete') }}
-                                </flux:button>
-                            </div>
+                            <x-backoffice.management.actions>
+                                <x-backoffice.management.action icon="eye" :label="__('View')" variant="filled" wire:click="viewOffer({{ $offer->id }})" />
+                                <x-backoffice.management.action icon="pencil-square" :label="__('Edit')" variant="filled" color="sky" wire:click="editOffer({{ $offer->id }})" />
+                                <x-backoffice.management.action icon="trash" :label="__('Delete')" variant="danger" wire:click="confirmDeleteOffer({{ $offer->id }})" />
+                            </x-backoffice.management.actions>
                         </flux:table.cell>
                     </flux:table.row>
                 @empty
@@ -94,7 +90,7 @@
                         <x-ui.search-input model="categorySearch" :placeholder="__('Search categories to add...')" />
                         @if ($this->categoryResults)
                             <div
-                                class="absolute inset-x-0 top-full z-10 mt-1 max-h-56 overflow-y-auto rounded-lg border border-zinc-200 bg-white p-1 shadow-lg dark:border-zinc-700 dark:bg-zinc-800">
+                                class="absolute inset-x-0 top-full z-10 mt-1 max-h-56 overflow-y-auto rounded-lg border border-line bg-surface p-1 shadow-lg">
                                 @foreach ($this->categoryResults as $id => $label)
                                     <button type="button" wire:key="category-result-{{ $id }}"
                                         wire:click="addCategory({{ $id }})"
@@ -108,12 +104,12 @@
                     @if ($this->selectedCategories)
                         <div class="flex flex-wrap gap-1.5 pt-1">
                             @foreach ($this->selectedCategories as $id => $label)
-                                <flux:badge wire:key="offer-category-{{ $id }}" size="sm"
+                                <x-ui.badge wire:key="offer-category-{{ $id }}"
                                     color="sky">
                                     {{ $label }}
                                     <flux:badge.close wire:click="removeCategory({{ $id }})"
                                         :aria-label="__('Remove :name', ['name' => $label])" />
-                                </flux:badge>
+                                </x-ui.badge>
                             @endforeach
                         </div>
                     @endif
@@ -126,9 +122,9 @@
                 <flux:input wire:model.live="endsAt" type="date" :label="__('Ends')" />
             </div>
             @if ($this->liveGlobalOverlap)
-                <flux:callout variant="warning" icon="exclamation-triangle" :heading="__(':name is live from :from to :to. Turn it off first to make this offer active. Until then it saves as inactive.', [
+                <x-ui.alert variant="warning" icon="exclamation-triangle" :heading="__(':name is live from :from to :to. Turn it off first to make this offer active. Until then it saves as inactive.', [
                     'name' => $this->liveGlobalOverlap->name,
-                    'from' => $this->liveGlobalOverlap->starts_at?->format('d/m/Y') ?? '-',
+                    'from' => $this->liveGlobalOverlap->starts_at?->format('d/m/Y') ?? appEmptyValue(),
                     'to' => $this->liveGlobalOverlap->ends_at?->format('d/m/Y') ?? '∞',
                 ])" />
             @endif
@@ -141,9 +137,9 @@
             <x-slot:footer>
                 <div class="flex justify-end gap-2">
                     <flux:modal.close>
-                        <flux:button type="button">{{ __('Close') }}</flux:button>
+                        <x-ui.button type="button">{{ __('Close') }}</x-ui.button>
                     </flux:modal.close>
-                    <flux:button variant="danger" wire:click="deleteOffer">{{ __('Delete') }}</flux:button>
+                    <x-ui.button variant="danger" wire:click="deleteOffer">{{ __('Delete') }}</x-ui.button>
                 </div>
             </x-slot:footer>
         </x-backoffice.management.form-modal>

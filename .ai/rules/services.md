@@ -9,7 +9,7 @@ paths:
 Every class in `app/Services/**` ends with `Service`, including classes that implement a framework contract (`MaintenanceModeService`). Interfaces go in `app/Interfaces` with an `Interface` suffix.
 
 ## Domain sub-folders
-Every service lives in a domain sub-folder: `Backoffice/{Catalog,Content,Sales,People,System,Notification}`, `Frontend/{Shop,Account,AiAssistant}`. Reuse a domain before adding one; a new domain gets its own folder even with one class. The same applies to enums, traits, resolvers, middleware, mail and commands (AGENTS.md golden rule 13).
+Every service lives in a domain sub-folder: `Backoffice/{Catalog,Content,Sales,People,System,Notification}`, `Frontend/{Shop,Account,AiAssistant}`. Reuse a domain before adding one; a new domain gets its own folder even with one class. The same applies to enums, traits, resolvers, middleware, mail and commands (`.ai/rules/structure.md`).
 
 ## Services own the logic
 Queries, transactions, cache and side effects live here, grouped as `Auth`, `Backoffice` (admin writes), `Frontend` (customer reads and actions) and `Payment`. Return models, paginators or plain arrays shaped for the view. Return no HTTP responses, except file and download responses.

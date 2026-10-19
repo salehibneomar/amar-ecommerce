@@ -1,5 +1,5 @@
 <x-layouts::frontend :title="__('Refund policy')">
-    <x-frontend.layout.page :title="__('Refund and order policy')" :subtitle="__('Last updated: 14 October 2026')" width="max-w-3xl">
+    <x-frontend.layout.page :title="__('Refund and order policy')">
         <x-frontend.cards.card>
             <x-frontend.content.legal-section :title="__('How an order works')">
                 <ol>
@@ -45,7 +45,7 @@
         <x-frontend.cards.card>
             <x-frontend.content.legal-section :title="__('Questions')">
                 <p>{{ __('For anything about your order or payment, reach us from the contact page. We reply every day from 9:00 AM to 11:00 PM (Bangladesh time).') }}</p>
-                <flux:button size="sm" variant="outline" :href="route('contact')" wire:navigate>{{ __('Contact us') }}</flux:button>
+                <x-ui.button size="sm" variant="outline" :href="route('contact')" wire:navigate>{{ __('Contact Us') }}</x-ui.button>
             </x-frontend.content.legal-section>
         </x-frontend.cards.card>
     </x-frontend.layout.page>

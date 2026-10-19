@@ -8,7 +8,7 @@
         <dd>{{ formatMoney($summary['subtotal']) }}</dd>
     </div>
     @foreach ($summary['offers'] as $offer)
-        <div class="flex justify-between gap-3 text-brand-700 dark:text-brand-300">
+        <div class="flex justify-between gap-3 text-zinc-600 dark:text-zinc-300">
             <dt class="flex items-start gap-1">
                 <span class="material-symbols-outlined text-base">local_offer</span>
                 <span class="grid">
@@ -20,13 +20,13 @@
         </div>
     @endforeach
     @if (! $summary['offers'] && $summary['discount'] > 0)
-        <div class="flex justify-between gap-3 text-brand-700 dark:text-brand-300">
+        <div class="flex justify-between gap-3 text-zinc-600 dark:text-zinc-300">
             <dt>{{ __('Offer discount') }}</dt>
             <dd class="shrink-0">− {{ formatMoney($summary['discount']) }}</dd>
         </div>
     @endif
     @if (($summary['extraDiscount'] ?? 0) > 0)
-        <div class="flex justify-between gap-3 text-brand-700 dark:text-brand-300">
+        <div class="flex justify-between gap-3 text-zinc-600 dark:text-zinc-300">
             <dt>{{ __('Extra discount (:percent%)', ['percent' => $summary['extraDiscountPercentage']]) }}</dt>
             <dd class="shrink-0">− {{ formatMoney($summary['extraDiscount']) }}</dd>
         </div>
@@ -37,7 +37,7 @@
             <dd>{{ __('Confirmed by phone') }}</dd>
         </div>
     @endif
-    <div class="flex justify-between border-t border-zinc-200 pt-3 text-base font-semibold text-zinc-900 dark:border-zinc-700 dark:text-white">
+    <div class="flex justify-between border-t border-line pt-3 text-base font-semibold text-zinc-900 dark:text-white">
         <dt>{{ __('Total') }}</dt>
         <dd>{{ formatMoney($summary['total']) }}</dd>
     </div>

@@ -10,7 +10,7 @@
     <span {{ $attributes->class([
         'inline-flex items-center gap-1 font-medium',
         'text-red-600 dark:text-red-400' => $color === 'red',
-        'text-brand-700 dark:text-brand-300' => $color === 'brand',
+        'text-brand-text' => $color === 'brand',
         'text-zinc-500 dark:text-zinc-400' => $color === 'muted',
     ]) }}
         @if ($live)
@@ -23,7 +23,7 @@
         @endif>
         <span class="inline-flex items-center gap-1" @if ($live) x-show="! done" @endif>
             @if ($icon)
-                <span class="material-symbols-outlined text-base">{{ $icon }}</span>
+                <span class="material-symbols-outlined text-[1.2em]!">{{ $icon }}</span>
             @endif
             {{ $slot->isEmpty() ? __('Ends in') : $slot }}
             <time datetime="{{ $to->toIso8601String() }}" class="tabular-nums" @if ($live) x-text="left" @endif>{{ formatTimeLeft($to, $separator) }}</time>

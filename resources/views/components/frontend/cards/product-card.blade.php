@@ -15,34 +15,36 @@
     'available' => true,
 ])
 
-<article x-data {{ $attributes->class(['group relative flex flex-col overflow-hidden rounded-2xl shadow-card border border-zinc-200/80 bg-white transition-colors hover:border-brand-300 dark:border-zinc-800 dark:bg-zinc-900 dark:hover:border-brand-700']) }}>
-    <a href="{{ $href }}" wire:navigate class="relative block aspect-[3/4] overflow-hidden bg-brand-50 dark:bg-brand-950">
+<x-frontend.cards.card as="article" x-data interactive :padded="false" {{ $attributes->class('relative flex flex-col p-2') }}>
+    <a href="{{ $href }}" wire:navigate class="relative block aspect-[3/4] overflow-hidden rounded-lg bg-media">
         @if ($coverUrl)
-            <img src="{{ $coverUrl }}" alt="{{ $name }}" loading="lazy" class="size-full object-cover" />
+            <img src="{{ $coverUrl }}" alt="{{ $name }}" loading="lazy" class="size-full object-cover transition duration-500 group-hover:scale-105" />
         @else
-            <div class="flex size-full flex-col items-center justify-center gap-3 p-4 text-center text-brand-800 dark:text-brand-100">
-                <span class="material-symbols-outlined text-5xl! text-brand-500">auto_stories</span>
-                <span class="line-clamp-3 text-sm font-semibold">{{ $name }}</span>
+            <div class="flex size-full flex-col items-center justify-center gap-3 p-4 text-center text-zinc-700 dark:text-zinc-200">
+                <x-ui.icon-badge size="xl">
+                    <span class="material-symbols-outlined text-3xl!">auto_stories</span>
+                </x-ui.icon-badge>
+                <span class="line-clamp-2 text-sm font-semibold">{{ $name }}</span>
             </div>
         @endif
 
         <div class="absolute start-2 end-2 top-2 flex flex-wrap items-center gap-1">
             @if ($free)
-                <x-ui.badge color="green" solid>{{ __('Free') }}</x-ui.badge>
+                <x-ui.badge color="green" overlay>{{ __('Free') }}</x-ui.badge>
             @elseif ($discount)
-                <x-ui.badge color="yellow" solid>−{{ $discount }}%</x-ui.badge>
+                <x-ui.badge color="amber" overlay>−{{ $discount }}%</x-ui.badge>
             @endif
             @if ($badge)
-                <x-ui.badge :color="$badgeColor" solid>{{ $badge }}</x-ui.badge>
+                <x-ui.badge :color="$badgeColor" overlay>{{ $badge }}</x-ui.badge>
             @endif
             @unless ($available)
-                <x-ui.badge color="red" solid>{{ __('Out of Stock') }}</x-ui.badge>
+                <x-ui.badge color="red" overlay>{{ __('Out of Stock') }}</x-ui.badge>
             @endunless
         </div>
     </a>
 
-    <div class="flex flex-1 flex-col gap-1 p-3 sm:p-4">
-        <a href="{{ $href }}" wire:navigate class="line-clamp-2 font-semibold leading-snug text-zinc-900 hover:text-brand-700 dark:text-white dark:hover:text-brand-300">{{ $name }}</a>
+    <div class="flex flex-1 flex-col gap-1 px-1.5 pt-3 pb-1">
+        <a href="{{ $href }}" wire:navigate class="line-clamp-2 font-semibold leading-snug text-zinc-900 hover:text-brand-text dark:text-white">{{ $name }}</a>
         @if ($author)
             <p class="truncate text-xs text-zinc-500 dark:text-zinc-400">{{ $author }}</p>
         @endif
@@ -52,17 +54,17 @@
 
             @if ($free || $owned)
                 @if ($readable)
-                    <flux:button size="sm" variant="primary" icon="book-open" x-on:click="Livewire.dispatch('open-book', { bookId: {{ $productId }} })">
+                    <x-ui.button size="sm" variant="primary" icon="book-open" x-on:click="Livewire.dispatch('open-book', { bookId: {{ $productId }} })">
                         {{ __('Read') }}
-                    </flux:button>
+                    </x-ui.button>
                 @endif
             @else
                 @if ($available)
-                    <flux:button size="sm" variant="primary" square icon="shopping-cart" x-on:click="Livewire.dispatch('add-to-cart', { productId: {{ $productId }} })" :aria-label="__('Add to cart')" :tooltip="__('Add to cart')" />
+                    <x-ui.button size="sm" variant="primary" square icon="shopping-cart" x-on:click="Livewire.dispatch('add-to-cart', { productId: {{ $productId }} })" :aria-label="__('Add to cart')" :tooltip="__('Add to cart')" />
                 @else
-                    <flux:button size="sm" square icon="shopping-cart" disabled :aria-label="__('Out of Stock')" />
+                    <x-ui.button size="sm" square icon="shopping-cart" disabled :aria-label="__('Out of Stock')" />
                 @endif
             @endif
         </div>
     </div>
-</article>
+</x-frontend.cards.card>

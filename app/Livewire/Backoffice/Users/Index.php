@@ -25,6 +25,11 @@ class Index extends Component
 
     public bool $showUserConfirmation = false;
 
+    public bool $showDetails = false;
+
+    /** @var array<string, string|bool|null> */
+    public array $details = [];
+
     protected UserService $userService;
 
     public function boot(UserService $userService): void
@@ -47,6 +52,26 @@ class Index extends Component
         $this->status = UserStatusEnum::tryFrom($status)->value ?? '';
 
         $this->resetTableFilters();
+    }
+
+    public function viewUser(int $userId): void
+    {
+        $user = $this->userService->getCustomerDetailsById($userId);
+
+        $this->details = [
+            __('Name') => $user->name,
+            __('Email') => $user->email,
+            __('Mobile Number') => $user->phone,
+            __('Status') => $user->status->label(),
+            __('Email Verified') => formatDateTime($user->email_verified_at),
+            __('Orders') => (string) $user->orders_count,
+            __('Google Login') => $user->google_id !== null,
+            __('Facebook Login') => $user->facebook_id !== null,
+            __('Two-Factor Login') => $user->two_factor_confirmed_at !== null,
+            __('Registered') => formatDateTime($user->created_at),
+            __('Address') => $user->address,
+        ];
+        $this->showDetails = true;
     }
 
     public function selectUserAction(int $userId): void

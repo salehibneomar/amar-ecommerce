@@ -4,7 +4,7 @@
 ])
 
 <div x-data="{ tab: @js($active ?? array_key_first($tabs)) }" {{ $attributes->class(['space-y-5']) }}>
-    <div class="flex gap-1 border-b border-zinc-200 dark:border-zinc-700" role="tablist">
+    <div class="flex gap-1 border-b border-line" role="tablist">
         @foreach ($tabs as $key => $label)
             <button
                 type="button"

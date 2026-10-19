@@ -1,15 +1,15 @@
 {
     "$schema": "https://getcomposer.org/schema.json",
-    "name": "salehibneomar/notun-krishok",
+    "name": "salehibneomar/amar-ecommerce-lite",
     "type": "project",
-    "description": "A basic ecommerce application built with Laravel 13, Livewire, and Tailwind CSS.",
+    "description": "AmarEcommerce Lite: a Laravel 13, Livewire and Tailwind CSS ecommerce boilerplate for client shop projects.",
     "keywords": [
         "laravel",
         "framework"
     ],
     "license": "MIT",
     "require": {
-        "php": "^8.3",
+        "php": "^8.4",
         "laravel/fortify": "^1.37.2",
         "laravel/framework": "^13.17",
         "laravel/socialite": "^5.31",
@@ -71,6 +71,7 @@
             "@php artisan blaze:trace:clear",
             "@php -r \"array_map('unlink', glob('storage/logs/*.log'));\"",
             "@php artisan app:fresh --seed",
+            "@php artisan storage:link --force",
             "@php artisan optimize",
             "@php artisan ai-assistant:embed",
             "@dev"

@@ -29,26 +29,26 @@
         <input x-ref="input" type="file" wire:model="{{ $upload }}" accept="{{ $field['accept'] }}" class="sr-only" tabindex="-1" />
 
         @if ($markedForRemoval)
-            <div class="flex h-16 items-center gap-3 rounded-xl border border-dashed border-red-300 bg-red-50/60 px-3 dark:border-red-900 dark:bg-red-950/30">
-                <div class="flex size-10 shrink-0 items-center justify-center rounded-lg bg-red-100 text-red-600 dark:bg-red-900/50 dark:text-red-300">
+            <x-ui.banner tone="danger" size="none" class="flex h-16 items-center gap-3 rounded-lg border-dashed px-3">
+                <x-ui.icon-badge tone="danger">
                     <flux:icon.trash variant="mini" />
-                </div>
+                </x-ui.icon-badge>
                 <p class="min-w-0 flex-1 text-sm text-red-700 dark:text-red-300">{{ __('Will be removed when you save.') }}</p>
-                <flux:button type="button" size="sm" variant="ghost" wire:click="$set('{{ $remove }}', false)">
+                <x-ui.button type="button" size="sm" variant="ghost" wire:click="$set('{{ $remove }}', false)">
                     {{ __('Undo') }}
-                </flux:button>
-            </div>
+                </x-ui.button>
+            </x-ui.banner>
         @elseif ($selected || $field['media'])
             <div
-                class="flex h-16 items-center gap-3 rounded-xl border bg-white px-3 transition dark:bg-zinc-900"
-                x-bind:class="dragging ? 'border-brand-500 ring-4 ring-brand-500/15' : 'border-zinc-200 dark:border-zinc-700'"
+                class="flex h-16 items-center gap-3 rounded-lg border bg-surface px-3 transition"
+                x-bind:class="dragging ? 'border-brand-500 ring-4 ring-brand-500/15' : 'border-line'"
             >
                 @if ($field['image'] && $selected?->isPreviewable())
-                    <img src="{{ $selected->temporaryUrl() }}" alt="" class="h-11 w-9 shrink-0 rounded-md object-cover ring-1 ring-zinc-950/10" />
+                    <img src="{{ $selected->temporaryUrl() }}" alt="" class="h-11 w-9 shrink-0 rounded-sm object-cover ring-1 ring-zinc-950/10" />
                 @elseif ($field['image'] && ! $selected && $field['previewUrl'])
-                    <img src="{{ $field['previewUrl'] }}" alt="" class="h-11 w-9 shrink-0 rounded-md object-cover ring-1 ring-zinc-950/10" />
+                    <img src="{{ $field['previewUrl'] }}" alt="" class="h-11 w-9 shrink-0 rounded-sm object-cover ring-1 ring-zinc-950/10" />
                 @else
-                    <div class="flex h-11 w-9 shrink-0 items-center justify-center rounded-md bg-brand-50 text-brand-700 dark:bg-brand-950 dark:text-brand-300">
+                    <div class="flex h-11 w-9 shrink-0 items-center justify-center rounded-sm bg-brand-50 text-brand-text dark:bg-brand-950">
                         <flux:icon :name="$field['image'] ? 'photo' : 'document-text'" />
                     </div>
                 @endif
@@ -60,17 +60,17 @@
                     <div class="mt-0.5 flex items-center gap-2 text-xs text-zinc-500 dark:text-zinc-400">
                         <span class="truncate">{{ $selected ? Number::fileSize($selected->getSize(), precision: 1) : $field['media']->human_readable_size }} · {{ $field['hint'] }}</span>
                         @if ($selected)
-                            <flux:badge size="sm" color="amber" inset="top bottom">{{ __('Not saved') }}</flux:badge>
+                            <x-ui.badge color="amber" inset="top bottom">{{ __('Not saved') }}</x-ui.badge>
                         @endif
                     </div>
                 </div>
 
                 <div class="flex shrink-0 items-center">
-                    <flux:button type="button" size="sm" variant="ghost" square icon="arrow-path" x-on:click="$refs.input.click()" :aria-label="__('Replace')" :tooltip="__('Replace')" />
+                    <x-ui.button type="button" size="sm" variant="ghost" square icon="arrow-path" x-on:click="$refs.input.click()" :aria-label="__('Replace')" :tooltip="__('Replace')" />
                     @if ($selected)
-                        <flux:button type="button" size="sm" variant="ghost" square icon="x-mark" wire:click="$set('{{ $upload }}', null)" :aria-label="__('Discard')" :tooltip="__('Discard')" />
+                        <x-ui.button type="button" size="sm" variant="ghost" square icon="x-mark" wire:click="$set('{{ $upload }}', null)" :aria-label="__('Discard')" :tooltip="__('Discard')" />
                     @elseif ($remove)
-                        <flux:button type="button" size="sm" variant="ghost" square icon="trash" class="text-red-600! dark:text-red-400!" wire:click="$set('{{ $remove }}', true)" :aria-label="__('Remove')" :tooltip="__('Remove')" />
+                        <x-ui.button type="button" size="sm" variant="ghost" color="danger" square icon="trash" wire:click="$set('{{ $remove }}', true)" :aria-label="__('Remove')" :tooltip="__('Remove')" />
                     @endif
                 </div>
             </div>
@@ -78,17 +78,17 @@
             <button
                 type="button"
                 x-on:click="$refs.input.click()"
-                class="group flex h-16 w-full items-center gap-3 rounded-xl border-2 border-dashed px-3 text-start transition focus-visible:outline-hidden focus-visible:ring-2 focus-visible:ring-brand-500"
+                class="group flex h-16 w-full items-center gap-3 rounded-lg border-2 border-dashed px-3 text-start transition focus-visible:outline-hidden focus-visible:ring-2 focus-visible:ring-brand-500"
                 x-bind:class="dragging
                     ? 'border-brand-500 bg-brand-50 dark:bg-brand-950/40'
                     : 'border-zinc-300 bg-zinc-50/60 hover:border-brand-400 hover:bg-brand-50/50 dark:border-zinc-700 dark:bg-zinc-900/40 dark:hover:bg-zinc-900'"
             >
-                <div class="flex size-9 shrink-0 items-center justify-center rounded-lg bg-white text-zinc-500 ring-1 ring-zinc-950/5 transition group-hover:text-brand-600 dark:bg-zinc-800 dark:text-zinc-300">
+                <div class="flex size-9 shrink-0 items-center justify-center rounded-md bg-surface text-zinc-500 ring-1 ring-zinc-950/5 transition group-hover:text-brand-text dark:text-zinc-300">
                     <flux:icon.arrow-up-tray variant="mini" />
                 </div>
                 <div class="min-w-0">
                     <p class="text-sm text-zinc-600 dark:text-zinc-300">
-                        <span class="font-semibold text-brand-700 dark:text-brand-400">{{ __('Click to upload') }}</span>
+                        <span class="font-semibold text-brand-text">{{ __('Click to upload') }}</span>
                         {{ __('or drag and drop') }}
                     </p>
                     <p class="truncate text-xs text-zinc-500 dark:text-zinc-400">{{ $field['hint'] }}</p>

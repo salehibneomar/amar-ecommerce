@@ -9,7 +9,7 @@
         </a>
         <div class="flex items-center gap-1">
             <x-ui.theme-toggle size="sm" />
-            <flux:button variant="ghost" size="sm" icon="x-mark" x-on:click="open = false" :aria-label="__('Close menu')" />
+            <x-ui.button variant="ghost" size="sm" icon="x-mark" x-on:click="open = false" :aria-label="__('Close menu')" />
         </div>
     </x-slot:header>
 
@@ -20,8 +20,8 @@
     @unlessrole('user')
         <x-slot:footer>
             <div class="grid gap-2">
-                <flux:button variant="primary" :href="route('user.register')" wire:navigate>{{ __('Get started') }}</flux:button>
-                <flux:button :href="route('user.login')" wire:navigate>{{ __('Log in') }}</flux:button>
+                <x-ui.button variant="primary" :href="route('user.register')" wire:navigate>{{ __('Get Started') }}</x-ui.button>
+                <x-ui.button color="transparent" :href="route('user.login')" wire:navigate>{{ __('Log in') }}</x-ui.button>
             </div>
         </x-slot:footer>
     @endunlessrole

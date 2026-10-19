@@ -103,6 +103,11 @@ class StaffPaymentService
         ]);
     }
 
+    public function getPaymentById(int $staffId, int|string $id): StaffPayment
+    {
+        return StaffPayment::query()->with(['user', 'paidBy'])->where('user_id', $staffId)->findOrFail($id);
+    }
+
     public function delete(int $staffId, int|string $id): bool
     {
         return (bool) StaffPayment::query()->where('user_id', $staffId)->findOrFail($id)->delete();

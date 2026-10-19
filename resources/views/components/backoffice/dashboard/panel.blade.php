@@ -3,7 +3,7 @@
     'description' => null,
 ])
 
-<flux:card {{ $attributes->class(['shadow-card flex min-w-0 flex-col gap-5 border-line bg-surface']) }}>
+<flux:card {{ $attributes->class(['flex min-w-0 flex-col gap-5']) }}>
     <div class="flex flex-wrap items-start justify-between gap-x-4 gap-y-2">
         <div class="min-w-0">
             <flux:heading size="lg">{{ $title }}</flux:heading>

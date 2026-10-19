@@ -11,9 +11,9 @@
 
     <form wire:submit="resend">
         <x-auth.resend-countdown :seconds="$this->resendAvailableIn" :message="__('You can resend the email in')" wire:key="resend-countdown-{{ $this->resendAvailableIn }}">
-            <flux:button variant="primary" type="submit" class="w-full" data-test="resend-verification-button">
-                {{ __('Resend verification email') }}
-            </flux:button>
+            <x-ui.button variant="primary" type="submit" class="w-full" data-test="resend-verification-button">
+                {{ __('Resend Verification Email') }}
+            </x-ui.button>
         </x-auth.resend-countdown>
     </form>
 

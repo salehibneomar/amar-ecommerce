@@ -8,17 +8,17 @@
             <x-auth.resend-countdown :seconds="$resendAvailableIn ?? 0" :message="__('You can resend the email in')" class="w-full">
                 <form method="POST" action="{{ route('verification.send') }}">
                     @csrf
-                    <flux:button type="submit" variant="primary" class="w-full">
-                        {{ __('Resend verification email') }}
-                    </flux:button>
+                    <x-ui.button type="submit" variant="primary" class="w-full">
+                        {{ __('Resend Verification Email') }}
+                    </x-ui.button>
                 </form>
             </x-auth.resend-countdown>
 
             <form method="POST" action="{{ route('logout') }}">
                 @csrf
-                <flux:button variant="ghost" type="submit" class="text-sm cursor-pointer" data-test="logout-button">
-                    {{ __('Log out') }}
-                </flux:button>
+                <x-ui.button variant="ghost" type="submit" class="text-sm cursor-pointer" data-test="logout-button">
+                    {{ __('Log Out') }}
+                </x-ui.button>
             </form>
         </div>
     </div>

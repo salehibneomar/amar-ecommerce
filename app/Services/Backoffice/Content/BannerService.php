@@ -45,24 +45,35 @@ class BannerService
     /**
      * @param  array<string, mixed>  $data
      */
-    public function create(array $data, ?UploadedFile $image = null): Banner
+    public function create(array $data): Banner
     {
-        $banner = Banner::create($this->prepareData($data));
-        $banner->syncMedia('banner.media.image', $image);
-
-        return $banner;
+        return Banner::create($this->prepareData($data));
     }
 
     /**
      * @param  array<string, mixed>  $data
      */
-    public function update(int|string $id, array $data, ?UploadedFile $image = null): bool
+    public function update(int|string $id, array $data): bool
     {
-        $banner = $this->getBannerById($id);
-        $updated = $banner->update($this->prepareData($data));
-        $banner->syncMedia('banner.media.image', $image);
+        return $this->getBannerById($id)->update($this->prepareData($data));
+    }
 
-        return $updated;
+    /**
+     * @return array<string, mixed>
+     */
+    public function imageField(int|string $id): array
+    {
+        return $this->getBannerById($id)->mediaField('banner.media.image', 'regular');
+    }
+
+    public function imageUrl(int|string $id, string $conversion): ?string
+    {
+        return $this->getBannerById($id)->mediaUrl('banner.media.image', $conversion);
+    }
+
+    public function updateImage(int|string $id, ?UploadedFile $image = null, bool $remove = false): void
+    {
+        $this->getBannerById($id)->syncMedia('banner.media.image', $image, $remove);
     }
 
     public function delete(int|string $id): bool

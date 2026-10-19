@@ -1,6 +1,6 @@
 # Installation and setup
 
-This guide installs নতুন কৃষক on your computer for development, on a Linux server (VPS) and on cPanel shared hosting. For what the app does, see the [README](README.md). For how it is built, see [TECHNICAL.md](TECHNICAL.md).
+This guide installs AmarEcommerce on your computer for development, on a Linux server (VPS) and on cPanel shared hosting. For what the app does, see the [README](README.md). For how it is built, see [TECHNICAL.md](TECHNICAL.md).
 
 ## Contents
 
@@ -73,8 +73,8 @@ Then run `php artisan optimize`. Run the same steps in reverse to switch back. T
 ### 1. Clone and install dependencies
 
 ```bash
-git clone <repository-url> notun-krisok
-cd notun-krisok
+git clone <repository-url> amar-ecommerce-lite
+cd amar-ecommerce-lite
 composer install
 npm install
 ```
@@ -92,7 +92,7 @@ Edit `.env` and set the database connection:
 DB_CONNECTION=mysql
 DB_HOST=127.0.0.1
 DB_PORT=3306
-DB_DATABASE=notun_krisok
+DB_DATABASE=amar_ecom_lite
 DB_USERNAME=your_user
 DB_PASSWORD=your_password
 ```
@@ -121,7 +121,9 @@ php artisan ai-assistant:embed
 composer dev
 ```
 
-This runs the web server, log viewer and Vite together. Open `http://localhost:8100`.
+This runs the web server, log viewer and Vite together. Open `http://localhost:8200`.
+
+To open the dev site from a phone or another computer on the same network, set `SERVER_HOST=0.0.0.0` and `VITE_DEV_HOST` to this machine's LAN IP (`hostname -I`) in `.env`, then restart `composer dev` from a new terminal. Open `http://<LAN-IP>:8200`. Keep `SERVER_HOST=127.0.0.1` on shared or public networks, because debug mode shows error details to anyone who can reach the site.
 
 New customers must verify their email before they can use their account: registering opens the verification page (with a resend button) without logging in, and logging in unverified sends a fresh link and opens the same page instead of logging in. Locally the verification emails arrive in Mailpit; the seeded accounts are already verified.
 
@@ -167,8 +169,8 @@ The steps below are for a Linux server (VPS) with Nginx and PHP-FPM. A cPanel se
 ### 1. Upload the code and install dependencies
 
 ```bash
-git clone <repository-url> /var/www/notun-krisok
-cd /var/www/notun-krisok
+git clone <repository-url> /var/www/amar-ecommerce-lite
+cd /var/www/amar-ecommerce-lite
 composer install --no-dev --optimize-autoloader
 npm ci
 npm run build
@@ -224,12 +226,15 @@ Review the app-specific settings as well:
 | `SEO_INDEXING_ENABLED`, `SEO_DESCRIPTION`, `SEO_IMAGE` | Search and link previews: `false` hides every page from search engines (staging), the default description, and the default share image (empty uses the logo). Book pages use their own description and cover |
 | `ADMIN_ROUTE_PREFIX` | URL prefix of the whole admin area: `/{prefix}/login`, `/{prefix}/dashboard`, `/{prefix}/manage/…`, `/{prefix}/settings/…`. Default `backoffice`. Use a hard-to-guess value on a live site, then run `php artisan optimize`. Staff must use the new login URL |
 | `APP_IS_LIVE` | `true` once the site holds real data. From then on schema changes go in new migrations, never edits to existing ones, and `composer serve:dev` must not be run. Default `false` (pre-launch) |
+| `DEV_AI_AGENT` | Development only, for AI coding agents. The app never reads it. `free` = lean mode (core rules, fewest tool calls and reads), `paid` = full `AGENTS.md` workflow. Default `free` |
+| `DEV_SKIP_OPTIONAL_DOCS` | Development only, for AI coding agents. `true` = agents skip updating project docs (TECHNICAL, DIAGRAM, HOW_TO, SETUP, SETUP_COMMANDS, OUR_RAG, INCOMPLETE) and only update `AGENTS.md`, `CLAUDE.md`, `.ai/**` and `README.md`. Default `false` |
 | `APP_MAINTENANCE_DRIVER` | `system` (default): maintenance mode is stored in the `system_settings` table and managed from Settings → System, and `php artisan down`/`up` change the same setting. Needs no cron or queue |
 | `MAIL_QUEUE_ENABLED`, `MAIL_QUEUE_BACKOFF_SECONDS`, `MAIL_QUEUE_RETRY_HOURS` | `false` (default) sends order emails right after the response, with no worker; if SMTP is down the email goes to the log. `true` queues them and retries every 300 seconds for 24 hours until the mail server answers; needs a queue worker (step 6, or the cPanel cron below). Verification and password reset emails are always sent at once, because their links expire in minutes |
 | `APP_SEARCH_DEBOUNCE_MS` | Wait after the last keystroke before any search box searches, in milliseconds. Default `300`; applies to every search in the shop, the navbar and the admin panel |
 | `APP_CURRENCY`, `APP_CURRENCY_SYMBOL` | Currency code (invoices) and symbol (screens, emails, messages). Amounts are always whole units, for example ৳550 |
+| `APP_EMPTY_VALUE` | Text shown for an empty field in admin tables, detail views and invoices (default `N/A`) |
 | `VALID_PHONE_LENGTH` | Exact number of digits a profile phone number must have. Default `11` (`01XXXXXXXXX`) |
-| `SHOP_ORDER_PREFIX`, `SHOP_OWNER_EMAIL` | Order ID prefix (`NK-XXXXXX`) and the address that receives "new order" emails |
+| `SHOP_ORDER_PREFIX`, `SHOP_OWNER_EMAIL` | Order ID prefix (`AE-XXXXXX`) and the address that receives "new order" emails |
 | `OFFER_GLOBAL_ONLY` | `true`: staff create whole-shop offers only (the type and categories are hidden, and the shop ignores category offers). `false` (default) also allows offers on chosen root categories. Either way two global offers cannot be active with overlapping dates |
 | `SHOP_MAX_EXTRA_DISCOUNT` | Highest extra discount (whole %) staff can add to an order on request, applied after offer discounts. Default `50` |
 | `SUPPORT_EMAIL`, `WHATSAPP_NUMBER`, `WHATSAPP_COUNTRY_CODE`, `FACEBOOK_MESSENGER_URL`, `FACEBOOK_PAGE_URL`, `FACEBOOK_GROUP_URL` | Contact channels shown after checkout and on the contact page |
@@ -273,7 +278,7 @@ Point the site root to the `public` directory and allow uploads larger than the 
 ```nginx
 server {
     server_name your-domain.com;
-    root /var/www/notun-krisok/public;
+    root /var/www/amar-ecommerce-lite/public;
     index index.php;
 
     client_max_body_size 110M;
@@ -315,17 +320,17 @@ The limits must follow this order: Nginx `client_max_body_size` ≥ `post_max_si
 
 Without a worker, emails are sent right after the response and book covers are resized during the upload (`QUEUE_CONVERSIONS_BY_DEFAULT=false`). Set up the worker only when `MAIL_QUEUE_ENABLED=true`: order emails then wait in the `jobs` table and are retried every `MAIL_QUEUE_BACKOFF_SECONDS` for `MAIL_QUEUE_RETRY_HOURS` while the mail server is down. With the queue on and no worker running, no order email is sent.
 
-Create `/etc/systemd/system/notun-krisok-queue.service`:
+Create `/etc/systemd/system/amar-ecommerce-lite-queue.service`:
 
 ```ini
 [Unit]
-Description=নতুন কৃষক queue worker
+Description=AmarEcommerce queue worker
 After=network.target
 
 [Service]
 User=www-data
 Restart=always
-WorkingDirectory=/var/www/notun-krisok
+WorkingDirectory=/var/www/amar-ecommerce-lite
 ExecStart=/usr/bin/php artisan queue:work --tries=1 --max-time=3600
 
 [Install]
@@ -333,19 +338,19 @@ WantedBy=multi-user.target
 ```
 
 ```bash
-sudo systemctl enable --now notun-krisok-queue
+sudo systemctl enable --now amar-ecommerce-lite-queue
 ```
 
 Add the scheduler to the `www-data` crontab (`sudo crontab -u www-data -e`):
 
 ```cron
-* * * * * cd /var/www/notun-krisok && php artisan schedule:run >> /dev/null 2>&1
+* * * * * cd /var/www/amar-ecommerce-lite && php artisan schedule:run >> /dev/null 2>&1
 ```
 
 ### 7. Updating a live site
 
 ```bash
-cd /var/www/notun-krisok
+cd /var/www/amar-ecommerce-lite
 php artisan down
 git pull
 composer install --no-dev --optimize-autoloader
@@ -382,12 +387,12 @@ The app runs on cPanel if the host provides PHP 8.4, Terminal (SSH) access and C
    npm run build
    ```
 
-   Upload the whole project, including `vendor`, `public/build` and, for pdf-lib, `node_modules` (only `node_modules/pdf-lib`, `node_modules/@pdf-lib`, `node_modules/pako` and `node_modules/tslib` are needed at runtime), to a folder outside `public_html`, for example `~/notun-krisok`.
+   Upload the whole project, including `vendor`, `public/build` and, for pdf-lib, `node_modules` (only `node_modules/pdf-lib`, `node_modules/@pdf-lib`, `node_modules/pako` and `node_modules/tslib` are needed at runtime), to a folder outside `public_html`, for example `~/amar-ecommerce-lite`.
 
-4. **Point the domain to `public`.** In cPanel → Domains, set the document root to `notun-krisok/public`. If the main domain's root cannot be changed:
+4. **Point the domain to `public`.** In cPanel → Domains, set the document root to `amar-ecommerce-lite/public`. If the main domain's root cannot be changed:
 
    ```bash
-   rm -rf ~/public_html && ln -s ~/notun-krisok/public ~/public_html
+   rm -rf ~/public_html && ln -s ~/amar-ecommerce-lite/public ~/public_html
    ```
 
 5. **Create the database** in cPanel → MySQL Databases, then fill in `.env` as in production step 2 (Configure the environment). Set `NODE_BINARY` to the full Node.js path from step 2, or `GHOSTSCRIPT_BINARY` to the path printed by `which gs` when using Ghostscript.
@@ -395,7 +400,7 @@ The app runs on cPanel if the host provides PHP 8.4, Terminal (SSH) access and C
 6. **Run the setup** in Terminal:
 
    ```bash
-   cd ~/notun-krisok
+   cd ~/amar-ecommerce-lite
    php artisan key:generate
    php artisan migrate --force --seed
    php artisan storage:link
@@ -409,7 +414,7 @@ The app runs on cPanel if the host provides PHP 8.4, Terminal (SSH) access and C
 7. **No Cron Jobs are needed** while `MAIL_QUEUE_ENABLED=false`; keep `QUEUE_CONVERSIONS_BY_DEFAULT=false` so book covers are resized during the upload. To retry emails when the mail server is down, set `MAIL_QUEUE_ENABLED=true` and add one cron job (cPanel → Cron Jobs, every minute) that runs the worker briefly:
 
    ```cron
-   * * * * * cd /home/USER/notun-krisok && php artisan queue:work --stop-when-empty --max-time=50 >> /dev/null 2>&1
+   * * * * * cd /home/USER/amar-ecommerce-lite && php artisan queue:work --stop-when-empty --max-time=50 >> /dev/null 2>&1
    ```
 
 8. **Raise upload limits** in cPanel → MultiPHP INI Editor:

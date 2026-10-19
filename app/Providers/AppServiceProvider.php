@@ -87,7 +87,7 @@ class AppServiceProvider extends ServiceProvider
 
     private function configureDevServer(): void
     {
-        DevCommands::artisan('serve --port='.appServerPort(), 'server');
+        DevCommands::artisan('serve --host='.appServerHost().' --port='.appServerPort(), 'server');
     }
 
     private function configureRoleUserProvider(): void

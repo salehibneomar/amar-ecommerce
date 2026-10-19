@@ -1,6 +1,6 @@
 # Diagrams
 
-Diagrams for নতুন কৃষক, written in Mermaid so they render on GitHub and in most editors. Keep them in step with the code: update the ERD when a migration changes, the class diagrams when a model relation or service dependency changes, and the sequences when a flow changes. Prose explanations live in [TECHNICAL.md](TECHNICAL.md).
+Diagrams for AmarEcommerce, written in Mermaid so they render on GitHub and in most editors. Keep them in step with the code: update the ERD when a migration changes, the class diagrams when a model relation or service dependency changes, and the sequences when a flow changes. Prose explanations live in [TECHNICAL.md](TECHNICAL.md).
 
 1. [Entity relationship diagram](#1-entity-relationship-diagram)
 2. [Class diagrams](#2-class-diagrams)

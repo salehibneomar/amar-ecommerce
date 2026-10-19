@@ -26,18 +26,10 @@ new #[Title('Settings')] class extends Component {
 
 <section class="w-full">
     <x-backoffice.layout.main-content-container :title="__('Settings')" :subtitle="__('Manage your account and application settings')">
-        <flux:card class="border-line bg-surface p-2 shadow-card sm:p-4">
-            <nav aria-label="{{ __('Settings') }}" class="divide-y divide-zinc-200 dark:divide-zinc-700">
+        <flux:card class="p-2 sm:p-4">
+            <nav aria-label="{{ __('Settings') }}" class="divide-y divide-line">
                 @foreach ($this->items as $item)
-                    <a href="{{ route($item['route']) }}" wire:navigate wire:key="settings-{{ $item['route'] }}"
-                        class="group flex items-center gap-3 px-3 py-3 transition hover:bg-zinc-100 dark:hover:bg-zinc-800/60">
-                        <flux:icon :icon="$item['icon']" variant="outline" class="size-5 shrink-0 text-zinc-600 dark:text-zinc-300" />
-                        <div class="min-w-0 flex-1">
-                            <p class="text-sm font-medium text-zinc-900 dark:text-white">{{ $item['title'] }}</p>
-                            <p class="text-xs text-zinc-500 dark:text-zinc-400">{{ $item['description'] }}</p>
-                        </div>
-                        <flux:icon.chevron-right variant="micro" class="shrink-0 text-zinc-400 transition group-hover:translate-x-0.5" />
-                    </a>
+                    <x-ui.list-link wire:key="settings-{{ $item['route'] }}" :href="route($item['route'])" :icon="$item['icon']" :title="$item['title']" :description="$item['description']" />
                 @endforeach
             </nav>
         </flux:card>

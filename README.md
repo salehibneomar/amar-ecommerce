@@ -1,6 +1,8 @@
-# নতুন কৃষক
+# AmarEcommerce Lite
 
-**নতুন কৃষক** is an online bookshop for Bangladesh. It sells digital books (PDF, read in the browser) and printed books (shipped). Payment is manual through bKash or Nagad, and every price is in whole currency units (for example ৳550, never ৳550.50).
+**AmarEcommerce Lite** is a Laravel ecommerce boilerplate for client shop projects. Each new store starts from it and adds its own branding, product types and content, instead of building catalogue, cart, checkout, orders, staff roles and the backoffice from scratch.
+
+Out of the box it runs as an online bookshop for Bangladesh, the first product type it ships with. It sells digital books (PDF, read in the browser) and printed books (shipped). Payment is manual through bKash or Nagad, and every price is in whole currency units (for example ৳550, never ৳550.50). New product types extend the shared `Product` model (see [TECHNICAL.md](TECHNICAL.md#product-types)), and payment gateways plug in through `PaymentGatewayInterface`.
 
 ## How it works for customers
 
@@ -46,7 +48,7 @@ Laravel 13 (PHP 8.4), Livewire 4, Flux UI, Tailwind CSS 4 and MySQL. Book previe
 ## Quick start (for developers)
 
 ```bash
-git clone <repository-url> notun-krisok && cd notun-krisok
+git clone <repository-url> amar-ecommerce-lite && cd amar-ecommerce-lite
 composer install && npm install
 cp .env.example .env && php artisan key:generate
 # set your database (and APP_CURRENCY / APP_CURRENCY_SYMBOL) in .env, then:
@@ -54,7 +56,7 @@ php artisan migrate --seed && php artisan storage:link
 composer dev
 ```
 
-Open `http://localhost:8100`. The sample accounts use the password `123456`:
+Open `http://localhost:8200`. The sample accounts use the password `123456`:
 
 | Role | Email | Login page |
 |---|---|---|
@@ -140,14 +142,18 @@ Prompt edits take effect immediately (run `php artisan config:clear` if config i
 
 ## Documentation
 
-New here? Start with [START_HERE.md](START_HERE.md): the order to read these docs in.
+New here? Read the docs in this order. Steps 1 to 4 get the app running and make the code readable. Read the rest when you need it.
 
-| File | What is inside |
-|---|---|
-| [START_HERE.md](START_HERE.md) | Reading order for new developers |
-| [SETUP.md](SETUP.md) | Installation for local development, a VPS and cPanel, plus every `.env` setting |
-| [SETUP_COMMANDS.md](SETUP_COMMANDS.md) | Every command in one place: install, database, AI embeddings, tests, caches, deploy, cPanel |
-| [OUR_RAG.md](OUR_RAG.md) | How the AI shopping assistant (RAG) works, file by file, and how to build one yourself |
-| [TECHNICAL.md](TECHNICAL.md) | Architecture, folders, database, flows, caching and conventions |
-| [INCOMPLETE.md](INCOMPLETE.md) | Known gaps and ideas for later |
-| [AGENTS.md](AGENTS.md) | Instructions for AI coding agents. Path rules are in `.ai/rules/` and the feature playbook is in `.ai/playbooks/` |
+| # | File | What is inside |
+|---|---|---|
+| 1 | [README.md](README.md) | What the app is, the pages, the stack and sample accounts |
+| 2 | [SETUP.md](SETUP.md) | Installation for local development, a VPS and cPanel, plus every `.env` setting |
+| 3 | [SETUP_COMMANDS.md](SETUP_COMMANDS.md) | Every command in one place, including the **safe test command** (a plain `php artisan test` wipes the dev database) |
+| 4 | [TECHNICAL.md](TECHNICAL.md) | Architecture, folders, database, flows, caching and conventions. The most important read before touching code |
+| 5 | [DIAGRAM.md](DIAGRAM.md) | ERD, class and sequence diagrams for TECHNICAL.md |
+| 6 | [AGENTS.md](AGENTS.md) | The golden rules, working loop and test rules. Written for AI agents, but the rules apply to everyone. Path rules are in `.ai/rules/` and the feature playbook is in `.ai/playbooks/` |
+| 7 | [HOW_TO.md](HOW_TO.md) | Recipes for everyday changes: titles, links, colors, limits, `.env` |
+| 8 | [INCOMPLETE.md](INCOMPLETE.md) | Known gaps and ideas for later |
+| 9 | [OUR_RAG.md](OUR_RAG.md) | How the AI shopping assistant (RAG) works, file by file, and how to build one yourself |
+
+A good first task: run the safe test command, make one small change from HOW_TO.md, read its rule in `.ai/rules/`, then run Pint and the related test file.

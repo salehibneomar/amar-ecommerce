@@ -13,15 +13,15 @@
             <x-slot:toolbar>
                 <div class="flex items-center gap-2">
                     <x-backoffice.management.per-page :placeholder="__('Select')" />
-                    <x-backoffice.management.filter model="status" :label="__('Filter by status')" :options="$this->statusOptions" />
+                    <x-backoffice.management.filter model="status" :label="__('Filter by Status')" :options="$this->statusOptions" />
                     <x-backoffice.management.category-level-select model="categoryFilter" :levels="$this->categoryFilterOptions" :labels="[__('Filter by category'), __('Sub-category'), __('Sub-sub-category')]" filter />
                 </div>
                 <div class="flex items-end gap-2">
-                    <x-backoffice.management.search model="search" :placeholder="__('Search books...')" :label="__('Search books')"
+                    <x-backoffice.management.search model="search" :placeholder="__('Search books...')" :label="__('Search Books')"
                         class="max-w-xs" />
-                    <flux:button variant="primary" wire:click="createBook">
+                    <x-ui.button variant="primary" wire:click="createBook">
                         {{ __('Add New') }}
-                    </flux:button>
+                    </x-ui.button>
                 </div>
             </x-slot:toolbar>
 
@@ -38,46 +38,32 @@
                                 <img src="{{ $book->cover_thumbnail_url }}" alt="{{ $book->name }}"
                                     width="32" height="48" loading="lazy" class="h-12 w-8 rounded object-cover ring-1 ring-zinc-950/10" />
                             @else
-                                <span class="text-zinc-400">-</span>
+                                <x-ui.empty-value />
                             @endif
                         </flux:table.cell>
                         <flux:table.cell>
                             <x-ui.price :amount="$book->final_price" :original="$book->has_discount ? $book->price : null" :free="$book->is_free" size="sm" />
                         </flux:table.cell>
-                        <flux:table.cell>{{ $book->category?->name ?? '-' }}</flux:table.cell>
+                        <flux:table.cell>{{ $book->category?->name ?? appEmptyValue() }}</flux:table.cell>
                         <flux:table.cell>
                             <div class="flex flex-wrap gap-1">
-                                <flux:badge size="sm" :color="$book->status->color()">{{ $book->status->label() }}</flux:badge>
+                                <x-ui.badge :color="$book->status->color()">{{ $book->status->label() }}</x-ui.badge>
                                 @if ($this->canChooseStockType)
-                                    <flux:badge size="sm" :color="$book->stock_type->color()">{{ $book->stock_type->label() }}</flux:badge>
+                                    <x-ui.badge :color="$book->stock_type->color()">{{ $book->stock_type->label() }}</x-ui.badge>
                                 @endif
                             </div>
                         </flux:table.cell>
                         <flux:table.cell>{{ $book->created_at?->format('d/m/Y') }}</flux:table.cell>
                         <flux:table.cell>
-                            <div class="flex flex-wrap gap-2">
+                            <x-backoffice.management.actions>
+                                <x-backoffice.management.action icon="eye" :label="__('Details')" variant="filled" wire:click="viewBook({{ $book->id }})" />
+                                <x-backoffice.management.action icon="pencil-square" :label="__('Edit')" variant="filled" color="sky" wire:click="editBook({{ $book->id }})" />
                                 @if ($book->has_any_media)
-                                    <flux:button size="xs" variant="filled" color="green"
-                                        wire:click="viewMedia({{ $book->id }})">
-                                        {{ __('Media') }}
-                                    </flux:button>
+                                    <x-backoffice.management.action icon="photo" :label="__('Media')" variant="filled" color="green" wire:click="viewMedia({{ $book->id }})" />
                                 @endif
-                                <flux:button size="xs" variant="filled" color="violet"
-                                    wire:click="uploadMedia({{ $book->id }})">
-                                    {{ __('Upload') }}
-                                </flux:button>
-                                <flux:button size="xs" variant="filled" wire:click="viewBook({{ $book->id }})">
-                                    {{ __('Details') }}
-                                </flux:button>
-                                <flux:button size="xs" variant="filled" color="sky"
-                                    wire:click="editBook({{ $book->id }})">
-                                    {{ __('Edit') }}
-                                </flux:button>
-                                <flux:button size="xs" variant="danger"
-                                    wire:click="confirmDeleteBook({{ $book->id }})">
-                                    {{ __('Delete') }}
-                                </flux:button>
-                            </div>
+                                <x-backoffice.management.action icon="arrow-up-tray" :label="__('Upload')" variant="filled" color="violet" wire:click="uploadMedia({{ $book->id }})" />
+                                <x-backoffice.management.action icon="trash" :label="__('Delete')" variant="danger" wire:click="confirmDeleteBook({{ $book->id }})" />
+                            </x-backoffice.management.actions>
                         </flux:table.cell>
                     </flux:table.row>
                 @empty
@@ -134,7 +120,7 @@
 
                 <flux:input wire:model="pages" type="number" min="1" :label="__('Pages')" />
                 @if ($this->isPhysicalStock)
-                    <flux:input wire:model="quantity" type="number" min="0" :label="__('Quantity in stock')" />
+                    <flux:input wire:model="quantity" type="number" min="0" :label="__('Quantity in Stock')" />
                 @endif
             </div>
             <div class="grid grid-cols-1 gap-4 md:grid-cols-2">
@@ -143,9 +129,9 @@
             </div>
             <div class="flex flex-wrap items-center gap-x-8 gap-y-3">
                 @unless ($this->isPhysicalOnly)
-                    <x-backoffice.form.toggle-field wire:model.live="isFree" :label="__('Free book')" />
+                    <x-backoffice.form.toggle-field wire:model.live="isFree" :label="__('Free Book')" />
                 @endunless
-                <x-backoffice.form.toggle-field wire:model="isFeatured" :label="__('Featured book')" />
+                <x-backoffice.form.toggle-field wire:model="isFeatured" :label="__('Featured Book')" />
             </div>
             <x-form.rich-text-editor wire:model="description" :label="__('Description')" />
         </x-backoffice.management.form-modal>
@@ -155,7 +141,7 @@
             submit="saveMedia">
             @if ($this->uploadFields)
                 <div class="grid grid-cols-1 gap-5 sm:grid-cols-2">
-                    <x-media.upload :label="__('Cover image')" :field="$this->uploadFields['cover']"
+                    <x-media.upload :label="__('Cover Image')" :field="$this->uploadFields['cover']"
                         upload="coverUpload" remove="removeCover"
                         :selected="$coverUpload" :marked-for-removal="$removeCover" />
                     <x-media.upload :label="$this->isPhysicalOnly ? __('Preview PDF (sample pages)') : __('Book PDF')" :field="$this->uploadFields['file']"
@@ -170,8 +156,8 @@
             :show-default-footer="false">
             @if ($this->previewFields)
                 <div class="grid grid-cols-1 gap-5 sm:grid-cols-2">
-                    <x-media.preview :label="__('Cover image')" :field="$this->previewFields['cover']"
-                        :action-label="__('View image')" wire:click="viewImage" />
+                    <x-media.preview :label="__('Cover Image')" :field="$this->previewFields['cover']"
+                        :action-label="__('View Image')" wire:click="viewImage" />
                     <x-media.preview :label="$this->isPhysicalOnly ? __('Preview PDF') : __('Book PDF')" :field="$this->previewFields['file']"
                         :action-label="__('Open PDF')" wire:click="viewPdf({{ $previewBookId }})" />
                 </div>
@@ -190,10 +176,10 @@
             :document-id="$showPdfViewer && $pdfBookId ? (string) $pdfBookId : null" :viewer-key="$pdfViewerKey">
             @if ($this->pdfDownloadUrl)
                 <x-slot:actions>
-                    <flux:button size="sm" variant="ghost" icon="arrow-down-tray" download
+                    <x-ui.button size="sm" variant="ghost" icon="arrow-down-tray" download
                         :href="$this->pdfDownloadUrl">
                         {{ __('Download') }}
-                    </flux:button>
+                    </x-ui.button>
                 </x-slot:actions>
             @endif
         </x-media.pdf-viewer-modal>
@@ -218,11 +204,11 @@
                         <dt class="text-xs font-medium text-zinc-500 dark:text-zinc-400">{{ __('Status') }}</dt>
                         <dd class="mt-1">
                             @if ($this->viewingBook?->status)
-                                <flux:badge size="sm" :color="$this->viewingBook->status->color()">
+                                <x-ui.badge :color="$this->viewingBook->status->color()">
                                     {{ $this->viewingBook->status->label() }}
-                                </flux:badge>
+                                </x-ui.badge>
                             @else
-                                <span class="text-zinc-400">-</span>
+                                <x-ui.empty-value />
                             @endif
                         </dd>
                     </div>
@@ -232,11 +218,11 @@
                             <dt class="text-xs font-medium text-zinc-500 dark:text-zinc-400">{{ __('Stock Type') }}</dt>
                             <dd class="mt-1">
                                 @if ($this->viewingBook?->stock_type)
-                                    <flux:badge size="sm" :color="$this->viewingBook->stock_type->color()">
+                                    <x-ui.badge :color="$this->viewingBook->stock_type->color()">
                                         {{ $this->viewingBook->stock_type->label() }}
-                                    </flux:badge>
+                                    </x-ui.badge>
                                 @else
-                                    <span class="text-zinc-400">-</span>
+                                    <x-ui.empty-value />
                                 @endif
                             </dd>
                         </div>
@@ -245,9 +231,9 @@
                     <div>
                         <dt class="text-xs font-medium text-zinc-500 dark:text-zinc-400">{{ __('Access') }}</dt>
                         <dd class="mt-1">
-                            <flux:badge size="sm" :color="$this->viewingBook?->is_free ? 'green' : 'zinc'">
+                            <x-ui.badge :color="$this->viewingBook?->is_free ? 'green' : 'zinc'">
                                 {{ $this->viewingBook?->is_free ? __('Free') : __('Paid') }}
-                            </flux:badge>
+                            </x-ui.badge>
                         </dd>
                     </div>
 
@@ -255,39 +241,27 @@
                         <div>
                             <dt class="text-xs font-medium text-zinc-500 dark:text-zinc-400">{{ __('Badge') }}</dt>
                             <dd class="mt-1">
-                                <flux:badge size="sm" :color="$this->viewingBook->badge->color()">
+                                <x-ui.badge :color="$this->viewingBook->badge->color()">
                                     {{ $this->viewingBook->badge->label() }}
-                                </flux:badge>
+                                </x-ui.badge>
                             </dd>
                         </div>
                     @endif
 
                     <x-backoffice.management.detail-item :label="__('Price')">
                         @if ($this->viewingBook)
-                            <x-ui.price :amount="$this->viewingBook->final_price" :original="$this->viewingBook->has_discount ? $this->viewingBook->price : null" :free="$this->viewingBook->is_free" size="sm" />
+                            <x-ui.price :amount="$this->viewingBook->final_price" :original="$this->viewingBook->has_discount ? $this->viewingBook->price : null" :free="$this->viewingBook->is_free" size="sm" plain />
                         @endif
                     </x-backoffice.management.detail-item>
-                    <x-backoffice.management.detail-item :label="__('Category')">{{ $this->viewingBookCategory ?? '-' }}</x-backoffice.management.detail-item>
-                    <x-backoffice.management.detail-item :label="__('Pages')">{{ $this->viewingBook?->pages ?: '-' }}</x-backoffice.management.detail-item>
-                    <x-backoffice.management.detail-item :label="__('Last updated by')">{{ $this->viewingBook?->lastUpdateLabel() }}</x-backoffice.management.detail-item>
+                    <x-backoffice.management.detail-item :label="__('Category')">{{ $this->viewingBookCategory ?? appEmptyValue() }}</x-backoffice.management.detail-item>
+                    <x-backoffice.management.detail-item :label="__('Pages')">{{ $this->viewingBook?->pages ?: appEmptyValue() }}</x-backoffice.management.detail-item>
+                    <x-backoffice.management.detail-item :label="__('Last Updated by')">{{ $this->viewingBook?->lastUpdateLabel() }}</x-backoffice.management.detail-item>
 
                     @if ($this->viewingBookIsPhysical)
-                        <div>
-                            <dt class="text-xs font-medium text-zinc-500 dark:text-zinc-400">
-                                {{ __('Quantity in stock') }}
-                            </dt>
-                            <dd class="mt-1 text-sm font-medium text-zinc-900 dark:text-zinc-100">
-                                {{ $this->viewingBook?->quantity ?? '-' }}
-                            </dd>
-                        </div>
+                        <x-backoffice.management.detail-item :label="__('Quantity in Stock')">{{ $this->viewingBook?->quantity ?? appEmptyValue() }}</x-backoffice.management.detail-item>
                     @endif
 
-                    <div>
-                        <dt class="text-xs font-medium text-zinc-500 dark:text-zinc-400">{{ __('Created') }}</dt>
-                        <dd class="mt-1 text-sm font-medium text-zinc-900 dark:text-zinc-100">
-                            {{ $this->viewingBook?->created_at?->format('d/m/Y') ?: '-' }}
-                        </dd>
-                    </div>
+                    <x-backoffice.management.detail-item :label="__('Created')">{{ formatDateTime($this->viewingBook?->created_at) ?: appEmptyValue() }}</x-backoffice.management.detail-item>
                 </dl>
 
                 @if ($this->viewingBook?->description)
@@ -303,13 +277,13 @@
             <x-slot:footer>
                 <div class="flex justify-end gap-2">
                     <flux:modal.close>
-                        <flux:button type="button">{{ __('Close') }}</flux:button>
+                        <x-ui.button type="button">{{ __('Close') }}</x-ui.button>
                     </flux:modal.close>
                     @if ($this->viewingBook)
-                        <flux:button variant="filled" color="sky"
+                        <x-ui.button variant="filled" color="sky"
                             wire:click="editBook({{ $this->viewingBook->id }})">
                             {{ __('Edit') }}
-                        </flux:button>
+                        </x-ui.button>
                     @endif
                 </div>
             </x-slot:footer>
@@ -321,11 +295,11 @@
             <x-slot:footer>
                 <div class="flex justify-end gap-2">
                     <flux:modal.close>
-                        <flux:button type="button">{{ __('Close') }}</flux:button>
+                        <x-ui.button type="button">{{ __('Close') }}</x-ui.button>
                     </flux:modal.close>
-                    <flux:button variant="danger" wire:click="deleteBook">
+                    <x-ui.button variant="danger" wire:click="deleteBook">
                         {{ __('Delete') }}
-                    </flux:button>
+                    </x-ui.button>
                 </div>
             </x-slot:footer>
         </x-backoffice.management.form-modal>

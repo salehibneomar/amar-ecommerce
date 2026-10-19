@@ -32,7 +32,7 @@
             <!-- Confirm Password -->
             <flux:input
                 name="password_confirmation"
-                :label="__('Confirm password')"
+                :label="__('Confirm Password')"
                 type="password"
                 required
                 autocomplete="new-password"
@@ -42,9 +42,9 @@
             />
 
             <div class="flex items-center justify-end">
-                <flux:button type="submit" variant="primary" class="w-full" data-test="reset-password-button">
-                    {{ __('Reset password') }}
-                </flux:button>
+                <x-ui.button type="submit" variant="primary" class="w-full" data-test="reset-password-button">
+                    {{ __('Reset Password') }}
+                </x-ui.button>
             </div>
         </form>
     </div>

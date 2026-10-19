@@ -3,9 +3,11 @@
     'description' => null,
     'framed' => true,
     'padded' => true,
+    'interactive' => false,
+    'as' => 'div',
 ])
 
-<div {{ $attributes->class(['rounded-2xl shadow-card border border-line bg-surface' => $framed, 'space-y-6 p-6' => $padded]) }}>
+<x-ui.card :as="$as" :framed="$framed" :interactive="$interactive" {{ $attributes->class(['space-y-6 p-6' => $padded, 'hover:shadow-md' => $interactive]) }}>
     @if ($title)
         <div class="flex items-start justify-between gap-4">
             <div>
@@ -19,4 +21,4 @@
     @endif
 
     {{ $slot }}
-</div>
+</x-ui.card>

@@ -40,6 +40,6 @@ trait CmsUpdateTrackerTrait
 
     public function lastUpdateLabel(): string
     {
-        return ($this->updatedBy->name ?? '-').' · '.formatDateTime($this->updated_at);
+        return ($this->updatedBy->name ?? appEmptyValue()).' · '.formatDateTime($this->updated_at);
     }
 }

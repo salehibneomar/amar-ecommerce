@@ -78,7 +78,7 @@ class Index extends Component
             __('Title') => $faq->title,
             __('Status') => $faq->status->label(),
             __('Created') => formatDateTime($faq->created_at),
-            __('Last updated by') => $faq->lastUpdateLabel(),
+            __('Last Updated by') => $faq->lastUpdateLabel(),
             __('Description') => $faq->description,
         ];
         $this->showDetails = true;

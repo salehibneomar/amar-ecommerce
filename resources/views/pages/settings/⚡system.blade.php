@@ -136,7 +136,7 @@ new #[Title('System')] class extends Component {
 
 <section class="w-full">
     <x-backoffice.layout.main-content-container :title="__('System')" :subtitle="__('Branding, maintenance mode and application cache')" :breadcrumbs="[['label' => __('Settings'), 'href' => route('settings.index')], ['label' => __('System')]]">
-        <flux:card class="space-y-8 border-line bg-surface shadow-card">
+        <flux:card class="space-y-8">
             <form wire:submit="saveBrand" class="space-y-5">
                 <div>
                     <flux:heading>{{ __('Branding') }}</flux:heading>
@@ -145,26 +145,26 @@ new #[Title('System')] class extends Component {
 
                 <div class="grid grid-cols-1 gap-4 md:grid-cols-3">
                     <x-media.upload :label="__('Logo')" :field="$this->brandFields['logo']" upload="logoUpload" remove="removeLogo" :selected="$logoUpload" :marked-for-removal="$removeLogo" />
-                    <x-media.upload :label="__('Icon (small square)')" :field="$this->brandFields['icon']" upload="iconUpload" remove="removeIcon" :selected="$iconUpload" :marked-for-removal="$removeIcon" />
+                    <x-media.upload :label="__('Icon (Small Square)')" :field="$this->brandFields['icon']" upload="iconUpload" remove="removeIcon" :selected="$iconUpload" :marked-for-removal="$removeIcon" />
                     <x-media.upload :label="__('Favicon')" :field="$this->brandFields['favicon']" upload="faviconUpload" remove="removeFavicon" :selected="$faviconUpload" :marked-for-removal="$removeFavicon" />
                 </div>
 
-                <flux:button type="submit" variant="primary" data-test="save-brand-button">{{ __('Save') }}</flux:button>
+                <x-ui.button type="submit" variant="primary" data-test="save-brand-button">{{ __('Save') }}</x-ui.button>
             </form>
 
             <flux:separator />
 
-            <div class="grid grid-cols-1 divide-y divide-zinc-200 lg:grid-cols-2 lg:divide-x lg:divide-y-0 dark:divide-zinc-700">
+            <div class="grid grid-cols-1 divide-y divide-line lg:grid-cols-2 lg:divide-x lg:divide-y-0">
                 <form wire:submit="saveMaintenance" class="space-y-5 pb-8 lg:pe-8 lg:pb-0">
                     <div>
                         <div class="flex items-center gap-2">
                             <flux:heading>{{ __('Maintenance mode') }}</flux:heading>
-                            <flux:badge size="sm" :color="$this->maintenanceStatus->color()" data-test="maintenance-status">{{ $this->maintenanceStatus->label() }}</flux:badge>
+                            <x-ui.badge :color="$this->maintenanceStatus->color()" data-test="maintenance-status">{{ $this->maintenanceStatus->label() }}</x-ui.badge>
                         </div>
                         <flux:text class="mt-1">{{ __('Every public and customer page shows a friendly maintenance page during the window, while the admin panel stays open for admins. Leave the times empty to start now and end manually.') }}</flux:text>
                     </div>
 
-                    <x-backoffice.form.toggle-field wire:model.live="maintenanceEnabled" :label="__('Enable maintenance mode')" />
+                    <x-backoffice.form.toggle-field wire:model.live="maintenanceEnabled" :label="__('Enable Maintenance Mode')" />
 
                     @if ($maintenanceEnabled)
                         <div class="grid grid-cols-1 gap-4 sm:grid-cols-2">
@@ -174,10 +174,10 @@ new #[Title('System')] class extends Component {
                     @endif
 
                     @if ($this->bypassUrl)
-                        <flux:input :value="$this->bypassUrl" readonly copyable :label="__('Bypass link')" :description="__('Opens the public site in this browser while maintenance is active.')" data-test="bypass-link" />
+                        <flux:input :value="$this->bypassUrl" readonly copyable :label="__('Bypass Link')" :description="__('Opens the public site in this browser while maintenance is active.')" data-test="bypass-link" />
                     @endif
 
-                    <flux:button type="submit" variant="primary" data-test="save-maintenance-button">{{ __('Save') }}</flux:button>
+                    <x-ui.button type="submit" variant="primary" data-test="save-maintenance-button">{{ __('Save') }}</x-ui.button>
                 </form>
 
                 <div class="space-y-5 pt-8 lg:ps-8 lg:pt-0">
@@ -187,12 +187,12 @@ new #[Title('System')] class extends Component {
                     </div>
 
                     <div class="flex flex-wrap items-center gap-4">
-                        <flux:button wire:click="clearCache" wire:loading.attr="disabled" data-test="clear-cache-button">
-                            {{ __('Clear cache') }}
-                        </flux:button>
-                        <flux:button variant="primary" wire:click="optimize" wire:loading.attr="disabled" data-test="optimize-button">
+                        <x-ui.button wire:click="clearCache" wire:loading.attr="disabled" data-test="clear-cache-button">
+                            {{ __('Clear Cache') }}
+                        </x-ui.button>
+                        <x-ui.button variant="primary" wire:click="optimize" wire:loading.attr="disabled" data-test="optimize-button">
                             {{ __('Optimize') }}
-                        </flux:button>
+                        </x-ui.button>
                     </div>
                 </div>
             </div>

@@ -31,6 +31,11 @@ class Index extends Component
 
     public bool $showPermissions = false;
 
+    public bool $showDetails = false;
+
+    /** @var array<string, string|bool|null> */
+    public array $details = [];
+
     public ?int $editingStaffId = null;
 
     public ?int $statusStaffId = null;
@@ -89,6 +94,27 @@ class Index extends Component
     {
         $this->resetForm();
         $this->showForm = true;
+    }
+
+    public function viewStaff(int $staffId): void
+    {
+        $member = $this->staffService->getStaffById($staffId);
+        $profile = $member->staffProfile;
+
+        $this->details = [
+            __('Name') => $member->name,
+            __('Email') => $member->email,
+            __('Role') => $member->roles->pluck('label')->implode(', '),
+            __('Status') => $member->status->label(),
+            __('Joined') => $profile?->joined_at?->format('d/m/Y'),
+            __('Left') => $profile?->left_at?->format('d/m/Y'),
+            __('Compensation') => $profile?->compensationLabel(),
+            __('Compensation Type') => $profile?->compensation_type->label(),
+            __('Two-Factor Login') => $member->two_factor_confirmed_at !== null,
+            __('Added') => formatDateTime($member->created_at),
+            __('Extra Permissions') => $member->permissions->pluck('name')->map(fn (string $name): string => $this->permissionOptions[$name] ?? $name)->implode(', '),
+        ];
+        $this->showDetails = true;
     }
 
     public function editStaff(int $staffId): void
@@ -222,7 +248,9 @@ class Index extends Component
     #[Computed]
     public function roleOptions(): array
     {
-        return $this->roleService->getRoleOptions(includeAdmin: (bool) Auth::user()?->isSuperAdmin());
+        $user = Auth::user();
+
+        return $this->roleService->getRoleOptions(includeAdmin: $user instanceof User && $user->isSuperAdmin());
     }
 
     /**

@@ -11,7 +11,7 @@
     x-cloak
     x-on:click="window.scrollTo({ top: 0, behavior: 'smooth' })"
     aria-label="{{ __('Scroll to top') }}"
-    {{ $attributes->class(['fixed end-6 bottom-6 z-10 flex size-11 items-center justify-center rounded-lg border border-brand-700/40 bg-brand-600/85 text-white backdrop-blur transition-colors hover:bg-brand-600 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand-600 dark:border-brand-900/60 dark:bg-brand-950/85 dark:hover:bg-brand-950']) }}
+    {{ $attributes->class(['fixed end-6 bottom-6 z-10 flex size-11 items-center justify-center rounded-lg border glass text-bar-active-foreground transition-colors hover:bg-bar-hover focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand-600']) }}
 >
     <flux:icon.arrow-up variant="solid" class="size-5" />
 </button>

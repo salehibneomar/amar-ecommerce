@@ -12,8 +12,8 @@
                     <x-backoffice.management.per-page :placeholder="__('Select')" />
                 </div>
                 <div class="flex items-end gap-2">
-                    <x-backoffice.management.search model="search" :placeholder="__('Search roles...')" :label="__('Search roles')" class="max-w-xs" />
-                    <flux:button variant="primary" wire:click="createRole">{{ __('Add Role') }}</flux:button>
+                    <x-backoffice.management.search model="search" :placeholder="__('Search roles...')" :label="__('Search Roles')" class="max-w-xs" />
+                    <x-ui.button variant="primary" wire:click="createRole">{{ __('Add Role') }}</x-ui.button>
                 </div>
             </x-slot:toolbar>
 
@@ -24,18 +24,18 @@
                         <flux:table.cell>
                             <span class="font-medium">{{ $role->label }}</span>
                             @if ($role->isSystem())
-                                <flux:badge size="sm" class="ms-1">{{ __('Built-in') }}</flux:badge>
+                                <x-ui.badge class="ms-1">{{ __('Built-in') }}</x-ui.badge>
                             @endif
                         </flux:table.cell>
                         <flux:table.cell>
                             <div class="flex max-w-md flex-wrap gap-1">
                                 @if ($role->isSuperAdmin())
-                                    <flux:badge size="sm" color="violet">{{ __('Everything') }}</flux:badge>
+                                    <x-ui.badge color="violet">{{ __('Everything') }}</x-ui.badge>
                                 @elseif ($role->isAdmin())
-                                    <flux:badge size="sm" color="violet">{{ __('Set per admin') }}</flux:badge>
+                                    <x-ui.badge color="violet">{{ __('Set per admin') }}</x-ui.badge>
                                 @else
                                     @forelse ($role->permissions as $permission)
-                                        <flux:badge size="sm" color="green">{{ $this->permissionOptions[$permission->name] ?? $permission->name }}</flux:badge>
+                                        <x-ui.badge color="green">{{ $this->permissionOptions[$permission->name] ?? $permission->name }}</x-ui.badge>
                                     @empty
                                         <span class="text-xs text-zinc-400">{{ __('No access yet') }}</span>
                                     @endforelse
@@ -44,14 +44,14 @@
                         </flux:table.cell>
                         <flux:table.cell>{{ $role->users_count }}</flux:table.cell>
                         <flux:table.cell>
-                            <div class="flex gap-2">
+                            <x-backoffice.management.actions>
                                 @unless ($role->isLocked())
-                                    <flux:button size="xs" variant="filled" color="sky" wire:click="editRole({{ $role->id }})">{{ __('Edit') }}</flux:button>
+                                    <x-backoffice.management.action icon="pencil-square" :label="__('Edit')" variant="filled" color="sky" wire:click="editRole({{ $role->id }})" />
                                 @endunless
                                 @unless ($role->isSystem())
-                                    <flux:button size="xs" variant="danger" wire:click="confirmDeleteRole({{ $role->id }})">{{ __('Delete') }}</flux:button>
+                                    <x-backoffice.management.action icon="trash" :label="__('Delete')" variant="danger" wire:click="confirmDeleteRole({{ $role->id }})" />
                                 @endunless
-                            </div>
+                            </x-backoffice.management.actions>
                         </flux:table.cell>
                     </flux:table.row>
                 @empty
@@ -76,9 +76,9 @@
             <x-slot:footer>
                 <div class="flex justify-end gap-2">
                     <flux:modal.close>
-                        <flux:button type="button">{{ __('Close') }}</flux:button>
+                        <x-ui.button type="button">{{ __('Close') }}</x-ui.button>
                     </flux:modal.close>
-                    <flux:button variant="danger" wire:click="deleteRole">{{ __('Delete') }}</flux:button>
+                    <x-ui.button variant="danger" wire:click="deleteRole">{{ __('Delete') }}</x-ui.button>
                 </div>
             </x-slot:footer>
         </x-backoffice.management.form-modal>

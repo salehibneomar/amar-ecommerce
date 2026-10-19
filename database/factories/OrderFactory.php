@@ -23,7 +23,7 @@ class OrderFactory extends Factory
         $total = fake()->numberBetween(200, 2000);
 
         return [
-            'public_order_id' => 'NK-'.Str::upper(Str::random(6)),
+            'public_order_id' => 'AE-'.Str::upper(Str::random(6)),
             'user_id' => User::factory(),
             'customer_name' => fn (array $attributes): string => User::query()->find($attributes['user_id'])->name ?? fake()->name(),
             'customer_email' => fn (array $attributes): string => User::query()->find($attributes['user_id'])->email ?? fake()->safeEmail(),

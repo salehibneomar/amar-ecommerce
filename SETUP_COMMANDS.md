@@ -20,8 +20,8 @@ Every command this project needs, in one place. Each section says when to run it
 ## First install (local)
 
 ```bash
-git clone <repository-url> notun-krisok
-cd notun-krisok
+git clone <repository-url> amar-ecommerce-lite
+cd amar-ecommerce-lite
 composer install
 npm install
 cp .env.example .env
@@ -38,7 +38,7 @@ npm run build
 ## Everyday development
 
 ```bash
-composer dev          # web server, log viewer and Vite together (http://localhost:8100)
+composer dev          # web server, log viewer and Vite together (http://localhost:8200)
 npm run build         # rebuild assets when a Tailwind change doesn't show
 php artisan queue:work   # only when MAIL_QUEUE_ENABLED=true: sends queued emails and retries failed ones
 php artisan down / up    # maintenance mode (same setting as Settings → System)
@@ -60,6 +60,7 @@ php artisan debugbar:clear
 php artisan blaze:trace:clear
 php -r "array_map('unlink', glob('storage/logs/*.log'));"
 php artisan app:fresh --seed       # media-library:clear, remove media folders, migrate:fresh --seed
+php artisan storage:link --force   # point public/storage at this project (fixes broken image previews after a folder move or rename)
 php artisan optimize
 php artisan ai-assistant:embed     # AI search vectors for the seeded books
 composer run dev                   # start the dev servers (php artisan dev)
@@ -141,7 +142,7 @@ Build locally, upload the project outside `public_html`, then in cPanel → Term
 ```bash
 php -v                                   # PHP 8.4 required
 php -i | grep disable_functions          # proc_open must not be listed (book previews)
-cd ~/notun-krisok
+cd ~/amar-ecommerce-lite
 php artisan key:generate
 php artisan migrate --force --seed
 php artisan storage:link
@@ -153,13 +154,13 @@ chmod -R 775 storage bootstrap/cache
 With `MAIL_QUEUE_ENABLED=true`, add a cPanel → Cron Jobs entry (every minute):
 
 ```cron
-* * * * * cd ~/notun-krisok && php artisan queue:work --stop-when-empty --max-time=50 >> /dev/null 2>&1
+* * * * * cd ~/amar-ecommerce-lite && php artisan queue:work --stop-when-empty --max-time=50 >> /dev/null 2>&1
 ```
 
 If the domain root can't point to `public`:
 
 ```bash
-rm -rf ~/public_html && ln -s ~/notun-krisok/public ~/public_html
+rm -rf ~/public_html && ln -s ~/amar-ecommerce-lite/public ~/public_html
 ```
 
 ## Composer shortcuts

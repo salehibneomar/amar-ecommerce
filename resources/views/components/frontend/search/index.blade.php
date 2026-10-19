@@ -1,8 +1,8 @@
-<x-ui.popover :label="__('Search books')">
+<x-ui.popover :label="__('Search Books')">
     <x-slot:trigger>
-        <flux:button variant="subtle" square class="icon-bold max-sm:size-8! text-white! hover:bg-white/15!" x-bind:aria-expanded="open" :aria-label="__('Search books')" data-test="search-button">
+        <x-ui.button variant="subtle" square bar class="max-sm:size-8!" x-bind:aria-expanded="open" :aria-label="__('Search books')" data-test="search-button">
             <span class="material-symbols-outlined text-xl">search</span>
-        </flux:button>
+        </x-ui.button>
     </x-slot:trigger>
 
     <div class="space-y-3 p-4">
@@ -17,7 +17,7 @@
                 @endforelse
 
                 @if ($this->hasMore)
-                    <flux:button variant="ghost" icon-trailing="arrow-right" class="w-full" :href="route('shop', ['q' => trim($query)])" wire:navigate data-test="search-see-more">{{ __('See more') }}</flux:button>
+                    <x-ui.button variant="ghost" icon-trailing="arrow-right" class="w-full" :href="route('shop', ['q' => trim($query)])" wire:navigate data-test="search-see-more">{{ __('See more') }}</x-ui.button>
                 @endif
             </div>
         @endif

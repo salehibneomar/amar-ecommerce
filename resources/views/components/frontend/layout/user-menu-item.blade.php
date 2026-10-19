@@ -4,13 +4,13 @@
     'current' => false,
 ])
 
-<flux:menu.item
+<x-ui.menu-item
     :icon="$icon"
     :href="$href"
     :aria-current="$current ? 'page' : null"
     {{ $attributes->class([
-        'bg-brand-50! font-medium text-brand-700! **:data-flux-menu-item-icon:text-brand-700! dark:bg-brand-900/60! dark:text-brand-200! dark:**:data-flux-menu-item-icon:text-brand-200!' => $current,
+        'bg-bar-active! font-medium text-bar-active-foreground! **:data-flux-menu-item-icon:text-bar-active-foreground!' => $current,
     ]) }}
 >
     {{ $slot }}
-</flux:menu.item>
+</x-ui.menu-item>

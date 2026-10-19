@@ -10,7 +10,7 @@ paths:
 Models hold relations, casts, accessors and scopes only, never workflows. Status and type columns cast to backed enums with `label()` and `color()`. Add `@property` PHPDoc for PHPStan.
 
 ## Migrations
-How to change the schema depends on `APP_IS_LIVE` (see the rule below). Pre-launch: edit the existing `create_*` migration; only the user rebuilds with `composer serve:dev`. Index filter and sort columns, and add unique constraints for business rules.
+Index filter and sort columns, and add unique constraints for business rules.
 
 ## Snapshots
 Orders snapshot names and prices (`*_snapshot`, `unit_price`, `line_total`) so later price changes never alter history.

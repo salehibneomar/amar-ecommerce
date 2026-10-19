@@ -23,13 +23,14 @@ For install and server setup see `SETUP.md`. For architecture see `TECHNICAL.md`
 **Where:** `.env`
 
 ```env
-APP_NAME="নতুন কৃষক"
+APP_NAME="AmarEcommerce"
 APP_CURRENCY=BDT
 APP_CURRENCY_SYMBOL=৳
+APP_EMPTY_VALUE=N/A
 APP_TIMEZONE=Asia/Dhaka
 ```
 
-Never type `৳` or `BDT` in code. Show money with `formatMoney($amount)`.
+Never type `৳` or `BDT` in code. Show money with `formatMoney($amount)`. `APP_EMPTY_VALUE` is what admin tables, detail views and invoices show when a field has no value: read it with `appEmptyValue()`, or use `<x-ui.empty-value />` for the greyed table placeholder.
 
 **After:** `php artisan config:clear`
 
@@ -49,7 +50,7 @@ PAYMENT_BKASH_NUMBER=01712345678
 PAYMENT_NAGAD_NUMBER=01812345678
 
 SHOP_OWNER_EMAIL=owner@example.com   # gets the "new order" email
-SHOP_ORDER_PREFIX=NK                 # order IDs look like NK-ABC123
+SHOP_ORDER_PREFIX=AE                 # order IDs look like AE-ABC123
 OFFER_GLOBAL_ONLY=true               # whole-shop offers only; false brings back category offers
 ```
 
@@ -80,28 +81,29 @@ Logo **size** is a Tailwind class on the tag:
 
 ## 4. Theme colors (brand, surfaces, dark mode) and font
 
-Every color lives in **one file**: `resources/css/app.css`. Change a value there, run `npm run build`, and the whole app (shop and admin, Flux components included) follows.
+The brand colors live in **one file**: `config/theme.php`. Change them there and the whole app follows: shop and admin (Flux components included), emails and the browser `theme-color`. No `npm run build` is needed, because `<x-brand.theme-colors />` in `partials/head` prints them as CSS variables on every page and `resources/css/app.css` only points at them. Run `php artisan config:clear` if config is cached. Surfaces, grays, the card shadow and the font stay in `resources/css/app.css` (below).
 
-### Brand (buttons, links, shop navbar, active menu items)
+### Brand (buttons, links, shop navbar, active menu items, emails)
 
-Inside `@theme { … }`:
-
-```css
---color-brand-50: #f0fbf2;    /* lightest tint */
-…
---color-brand-600: #22893a;   /* main brand color */
-…
---color-brand-950: #072812;   /* darkest shade */
---color-gold-400: #facc15;    /* highlights, badges */
+```php
+'palettes' => [
+    'brand' => [
+        50 => '#eef6ff',    // lightest tint
+        // …
+        600 => '#1663e6',   // main brand color
+        // …
+        950 => '#11234f',   // darkest shade
+    ],
+    'gold' => [/* 50 to 900 */],   // highlights, badges, offers
+],
+'brand' => 600,              // shade used for primary buttons and links
+'brand_dark' => 500,         // brighter shade used in dark mode
+'brand_foreground' => '#ffffff',   // text on brand buttons
 ```
 
-Replace all eleven `--color-brand-*` shades together. A palette generator (search "tailwind color shades generator") gives you 50–950 from one hex code. Flux's primary buttons use the brand through `--color-accent`, so they change too.
+Replace all eleven brand shades together. A palette generator (search "tailwind color shades generator") gives you 50 to 950 from one hex code. Keep white text readable on the `brand` shade (WCAG AA, 4.5:1). Views keep using `brand-*` and `gold-*` classes, never raw hex or palette names like `blue-600`.
 
-Dark mode uses a slightly brighter brand for buttons. Change it in the `.dark { … }` block:
-
-```css
---color-brand-dark: #2b9c4f;
-```
+Status colors (paid, cancelled, errors, edit buttons) stay semantic Flux colors (`green`, `red`, `sky`…) in the enums and views, so they keep their meaning whatever the brand is.
 
 ### Surfaces (page, cards, top bars, sidebar, borders)
 
@@ -112,6 +114,7 @@ Inside `@theme { … }` (light mode):
 --color-surface: #fafafa;                /* cards, navbars, sidebar, drawers */
 --color-line: var(--color-zinc-200);     /* their borders */
 --color-subtle: var(--color-zinc-100);   /* alternate page sections (e.g. "New arrivals") */
+--color-media                            /* cover and image placeholders: product covers, category tiles, thumbnails (bg-media) */
 ```
 
 And inside `.dark { … }` (dark mode):
@@ -123,11 +126,69 @@ And inside `.dark { … }` (dark mode):
 --color-subtle: var(--color-zinc-900);
 ```
 
+These tokens are lightly tinted with the brand for both panels, in light mode in `@theme` and in dark mode in `.dark` (see Dark mode below).
+
 In views, use `bg-canvas`, `bg-surface`, `bg-subtle` and `border-line`. They switch between light and dark on their own, so **no `dark:` class is needed**.
 
 ```blade
 <div class="rounded-2xl border border-line bg-surface p-6">…</div>
 ```
+
+### Glass effect (storefront)
+
+Floating storefront parts use frosted glass: `glass-bar` on the header and footer, `glass-solid` on the drawers (menu, cart, filters), which sit over a dark backdrop, and `glass` on the search popover, user and notification menus and the scroll-to-top button. Tune it once in `resources/css/app.css`: `--blur-glass` (blur strength), `--color-glass`, `--color-glass-solid` and `--color-glass-line` (panel tint, drawer tint and edge), `--shadow-glass`, each with a dark value in `.dark { … }`. Cards and content sections stay solid on purpose, for readability. Use `glass` only on overlays and floating panels.
+
+### Alerts, banners and storefront cards
+
+- `x-ui.alert` wraps `flux:callout`. Pick the look with `tone` (`brand`, `accent`, `info`, `success`, `warning`, `danger`, `neutral`), or with the Flux `variant` or `color` you already know. `x-ui.banner` is a tinted panel for custom content, with the same tones and `size` (`sm`, `md`, `lg`, `none`). Both get a light tint and a border in their tone from the alert and banner rules in `app.css`, and body text stays neutral gray.
+- Every storefront card builds on `x-frontend.cards.card` (border, surface, card shadow, `interactive` for a brand border and shadow on hover, no movement). `product-card` (through `product-tile`), `category-card`, `feature-card` and `contact-card` use it, so a change to the parent restyles them all.
+- The home page offer is `x-frontend.content.offer-banner`, a brand-tone banner with amber accents.
+
+### Icon badges (whole app)
+
+Every icon badge in both panels is the `x-ui.icon-badge` component (`resources/views/components/ui/icon-badge.blade.php`): `size` (`xs`, `sm`, `md`, `lg`, `xl`, `2xl`), `tone` (`brand`, `neutral`, `success`, `warning`, `danger`) and `circle`. It sets the size, the radius step, the colors and the soft `icon-badge` edge (the utility in `app.css`), so changing either file restyles every badge.
+
+```blade
+<x-ui.icon-badge size="lg" tone="success"><flux:icon.check class="size-5" /></x-ui.icon-badge>
+```
+
+### Dark mode (whole app)
+
+Dark mode follows the brand in both panels. In the `.dark { … }` block of `resources/css/app.css`, the surface shades `--color-zinc-500` to `950` are the neutral gray with a small mix of the brand (`--theme-brand-500`), so dark surfaces, Flux components and every `dark:*-zinc-*` class carry the brand with no view changes. Text shades (zinc 50 to 400) stay neutral, so typography reads as natural gray. Use `zinc-*` for text and keep brand colors for links, calls to action, active states and icons. Borders, separators and bar edges in dark mode (`--color-line`, `--color-bar-line`, `--color-glass-line`) are faint translucent white, visible on any dark surface without standing out. Raise or lower the mix percentages (3% to 8%) or the white percentages (8% to 10%) there to make the tint or the borders stronger.
+
+### Buttons and badges (whole app)
+
+Views never use `<flux:button>`, `<flux:badge>` or `<flux:avatar>` directly. They use our wrappers, so colors change in one place:
+
+- `x-ui.button` (`resources/views/components/ui/button.blade.php`) takes every Flux button prop and sets a `data-tone`: `variant="primary"` = brand, `variant="danger"` = red, a Flux `color` = that color, outline and filled = neutral, ghost and subtle = no tone (transparent). The tone rules near the top of `resources/css/app.css` give every toned button the same soft "Save" look: a light tint, matching text and a matching border. Storefront neutral buttons take a lighter brand tint (`[data-frontend]` rules). Special colors: `color="surface"` (card colored, sign in providers), `color="field"` (looks like an input, for a control beside selects), `color="overlay"` (on an image, and the round corner buttons on the admin sign in pages), `color="transparent"` (see-through with the primary border). A ghost or subtle button with a `color` keeps no fill and only colors its text (`variant="ghost" color="danger"` for a remove icon). Pass `bar` for buttons on the header bars and the admin sidebar. Never restyle a button with color classes, add a color here instead.
+- `x-ui.card` (`resources/views/components/ui/card.blade.php`) is the one card box for both panels: border, surface, radius and shadow. `as` sets the tag (`section`, `form`, `ul`, `li`, `details`…) and `interactive` adds the brand border hover (no shadow, so list items stay flat). `x-frontend.cards.card` builds on it with a title, description, actions slot and padding, and its `interactive` cards (product, category, feature, contact) also lift a soft shadow on hover. Flux cards in the admin get the same look from one rule in `app.css`.
+- Brand-colored text (links, labels, hover text) uses the `--color-brand-text` token (`text-brand-text`, brand 700 in light and brand 300 in dark), set in `resources/css/app.css`. Change its shade there for the whole app.
+- `x-ui.list-item` (`resources/views/components/ui/list-item.blade.php`) is the one list row: `href` makes it a link with the row hover (`--color-row-hover`) and a chevron, and the `leading` and `trailing` slots hold an icon and badges or a price. `x-ui.list-link` (settings rows) and the order rows are built on it.
+- `x-ui.badge` (`resources/views/components/ui/badge.blade.php`) wraps `flux:badge` with one size for every badge: a fixed 24px height (the same as the `xs` table action buttons, so table rows stay dense and aligned), a semibold label and a soft border in the badge's own color. It is the one badge and chip for the whole app: change its look with props and put any content in its slot (text, a countdown). `color` takes any Flux color plus `white` (plain chip, such as the Lite edition badge) and `gold` (brand accent). `size="xs"` gives the compact 20px badge (edition badge, count bubbles). Pass `circle` for a round badge such as a rank number. Pass `overlay` when a badge sits on an image (product covers): it keeps the same soft look on a solid surface base so it stays readable on any photo.
+- `x-ui.counter` (`resources/views/components/ui/counter.blade.php`) is the small count bubble on an icon (cart items, unread notifications): `count`, and `tone` (`danger` red by default, `accent` gold). It is built on `x-ui.badge` (`size="xs" circle`), hides itself at 0 and shows 99+ above 99.
+- `x-brand.edition` (`resources/views/components/brand/edition.blade.php`) shows the edition badge (`APP_EDITION`, default `Lite`) next to the logo in the storefront navbar and the admin. Leave `APP_EDITION` empty to hide it.
+- `x-ui.avatar` (`resources/views/components/ui/avatar.blade.php`) wraps `flux:avatar` with brand-tinted initials (light brand background, brand text, with dark-mode values). Photos show unchanged. Pass `bar` for an avatar inside the header bar (the user menu does), which uses the active nav pill colors (`--color-bar-active*`) so it stands out on the bar.
+- `x-ui.menu-item` wraps `flux:menu.item` with outline icons, for every dropdown item in both panels. Menus share one look in both panels (frosted panel, gray outline icons, brand-tinted hover from `--color-menu-hover`).
+- `x-ui.list-link` is a navigation row (icon, title, description, chevron) with the same brand-tinted hover, used by the admin Settings list.
+- `x-ui.button color="surface"` is a card-colored button with a brand-tinted border and brand hover, for third-party sign in (Google, Facebook) so the provider logo carries the color. Secondary (neutral) buttons inside an `x-ui.banner` automatically take this surface look, so they stand apart from the tinted banner and from the primary button.
+- `x-backoffice.management.action` is one table row action (an icon `x-ui.button` with a tooltip), and `x-backoffice.management.actions` lays a row of them out on one line.
+
+### Admin header and sidebar
+
+The backoffice header (`layouts/backoffice.blade.php`) and sidebar use the same bar tokens as the storefront navbar (`--color-bar*`) as a solid color, with no glass effect: faded brand background, brand pill for the current item, bar hover. Changing the bar tokens restyles both panels.
+
+### Corner radius (whole app)
+
+One radius scale sets every corner in the shop and the backoffice, Flux components included: `--radius-xs` … `--radius-3xl` in `@theme` (`resources/css/app.css`). Change the values there to make the whole app sharper or rounder. Views pick a step by role, and nested elements step down one or two sizes from their container:
+
+| Step | Value | Used for |
+|---|---|---|
+| `rounded-sm` | 6px | badges (status, Hot, Sale), small book-cover thumbnails |
+| `rounded-md` | 8px | menu items, small buttons, inline notices, dropdown options, small icon badges (size-8/9) |
+| `rounded-lg` | 10px | buttons, inputs, selects, nav links, upload rows, icon badges (size-10/11), boxes nested in cards, images |
+| `rounded-xl` | 14px | cards, panels, list containers, empty states, popovers, modals, chat bubbles, large icon badges |
+| `rounded-2xl` | 20px | large page sections: banner slider, offer and call-to-action blocks |
+| `rounded-full` | circle | avatars and pills |
 
 ### Card shadow
 

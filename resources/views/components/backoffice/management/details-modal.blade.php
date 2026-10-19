@@ -11,8 +11,10 @@
             <x-backoffice.management.detail-item :label="$label" @class(['col-span-full' => in_array($label, $wide, true)])>
                 @if (is_bool($value))
                     {{ $value ? __('Yes') : __('No') }}
+                @elseif (filled($value))
+                    {{ $value }}
                 @else
-                    {{ filled($value) ? $value : '-' }}
+                    <x-ui.empty-value />
                 @endif
             </x-backoffice.management.detail-item>
         @endforeach

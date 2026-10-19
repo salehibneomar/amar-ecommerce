@@ -103,13 +103,13 @@ new #[Title('Profile')] class extends Component {
                 @endif
             </div>
 
-            <flux:input wire:model="phone" :label="__('Mobile number')" type="tel" inputmode="numeric" :maxlength="validPhoneLength()" placeholder="01XXXXXXXXX" autocomplete="tel" />
+            <flux:input wire:model="phone" :label="__('Mobile Number')" type="tel" inputmode="numeric" :maxlength="validPhoneLength()" placeholder="01XXXXXXXXX" autocomplete="tel" />
 
             <div class="flex items-center gap-4">
                 <div class="flex items-center justify-end">
-                    <flux:button variant="primary" type="submit" class="w-full" data-test="update-profile-button">
+                    <x-ui.button variant="primary" type="submit" class="w-full" data-test="update-profile-button">
                         {{ __('Save') }}
-                    </flux:button>
+                    </x-ui.button>
                 </div>
 
             </div>

@@ -7,7 +7,7 @@
         </div>
 
         <x-frontend.cards.card :title="__('Business hours')" :description="__('Bangladesh time (GMT+6). We are open every day, including weekends and holidays.')">
-            <dl class="divide-y divide-zinc-200 text-sm dark:divide-zinc-800">
+            <dl class="divide-y divide-line text-sm">
                 <div class="flex flex-wrap items-center gap-x-3 gap-y-1 py-3">
                     <dt class="text-zinc-600 dark:text-zinc-400">{{ __('Every day') }}</dt>
                     <dd class="font-medium text-zinc-900 dark:text-white">{{ __('9:00 AM - 11:00 PM') }}</dd>

@@ -1,5 +1,5 @@
 <x-layouts::frontend :title="__('Terms')">
-    <x-frontend.layout.page :title="__('Terms of use')" :subtitle="__('Last updated: 14 October 2026')" width="max-w-3xl">
+    <x-frontend.layout.page :title="__('Terms of use')">
         <x-frontend.cards.card>
             <x-frontend.content.legal-section :title="__('About these terms')">
                 <p>{{ __('By creating an account or using :app you agree to these terms. If you do not agree, please do not use the platform.', ['app' => config('app.name')]) }}</p>
@@ -42,7 +42,7 @@
 
         <x-frontend.cards.card>
             <x-frontend.content.legal-section :title="__('Changes to these terms')">
-                <p>{{ __('We may update these terms from time to time. The date at the top of this page shows when they last changed. Continuing to use the platform means you accept the updated terms.') }}</p>
+                <p>{{ __('We may update these terms from time to time. Continuing to use the platform after a change means you accept the updated terms.') }}</p>
             </x-frontend.content.legal-section>
         </x-frontend.cards.card>
     </x-frontend.layout.page>

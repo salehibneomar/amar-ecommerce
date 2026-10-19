@@ -45,6 +45,7 @@ use Spatie\Permission\Traits\HasRoles;
  * @property CarbonImmutable|null $updated_at
  * @property-read Collection<int, Role> $roles
  * @property-read string|null $avatar_url
+ * @property-read int|null $orders_count
  */
 #[Fillable(['name', 'email', 'password', 'status', 'google_id', 'facebook_id', 'phone', 'address'])]
 #[

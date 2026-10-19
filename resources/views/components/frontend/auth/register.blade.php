@@ -5,18 +5,18 @@
         <flux:input wire:model="name" :label="__('Name')" type="text" required autofocus autocomplete="name"
             :placeholder="__('Full name')" />
 
-        <flux:input wire:model="email" :label="__('Email address')" type="email" required autocomplete="email"
+        <flux:input wire:model="email" :label="__('Email Address')" type="email" required autocomplete="email"
             placeholder="email@example.com" />
 
         <flux:input wire:model="password" :label="__('Password')" type="password" required
             autocomplete="new-password" :placeholder="__('Password')" viewable />
 
-        <flux:input wire:model="password_confirmation" :label="__('Confirm password')" type="password" required
+        <flux:input wire:model="password_confirmation" :label="__('Confirm Password')" type="password" required
             autocomplete="new-password" :placeholder="__('Confirm password')" viewable />
 
-        <flux:button type="submit" variant="primary" class="w-full" data-test="register-user-button">
-            {{ __('Create account') }}
-        </flux:button>
+        <x-ui.button type="submit" variant="primary" class="w-full" data-test="register-user-button">
+            {{ __('Create Account') }}
+        </x-ui.button>
     </form>
 
     <x-auth.social-buttons :providers="$this->socialProviders" />

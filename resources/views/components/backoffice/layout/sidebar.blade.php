@@ -3,19 +3,20 @@
 ])
 
 <flux:sidebar sticky collapsible
-    class="data-flux-sidebar-collapsed-desktop:!w-20 data-flux-sidebar-collapsed-desktop:pt-[2px] border-e border-line bg-surface lg:pt-1">
+    class="data-flux-sidebar-collapsed-desktop:!w-20 data-flux-sidebar-collapsed-desktop:pt-[2px] border-e border-bar-line bg-bar lg:pt-1">
     <flux:sidebar.header>
         <x-brand.app-logo :sidebar="true" href="{{ route('dashboard') }}" wire:navigate />
         <x-ui.theme-toggle size="sm" class="ms-auto lg:hidden!" />
     </flux:sidebar.header>
 
     <flux:sidebar.nav>
+        <x-backoffice.layout.nav-heading>{{ __('Overview') }}</x-backoffice.layout.nav-heading>
         <x-backoffice.layout.nav-item icon="home" :href="route('dashboard')" :current="request()->routeIs('dashboard')" wire:navigate>
             {{ __('Dashboard') }}
         </x-backoffice.layout.nav-item>
 
         <x-backoffice.layout.nav-item icon="building-storefront" :href="route('home')" wire:navigate>
-            {{ __('Storefront') }}
+            {{ __('View Store') }}
         </x-backoffice.layout.nav-item>
 
         @foreach ($navigation as $group)

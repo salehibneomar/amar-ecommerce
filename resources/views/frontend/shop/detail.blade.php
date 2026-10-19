@@ -1,23 +1,23 @@
 <x-layouts::frontend :title="$product->name" :description="plainText($product->description)" :image="$product->cover_large_url" seo-type="product">
     <div class="mx-auto max-w-main px-4 pt-6 pb-8 sm:px-6 lg:pb-12">
         <nav class="mb-6 flex flex-wrap items-center gap-1.5 text-sm text-zinc-500 dark:text-zinc-400" aria-label="{{ __('Breadcrumb') }}">
-            <a href="{{ route('shop') }}" class="hover:text-brand-700 dark:hover:text-brand-300" wire:navigate>{{ __('Shop') }}</a>
+            <a href="{{ route('shop') }}" class="hover:text-brand-text" wire:navigate>{{ __('Shop') }}</a>
             @foreach ($categoryTrail as $crumb)
                 <flux:icon.chevron-right variant="micro" />
-                <a href="{{ route('shop', ['category' => $crumb['id']]) }}" class="hover:text-brand-700 dark:hover:text-brand-300" wire:navigate>{{ $crumb['name'] }}</a>
+                <a href="{{ route('shop', ['category' => $crumb['id']]) }}" class="hover:text-brand-text" wire:navigate>{{ $crumb['name'] }}</a>
             @endforeach
         </nav>
 
         <div class="grid gap-8 md:grid-cols-[minmax(0,20rem)_1fr] lg:gap-14">
             <div class="mx-auto w-full max-w-xs md:max-w-none">
-                <div class="relative aspect-[3/4] overflow-hidden rounded-2xl bg-brand-50 dark:bg-brand-950 ring-2 ring-zinc-900/5">
+                <div class="relative aspect-[3/4] overflow-hidden rounded-xl bg-media ring-2 ring-zinc-900/5">
                     @if ($product->cover_preview_url)
                         <img src="{{ $product->cover_preview_url }}" alt="{{ $product->name }}" class="size-full object-cover" />
                         <flux:modal.trigger name="cover-viewer">
-                            <flux:button size="sm" square icon="arrows-pointing-out" class="absolute end-3 top-3 bg-white/90! backdrop-blur" :aria-label="__('View cover')" :tooltip="__('View cover')" />
+                            <x-ui.button size="sm" color="overlay" square icon="arrows-pointing-out" class="absolute end-3 top-3" :aria-label="__('View cover')" :tooltip="__('View cover')" />
                         </flux:modal.trigger>
                     @else
-                        <div class="flex size-full flex-col items-center justify-center gap-4 p-6 text-center text-brand-800 dark:text-brand-100">
+                        <div class="flex size-full flex-col items-center justify-center gap-4 p-6 text-center text-zinc-700 dark:text-zinc-200">
                             <span class="material-symbols-outlined text-7xl! text-brand-500">auto_stories</span>
                             <span class="text-lg font-semibold">{{ $product->name }}</span>
                         </div>
@@ -49,30 +49,30 @@
                 </div>
 
                 @if ($offer && ! $product->is_free && ! $ownsProduct)
-                    <div class="flex items-center gap-3 rounded-xl border border-gold-300 bg-gold-50 px-4 py-3 text-sm text-gold-900 dark:border-gold-700/50 dark:bg-gold-900/20 dark:text-gold-200">
-                        <span class="material-symbols-outlined text-gold-600">local_offer</span>
+                    <x-ui.banner tone="accent" class="flex items-center gap-3 text-zinc-800 dark:text-zinc-100">
+                        <span class="material-symbols-outlined text-gold-600 dark:text-gold-400">local_offer</span>
                         <span><strong>{{ $offer->name }}:</strong> <x-frontend.content.offer-scope :offer="$offer->discountSummary()" with-percentage /></span>
-                    </div>
+                    </x-ui.banner>
                 @endif
 
                 <div x-data class="flex flex-wrap gap-3">
                     @if ($ownsProduct || $product->is_free)
                         @if ($product->is_digital)
-                            <flux:button variant="primary" icon="book-open" x-on:click="Livewire.dispatch('open-book', { bookId: {{ $product->id }} })">{{ __('Read now') }}</flux:button>
+                            <x-ui.button variant="primary" icon="book-open" x-on:click="Livewire.dispatch('open-book', { bookId: {{ $product->id }} })">{{ __('Read now') }}</x-ui.button>
                         @endif
                         @if ($ownsProduct)
-                            <flux:button icon="check-badge" :href="route('user.library')" wire:navigate>{{ __('In your library') }}</flux:button>
+                            <x-ui.button icon="check-badge" :href="route('user.library')" wire:navigate>{{ __('In Your Library') }}</x-ui.button>
                         @endif
                     @elseif ($product->status->isInStock())
-                        <flux:button variant="primary" icon="bolt" x-on:click="Livewire.dispatch('add-to-cart', { productId: {{ $product->id }}, buyNow: true })">{{ __('Buy now') }}</flux:button>
-                        <flux:button icon="shopping-cart" x-on:click="Livewire.dispatch('add-to-cart', { productId: {{ $product->id }} })">{{ __('Add to cart') }}</flux:button>
+                        <x-ui.button variant="primary" icon="bolt" x-on:click="Livewire.dispatch('add-to-cart', { productId: {{ $product->id }}, buyNow: true })">{{ __('Buy now') }}</x-ui.button>
+                        <x-ui.button icon="shopping-cart" x-on:click="Livewire.dispatch('add-to-cart', { productId: {{ $product->id }} })">{{ __('Add to cart') }}</x-ui.button>
                         @if ($product->is_previewable)
-                            <flux:button variant="ghost" icon="eye" x-on:click="Livewire.dispatch('open-book', { bookId: {{ $product->id }} })">{{ __('Read preview') }}</flux:button>
+                            <x-ui.button variant="ghost" icon="eye" x-on:click="Livewire.dispatch('open-book', { bookId: {{ $product->id }} })">{{ __('Read preview') }}</x-ui.button>
                         @endif
                     @endif
                 </div>
 
-                <dl class="grid grid-cols-2 gap-4 rounded-2xl shadow-card border border-zinc-200/80 bg-white p-5 text-sm sm:grid-cols-3 dark:border-zinc-800 dark:bg-zinc-900">
+                <x-ui.card as="dl" class="grid grid-cols-2 gap-4 p-5 text-sm sm:grid-cols-3">
                     @foreach ([
                         __('Author') => $product->author,
                         __('Pages') => $product->pages,
@@ -85,7 +85,7 @@
                             </div>
                         @endif
                     @endforeach
-                </dl>
+                </x-ui.card>
 
                 @if ($product->description)
                     <div>

@@ -1,7 +1,7 @@
 <?php
 
 return [
-    'order_prefix' => env('SHOP_ORDER_PREFIX', 'NK'),
+    'order_prefix' => env('SHOP_ORDER_PREFIX', 'AE'),
     'max_extra_discount' => (int) env('SHOP_MAX_EXTRA_DISCOUNT', 50),
     'offer_global_only' => (bool) env('OFFER_GLOBAL_ONLY', false),
     'owner_email' => env('SHOP_OWNER_EMAIL'),

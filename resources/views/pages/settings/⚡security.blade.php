@@ -62,7 +62,7 @@ new #[Title('Security')] class extends Component {
         <form method="POST" wire:submit="updatePassword" class="space-y-6">
             <flux:input
                 wire:model="current_password"
-                :label="__('Current password')"
+                :label="__('Current Password')"
                 type="password"
                 required
                 autocomplete="current-password"
@@ -70,7 +70,7 @@ new #[Title('Security')] class extends Component {
             />
             <flux:input
                 wire:model="password"
-                :label="__('New password')"
+                :label="__('New Password')"
                 type="password"
                 required
                 autocomplete="new-password"
@@ -79,7 +79,7 @@ new #[Title('Security')] class extends Component {
             />
             <flux:input
                 wire:model="password_confirmation"
-                :label="__('Confirm password')"
+                :label="__('Confirm Password')"
                 type="password"
                 required
                 autocomplete="new-password"
@@ -88,9 +88,9 @@ new #[Title('Security')] class extends Component {
             />
 
             <div class="flex items-center gap-4">
-                <flux:button variant="primary" type="submit" data-test="update-password-button">
+                <x-ui.button variant="primary" type="submit" data-test="update-password-button">
                     {{ __('Save') }}
-                </flux:button>
+                </x-ui.button>
             </div>
         </form>
 

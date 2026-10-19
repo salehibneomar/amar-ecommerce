@@ -5,15 +5,15 @@
     'sortDirection' => null,
 ])
 
-<flux:card {{ $attributes->class(['min-w-0 border-line bg-surface shadow-card']) }}>
+<flux:card {{ $attributes->class(['min-w-0']) }}>
     @isset($toolbar)
-        <div class="flex flex-col justify-between gap-3 border-b border-zinc-200 py-3 dark:border-zinc-700 md:flex-row md:items-end md:[&>div]:items-end max-md:[&>div]:w-full max-md:[&>div]:flex-col max-md:[&>div]:items-stretch max-md:[&_[data-flux-field]]:w-full max-md:[&_input]:max-w-none">
+        <div class="flex flex-col justify-between gap-3 border-b border-line py-3 md:flex-row md:items-end md:[&>div]:items-end max-md:[&>div]:w-full max-md:[&>div]:flex-col max-md:[&>div]:items-stretch max-md:[&_[data-flux-field]]:w-full max-md:[&_input]:max-w-none">
             {{ $toolbar }}
         </div>
     @endisset
 
     @isset($actions)
-        <div class="flex flex-wrap items-center gap-2 border-b border-zinc-200 py-3 dark:border-zinc-700">
+        <div class="flex flex-wrap items-center gap-2 border-b border-line py-3">
             {{ $actions }}
         </div>
     @endisset

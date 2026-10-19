@@ -39,7 +39,7 @@
                     {{ $headerActions }}
                 @endisset
                 <flux:modal.close>
-                    <flux:button
+                    <x-ui.button
                         variant="ghost"
                         icon="x-mark"
                         size="sm"
@@ -60,9 +60,9 @@
                     <div class="flex flex-col gap-2 sm:me-auto sm:flex-row">{{ $footerActions }}</div>
                 @endisset
                 <flux:modal.close>
-                    <flux:button type="button" class="w-full sm:w-auto">{{ $closeLabel }}</flux:button>
+                    <x-ui.button type="button" class="w-full sm:w-auto">{{ $closeLabel }}</x-ui.button>
                 </flux:modal.close>
-                <flux:button type="submit" variant="primary" class="w-full sm:w-auto">{{ $submitLabel }}</flux:button>
+                <x-ui.button type="submit" variant="primary" class="w-full sm:w-auto">{{ $submitLabel }}</x-ui.button>
             </div>
         @endisset
     </form>

@@ -45,4 +45,11 @@ class StaffProfile extends Model
     {
         return $this->belongsTo(User::class);
     }
+
+    public function compensationLabel(): string
+    {
+        return $this->compensation_type->isPercentage()
+            ? __(':value% of monthly sales', ['value' => $this->compensation_value])
+            : __(':value per month', ['value' => formatMoney($this->compensation_value)]);
+    }
 }

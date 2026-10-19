@@ -119,3 +119,22 @@ test('administrators can sort users and toggle the sort direction', function () 
         ->assertSet('sortDirection', 'desc')
         ->assertSeeInOrder(['Beta User', 'Alpha User']);
 });
+
+test('administrators view a customer\'s details from the row actions', function () {
+    $customer = User::factory()->create(['name' => 'Detail Customer', 'phone' => '01700000000']);
+
+    Livewire::actingAs(User::factory()->superAdmin()->create())->test(Index::class)
+        ->assertSeeHtml('wire:click="viewUser('.$customer->id.')"')
+        ->call('viewUser', $customer->id)
+        ->assertSet('showDetails', true)
+        ->assertSee(['Detail Customer', '01700000000']);
+});
+
+test('empty fields in the details view show the configured empty value', function () {
+    config(['app.empty_value' => 'Not set']);
+    $customer = User::factory()->create(['phone' => null, 'address' => null]);
+
+    Livewire::actingAs(User::factory()->superAdmin()->create())->test(Index::class)
+        ->call('viewUser', $customer->id)
+        ->assertSee('Not set');
+});

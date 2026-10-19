@@ -1,6 +1,6 @@
 # Technical guide
 
-How নতুন কৃষক is built: layers, folders, data model, flows and conventions. For installation see [SETUP.md](SETUP.md). For known gaps see [INCOMPLETE.md](INCOMPLETE.md). AI agents start at [AGENTS.md](AGENTS.md).
+How AmarEcommerce Lite, the ecommerce boilerplate for client shop projects, is built: layers, folders, data model, flows and conventions. For installation see [SETUP.md](SETUP.md). For known gaps see [INCOMPLETE.md](INCOMPLETE.md). AI agents start at [AGENTS.md](AGENTS.md).
 
 ## Contents
 
@@ -152,7 +152,7 @@ The full entity relationship diagram is in [DIAGRAM.md](DIAGRAM.md#1-entity-rela
 | `books` | Book-only columns of a `type = book` product, keyed by `product_id` (also its primary key): `author`, `pages`. Read and written through the `Book` model |
 | `ai_assistant_embeddings` | One AI search vector per record of any model that implements `AiAssistantInterface` (polymorphic `embeddable`, unique): `model`, `content_hash` (sha256 of model and text, so unchanged records are never re-embedded), `vector` (json, unit length) |
 | `media` | spatie/medialibrary, polymorphic: book `file`, `preview` and `cover`, banner `image`, user `avatar` |
-| `banners` | Home slider: title, link, schedule (`starts_at`/`ends_at`), `status` (`BannerStatusEnum`), `sort_order` |
+| `banners` | Home slider: title, link, schedule (`starts_at`/`ends_at`), `status` (`BannerStatusEnum`), `sort_order`, and an optional wide image (`banner.media.image`, uploaded from the row's Upload action like books and categories; a banner without an image shows as a text slide) |
 | `offers` | Percentage discount with an optional schedule and a required `headline` (the big line of the home page offer banner, also shown under the name in the admin list). `type` is `global` (whole shop) or `specific` (root categories in `offerables`; a match on any category resolves to its root, and the offer covers every level below it). At checkout each cart line gets the highest live offer that covers it, rounded once per offer. Two active global offers cannot overlap in dates (an empty start counts from today, an empty end never ends); `OFFER_GLOBAL_ONLY` hides and ignores specific offers |
 | `offerables` | Polymorphic pivot (`offer_id`, `offerable_type`, `offerable_id`): what a specific offer covers. Categories today; products or other targets can be added without a new table |
 | `orders` | `public_order_id` (`<PREFIX>-XXXXXX`), customer snapshot, `subtotal`, `discount_amount`, `applied_offers` (JSON snapshot of each offer at checkout: name, percentage, categories, amount), `extra_discount_percentage`, `extra_discount_amount`, `total` (integers; staff set the extra discount in Manage order, as a percentage of `subtotal − discount_amount`, capped by `SHOP_MAX_EXTRA_DISCOUNT`), `status`, `payment_status`, `payment_method`, `transaction_id`, contact, shipping, completion |
@@ -286,6 +286,7 @@ Only **public, shared** data is cached. Admin screens and per-user data always r
 | `config/book.php`, `config/banner.php`, `config/category.php`, `config/user.php` | Preview pages, PDF engine binaries, media collections, sizes, conversions. `file_prefix` names stored files (avatars are `avatar-…`) |
 | `config/throttle.php` | Rate limits and resend cooldowns |
 | `config/system.php` | Brand media (logo, icon, favicon): types, sizes and the `default` file each one falls back to |
+| `config/theme.php` | Brand and gold color palettes, plus the brand, dark-mode and foreground shades. `<x-brand.theme-colors />` (in `partials/head`) prints them as `--theme-*` CSS variables that the `@theme` tokens in `app.css` point at, and the mail theme (`vendor/mail/html/themes/brand.blade.php`) reads them too. Read with `themePalettes()`, `themeBrandColor()`, `themeBrandDarkColor()`, `themeBrandForeground()` |
 | `config/ai-prompts.php` | All AI text: system prompt lines (`:shop`, `:results`, `:currency` placeholders), messages, masking tokens, stop words and per-model labels. Read with `aiPrompt()` / `aiPromptList()` |
 | `config/ai-assistant.php` | Assistant switch, provider, history, message length, timeout, candidates, results, response cache minutes, `models` (classes that implement `AiAssistantInterface`), and per-provider class, URL, key, chat model, embedding model and dimensions |
 | `config/backoffice.php` (`route_prefix`) | `ADMIN_ROUTE_PREFIX`: one URL prefix for the whole admin area (Fortify login and password reset, dashboard, `manage/*`, `settings/*`). Routes, the guest redirect and the maintenance exception read `adminRoutePrefix()`; `config/fortify.php` reads the same env key |
@@ -307,6 +308,7 @@ Both helper files (autoloaded from `composer.json`) stay generic. `config_helper
   - shared: `x-ui.price`, `x-ui.badge`, `x-ui.tabs`, `x-media.upload`, `x-ui.error-page`, `x-ui.search-input` (every live search; debounce from `APP_SEARCH_DEBOUNCE_MS`, instant clear), `x-ui.dropdown` (every action menu, wraps `flux:dropdown`), `x-ui.popover` (floating panels such as the navbar search), `x-ui.backdrop`, `x-ui.load-more-select` (select that loads options in batches with a "Load more…" item; used by admin filters and the parent category field), `x-ui.seo` (description, canonical and OpenGraph/Twitter tags; storefront layout only, defaults from `config/seo.php` (`SEO_DESCRIPTION`, `SEO_IMAGE`, `SEO_INDEXING_ENABLED`), book pages pass their description and cover; `/sitemap.xml` lists public pages and in-stock or out-of-stock books, never archived ones).
 - Every admin table uses `InteractsWithTable` + `TableQueryTrait` + the `management-*` components.
 - Alpine handles client-only behaviour.
+- Brand colors come only from `config/theme.php` (see HOW_TO.md §4). Views use the `brand-*`, `gold-*` and surface tokens, never hex or raw palette names for brand elements. Changing a brand color needs no rebuild.
 - Icons are Heroicons (through Flux) in the backoffice and Material Symbols on the storefront.
 - Run `npm run build` after Tailwind changes.
 
@@ -327,8 +329,8 @@ composer types:check
 
 ## 13. Conventions
 
-- **Domain sub-folders:** services, enums, traits, resolvers, middleware, mail and commands live in a domain sub-folder (`Services/Backoffice/Catalog/BookService`, `Enums/Order/OrderStatusEnum`), never at the folder root. Models, policies and providers stay flat because Laravel and the database rely on their class names (AGENTS.md golden rule 13).
-- **Naming, where the folder sets the suffix:** every class ends with the kind of its folder (`Services` → `*Service`, `Traits` → `*Trait`, `Enums` → `*Enum`, `Resolvers` → `*Resolver`, `Interfaces` → `*Interface`, `Controllers`, `Middleware`, `Mail`, `Commands`, `Policies` likewise). A framework contract implementation follows the folder it lives in (`MaintenanceModeService`). The name says the purpose, not the storage. Models, Livewire components and concerns, and framework-scaffolded classes are exempt. See golden rule 8 in `AGENTS.md`.
+- **Domain sub-folders:** services, enums, traits, resolvers, middleware, mail and commands live in a domain sub-folder (`Services/Backoffice/Catalog/BookService`, `Enums/Order/OrderStatusEnum`), never at the folder root. Models, policies and providers stay flat because Laravel and the database rely on their class names (`.ai/rules/structure.md`).
+- **Naming, where the folder sets the suffix:** every class ends with the kind of its folder (`Services` → `*Service`, `Traits` → `*Trait`, `Enums` → `*Enum`, `Resolvers` → `*Resolver`, `Interfaces` → `*Interface`, `Controllers`, `Middleware`, `Mail`, `Commands`, `Policies` likewise). A framework contract implementation follows the folder it lives in (`MaintenanceModeService`). The name says the purpose, not the storage. Models, Livewire components and concerns, and framework-scaffolded classes are exempt. See `.ai/rules/structure.md`.
 - **One area, one folder:** `Backoffice/Faqs/Index.php` ↔ `components/backoffice/faqs/index.blade.php` ↔ `backoffice/faqs/index.blade.php`.
 - **Services own logic and transactions.** Livewire never imports models. Blade has no `@php`.
 - **Shared code is universal:** traits, helpers and components never mention a specific page.

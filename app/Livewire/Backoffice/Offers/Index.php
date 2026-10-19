@@ -107,7 +107,8 @@ class Index extends Component
             __('Starts') => formatDateTime($offer->starts_at),
             __('Ends') => formatDateTime($offer->ends_at),
             ...($offer->isGlobal() ? [] : [__('Categories') => $offer->categories->pluck('name')->join(', ')]),
-            __('Last updated by') => $offer->lastUpdateLabel(),
+            __('Created') => formatDateTime($offer->created_at),
+            __('Last Updated by') => $offer->lastUpdateLabel(),
             __('Description') => $offer->description,
         ];
         $this->showDetails = true;

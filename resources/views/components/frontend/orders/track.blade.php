@@ -1,9 +1,9 @@
 <div class="flex flex-col gap-6">
-    <form wire:submit="track" class="grid gap-4 rounded-2xl shadow-card border border-zinc-200/80 bg-white p-5 sm:grid-cols-[1fr_1fr_auto] sm:items-end dark:border-zinc-800 dark:bg-zinc-900">
-        <flux:input wire:model="orderId" :label="__('Order ID')" placeholder="NK-ABC123" required />
-        <flux:input wire:model="email" type="email" :label="__('Email used for the order')" placeholder="email@example.com" required />
-        <flux:button type="submit" variant="primary" icon="magnifying-glass">{{ __('Track') }}</flux:button>
-    </form>
+    <x-ui.card as="form" wire:submit="track" class="grid gap-4 p-5 sm:grid-cols-[1fr_1fr_auto] sm:items-end">
+        <flux:input wire:model="orderId" :label="__('Order ID')" :placeholder="shopOrderPrefix().'-ABC123'" required />
+        <flux:input wire:model="email" type="email" :label="__('Email Used for the Order')" placeholder="email@example.com" required />
+        <x-ui.button type="submit" variant="primary" icon="magnifying-glass">{{ __('Track') }}</x-ui.button>
+    </x-ui.card>
 
     @if ($order = $this->order)
         <div class="flex flex-wrap items-center justify-between gap-2">

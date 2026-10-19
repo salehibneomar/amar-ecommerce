@@ -15,7 +15,7 @@
 
     <div class="grid grid-cols-1 gap-4 md:grid-cols-2">
         <x-backoffice.dashboard.panel :title="__('Summary')" :description="__('Paid sales in the selected month')">
-            <div class="divide-y divide-zinc-200 dark:divide-zinc-800">
+            <div class="divide-y divide-line">
                 @foreach ([
                     ['banknotes', __('Revenue'), formatMoney($this->summary['revenue'])],
                     ['shopping-bag', __('Paid orders'), number_format($this->summary['orders'])],
@@ -37,11 +37,11 @@
                 @foreach ($this->monthlyRevenue as $index => $item)
                     <div class="flex h-full min-w-0 flex-1 flex-col items-center justify-end gap-1" title="{{ formatMoney($item['revenue']) }}">
                         <div @class([
-                            'w-full rounded-t-md transition-all',
-                            'bg-brand-600' => $index + 1 === $month,
-                            'bg-brand-200 dark:bg-brand-900' => $index + 1 !== $month,
+                            'w-full rounded-t-md border border-b-0 transition-all',
+                            'border-tint-line bg-tint' => $index + 1 === $month,
+                            'border-line bg-subtle' => $index + 1 !== $month,
                         ]) style="height: {{ max($item['percent'], 2) }}%"></div>
-                        <span @class(['text-[10px]', 'font-semibold text-brand-700 dark:text-brand-300' => $index + 1 === $month, 'text-zinc-500' => $index + 1 !== $month])>{{ $item['label'] }}</span>
+                        <span @class(['text-[10px]', 'font-semibold text-brand-text' => $index + 1 === $month, 'text-zinc-500' => $index + 1 !== $month])>{{ $item['label'] }}</span>
                     </div>
                 @endforeach
             </div>
@@ -50,10 +50,10 @@
 
     <div class="grid grid-cols-1 gap-4 lg:grid-cols-2">
         <x-backoffice.dashboard.panel :title="__('Top books')" :description="__('Best sellers this month')">
-            <div class="divide-y divide-zinc-200 dark:divide-zinc-800">
+            <div class="divide-y divide-line">
                 @forelse ($this->topProducts as $product)
                     <div class="flex items-center gap-3 py-2.5 text-sm">
-                        <span class="flex size-6 shrink-0 items-center justify-center rounded-full bg-gold-100 text-xs font-semibold text-gold-800 dark:bg-gold-900/40 dark:text-gold-300">{{ $loop->iteration }}</span>
+                        <x-ui.badge color="amber" circle class="shrink-0">{{ $loop->iteration }}</x-ui.badge>
                         <span class="min-w-0 flex-1 truncate font-medium text-zinc-900 dark:text-white">{{ $product['name'] }}</span>
                         <span class="shrink-0 whitespace-nowrap text-zinc-500">{{ trans_choice(':count copy|:count copies', $product['quantity'], ['count' => $product['quantity']]) }}</span>
                         <span class="w-20 shrink-0 text-end font-medium">{{ formatMoney($product['revenue']) }}</span>
@@ -65,7 +65,7 @@
         </x-backoffice.dashboard.panel>
 
         <x-backoffice.dashboard.panel :title="__('Daily sales')" :description="__('Paid orders per day')">
-            <div class="max-h-96 divide-y divide-zinc-200 overflow-y-auto dark:divide-zinc-800">
+            <div class="max-h-96 divide-y divide-line overflow-y-auto">
                 @forelse ($this->dailySales as $day)
                     <div class="flex items-center justify-between gap-3 py-2.5 text-sm">
                         <span class="min-w-0 truncate text-zinc-700 dark:text-zinc-300">{{ $day['date'] }}</span>
