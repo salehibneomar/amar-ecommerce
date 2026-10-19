@@ -1,0 +1,3 @@
+<div>
+    <x-notifications.dropdown :notifications="$this->notifications" :unread-count="$this->unreadCount" :all-url="route('user.notifications')" inverse />
+</div>

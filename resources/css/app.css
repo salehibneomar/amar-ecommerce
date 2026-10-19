@@ -1,0 +1,302 @@
+@import 'tailwindcss';
+@import '../../vendor/livewire/flux/dist/flux.css';
+@import 'trix/dist/trix.css' layer(components);
+
+@source not '../../storage';
+@source '../views';
+@source '../../app/Enums';
+@source '../../vendor/laravel/framework/src/Illuminate/Pagination/resources/views/*.blade.php';
+@source '../../vendor/livewire/flux-pro/stubs/**/*.blade.php';
+@source '../../vendor/livewire/flux/stubs/**/*.blade.php';
+@source '../../vendor/trianity/laravel-pdf-viewer/resources/views/**/*.blade.php';
+@source '../../vendor/trianity/laravel-pdf-viewer/src/**/*.php';
+
+@custom-variant dark (&:where(.dark, .dark *));
+
+@utility scrollbar-hidden {
+    scrollbar-width: none;
+
+    &::-webkit-scrollbar {
+        display: none;
+    }
+}
+
+@layer base {
+    [x-cloak] {
+        display: none !important;
+    }
+
+    select option {
+        color: var(--color-zinc-700);
+    }
+
+    :where(
+        button:not(:disabled),
+        [role='button']:not([aria-disabled='true']),
+        [data-flux-button]:not([aria-disabled='true'])
+    ) {
+        cursor: pointer;
+    }
+
+    :where(
+        button:disabled,
+        [role='button'][aria-disabled='true'],
+        [data-flux-button][aria-disabled='true']
+    ) {
+        cursor: default;
+    }
+}
+
+.icon-bold .material-symbols-outlined {
+    font-variation-settings: 'FILL' 1, 'wght' 600;
+}
+
+[data-frontend] [data-flux-button] {
+    @apply rounded-lg;
+}
+
+[data-flux-button][class*='bg-[var(--color-accent)]'] {
+    background-color: color-mix(in oklab, var(--color-accent) 14%, transparent);
+    color: color-mix(in oklab, var(--color-accent) 80%, black);
+    border-color: color-mix(in oklab, var(--color-accent) 22%, transparent);
+    box-shadow: none;
+    font-weight: 600;
+}
+
+[data-flux-button][class*='bg-[var(--color-accent)]']:hover {
+    background-color: color-mix(in oklab, var(--color-accent) 24%, transparent);
+}
+
+.dark [data-flux-button][class*='bg-[var(--color-accent)]'] {
+    background-color: color-mix(in oklab, var(--color-accent) 26%, transparent);
+    color: color-mix(in oklab, var(--color-accent) 45%, white);
+    border-color: color-mix(in oklab, var(--color-accent) 35%, transparent);
+}
+
+.dark [data-flux-button][class*='bg-[var(--color-accent)]']:hover {
+    background-color: color-mix(in oklab, var(--color-accent) 36%, transparent);
+}
+
+[data-flux-toast-dialog][data-variant='success'] > div {
+    @apply !border-green-200 !bg-green-50;
+}
+
+.dark [data-flux-toast-dialog][data-variant='success'] > div {
+    @apply !border-green-500/30;
+    background-color: color-mix(in oklab, var(--color-green-500) 15%, var(--color-zinc-800)) !important;
+}
+
+[data-flux-toast-dialog][data-variant='warning'] > div {
+    @apply !border-amber-200 !bg-amber-50;
+}
+
+.dark [data-flux-toast-dialog][data-variant='warning'] > div {
+    @apply !border-amber-500/30;
+    background-color: color-mix(in oklab, var(--color-amber-500) 15%, var(--color-zinc-800)) !important;
+}
+
+[data-flux-toast-dialog][data-variant='info'] > div {
+    @apply !border-sky-200 !bg-sky-50;
+}
+
+.dark [data-flux-toast-dialog][data-variant='info'] > div {
+    @apply !border-sky-500/30;
+    background-color: color-mix(in oklab, var(--color-sky-500) 15%, var(--color-zinc-800)) !important;
+}
+
+[data-flux-toast-dialog][data-variant='danger'] > div {
+    @apply !border-red-200 !bg-red-50;
+}
+
+.dark [data-flux-toast-dialog][data-variant='danger'] > div {
+    @apply !border-red-500/30;
+    background-color: color-mix(in oklab, var(--color-red-500) 15%, var(--color-zinc-800)) !important;
+}
+
+@theme {
+    --shadow-card: 0 1px rgb(0 0 0 / 0.05);
+
+    --container-shell: 86.25rem;
+    --container-main: 70rem;
+
+    --font-sans: 'Instrument Sans', ui-sans-serif, system-ui, sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji', 'Segoe UI Symbol', 'Noto Color Emoji';
+
+    --color-zinc-50: #fafafa;
+    --color-zinc-100: #f5f5f5;
+    --color-zinc-200: #e5e5e5;
+    --color-zinc-300: #d4d4d4;
+    --color-zinc-400: #a3a3a3;
+    --color-zinc-500: #737373;
+    --color-zinc-600: #525252;
+    --color-zinc-700: #404040;
+    --color-zinc-800: #262626;
+    --color-zinc-900: #171717;
+    --color-zinc-950: #0a0a0a;
+
+    /*
+     * Brand palette: update these color codes to rebrand the application.
+     * `brand` utilities and Flux primary controls both use this palette.
+     */
+    --color-brand-50: #f0fbf2;
+    --color-brand-100: #dcf6e1;
+    --color-brand-200: #bbebc5;
+    --color-brand-300: #8bdb9c;
+    --color-brand-400: #55c26c;
+    --color-brand-500: #31a74b;
+    --color-brand-600: #22893a;
+    --color-brand-700: #1d6d31;
+    --color-brand-800: #1b572b;
+    --color-brand-900: #174825;
+    --color-brand-950: #072812;
+    --color-brand: var(--color-brand-600);
+    --color-brand-foreground: #ffffff;
+
+    --color-gold-50: #fefce8;
+    --color-gold-100: #fef9c3;
+    --color-gold-200: #fef08a;
+    --color-gold-300: #fde047;
+    --color-gold-400: #facc15;
+    --color-gold-500: #eab308;
+    --color-gold-600: #ca8a04;
+    --color-gold-700: #a16207;
+    --color-gold-800: #854d0e;
+    --color-gold-900: #713f12;
+
+    /* Flux uses accent tokens for all `variant="primary"` controls. */
+    --color-accent: var(--color-brand);
+    --color-accent-content: var(--color-brand);
+    --color-accent-foreground: var(--color-brand-foreground);
+
+    /*
+     * Surface colors: page background, cards/bars, their borders and alternate (muted) sections.
+     * Dark-mode values are in the `.dark` block below.
+     */
+    --color-canvas: var(--color-zinc-50);
+    --color-surface: #ffffff;
+    --color-line: var(--color-zinc-200);
+    --color-subtle: var(--color-zinc-100);
+
+    --color-tech-500: #64748b;
+    --color-tech-600: #475569;
+}
+
+@layer theme {
+    .dark {
+        /* Change this code when the primary color needs a distinct dark-mode value. */
+        --color-brand-dark: #2b9c4f;
+        --color-accent: var(--color-brand-dark);
+        --color-accent-content: var(--color-brand-dark);
+        --color-accent-foreground: var(--color-brand-foreground);
+
+        --color-canvas: var(--color-zinc-950);
+        --color-surface: var(--color-zinc-900);
+        --color-line: var(--color-zinc-800);
+        --color-subtle: var(--color-zinc-900);
+    }
+}
+
+@layer base {
+
+    *,
+    ::after,
+    ::before,
+    ::backdrop,
+    ::file-selector-button {
+        border-color: var(--color-gray-200, currentColor);
+    }
+}
+
+[data-flux-field]:not(ui-radio, ui-checkbox) {
+    @apply grid gap-2;
+}
+
+html:has(ui-dropdown [popover]:popover-open:not(.dropdown-lock-scroll)) {
+    overflow: visible !important;
+    scrollbar-gutter: auto !important;
+}
+
+.dropdown-fixed {
+    position: fixed !important;
+    inset: var(--dropdown-top) var(--dropdown-right) var(--dropdown-bottom) var(--dropdown-left) !important;
+    translate: var(--dropdown-translate);
+    max-height: var(--dropdown-max-height) !important;
+}
+
+@layer utilities {
+    ui-sidebar[data-flux-sidebar-on-mobile] {
+        scrollbar-width: none;
+    }
+
+    ui-sidebar[data-flux-sidebar-on-mobile]::-webkit-scrollbar {
+        display: none;
+    }
+}
+
+[data-flux-label] {
+    @apply  !mb-0 !leading-tight;
+}
+
+[data-flux-field]:not(:has(> [data-flux-checkbox], > [data-flux-radio])) > [data-flux-label] {
+    @apply !text-sm !font-normal !text-zinc-600 dark:!text-zinc-300;
+}
+
+[data-flux-field]:not(ui-radio, ui-checkbox) > [data-flux-label] + [data-flux-description] {
+    @apply !-mt-1.5 !mb-0;
+}
+
+input:focus[data-flux-control],
+textarea:focus[data-flux-control],
+select:focus[data-flux-control] {
+    @apply outline-hidden ring-2 ring-accent ring-offset-2 ring-offset-accent-foreground;
+}
+
+/* \[:where(&)\]:size-4 {
+    @apply size-4;
+} */
+
+trix-toolbar .trix-button-group--file-tools,
+trix-toolbar .trix-button-group-spacer,
+trix-toolbar .trix-button--icon-code,
+trix-toolbar .trix-button--icon-bullet-list,
+trix-toolbar .trix-button--icon-number-list,
+trix-toolbar .trix-button--icon-decrease-nesting-level,
+trix-toolbar .trix-button--icon-increase-nesting-level {
+    display: none;
+}
+
+trix-toolbar .trix-button-row {
+    @apply justify-start gap-2;
+}
+
+
+trix-toolbar .trix-button-group {
+    @apply m-0! border-zinc-200 dark:border-zinc-700;
+}
+
+trix-toolbar .trix-button-group--history-tools {
+    @apply ms-auto!;
+}
+
+.dark trix-toolbar .trix-button {
+    @apply border-zinc-700 bg-zinc-800;
+}
+
+.dark trix-toolbar .trix-button::before {
+    filter: invert(1);
+}
+
+trix-editor.rich-text {
+    @apply min-h-32 rounded-t-none rounded-b-lg border-zinc-200 bg-white px-3 py-2 text-sm shadow-xs dark:border-white/10 dark:bg-white/10;
+}
+
+.rich-text a {
+    @apply text-brand-700 underline dark:text-brand-300;
+}
+
+.rich-text h1 {
+    @apply text-base font-semibold;
+}
+
+.rich-text blockquote {
+    @apply border-s-2 border-zinc-300 ps-3 text-zinc-500 dark:border-zinc-600;
+}
