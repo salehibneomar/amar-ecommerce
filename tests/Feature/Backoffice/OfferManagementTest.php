@@ -25,13 +25,13 @@ test('offers need the permission and a confirmed password', function () {
 test('a specific offer needs categories picked by search and saves them', function () {
     $science = Category::factory()->create(['name' => 'Science']);
     $history = Category::factory()->create(['name' => 'History']);
-    Category::factory()->create(['name' => 'Poetry']);
+    Category::factory()->create(['name' => 'Toys']);
     Category::factory()->create(['name' => 'Social Science', 'parent_id' => $history->id]);
 
     $component = Livewire::actingAs(User::factory()->superAdmin()->create())->test(Index::class)
         ->call('createOffer')
         ->set('name', 'Science Week')
-        ->set('headline', 'Books on sale')
+        ->set('headline', 'Products on sale')
         ->set('discountPercentage', '15')
         ->set('type', OfferTypeEnum::Specific->value)
         ->call('saveOffer')
@@ -39,7 +39,7 @@ test('a specific offer needs categories picked by search and saves them', functi
 
     $component->set('categorySearch', 'sci')
         ->assertSee('Science')
-        ->assertDontSee('Poetry')
+        ->assertDontSee('Toys')
         ->assertDontSee('Social Science')
         ->assertSee('History')
         ->call('addCategory', $science->id)
@@ -59,19 +59,19 @@ test('a specific offer needs categories picked by search and saves them', functi
 });
 
 test('searching a child category of any depth offers its root category', function () {
-    $root = Category::factory()->create(['name' => 'Literature']);
-    $child = Category::factory()->create(['name' => 'Novels', 'parent_id' => $root->id]);
-    Category::factory()->create(['name' => 'Gothic Mysteries', 'parent_id' => $child->id]);
-    Category::factory()->create(['name' => 'Cooking']);
+    $root = Category::factory()->create(['name' => 'Electronics']);
+    $child = Category::factory()->create(['name' => 'Laptops', 'parent_id' => $root->id]);
+    Category::factory()->create(['name' => 'Gaming Laptops', 'parent_id' => $child->id]);
+    Category::factory()->create(['name' => 'Kitchen']);
 
     $component = Livewire::actingAs(User::factory()->superAdmin()->create())->test(Index::class)
         ->call('createOffer')
         ->set('type', OfferTypeEnum::Specific->value)
-        ->set('categorySearch', 'gothic');
+        ->set('categorySearch', 'gaming');
 
-    expect($component->get('categoryResults'))->toBe([$root->id => 'Literature']);
+    expect($component->get('categoryResults'))->toBe([$root->id => 'Electronics']);
 
-    $component->call('addCategory', $root->id)->set('categorySearch', 'novels');
+    $component->call('addCategory', $root->id)->set('categorySearch', 'laptops');
 
     expect($component->get('categoryResults'))->toBe([]);
 });
@@ -84,11 +84,11 @@ test('an offer needs a headline and saves it', function () {
         ->call('saveOffer')
         ->assertHasErrors(['headline' => 'required']);
 
-    $component->set('headline', 'Books for Eid')
+    $component->set('headline', 'Gifts for Eid')
         ->call('saveOffer')
         ->assertHasNoErrors();
 
-    expect(Offer::query()->sole()->headline)->toBe('Books for Eid');
+    expect(Offer::query()->sole()->headline)->toBe('Gifts for Eid');
 });
 
 test('global offers show no categories in their details', function () {
@@ -121,7 +121,7 @@ test('a global offer overlapping a live global offer is saved inactive with a wa
         ->assertSet('isActive', false)
         ->assertSee('Eid Sale')
         ->set('name', 'Winter Sale')
-        ->set('headline', 'Books on sale')
+        ->set('headline', 'Products on sale')
         ->set('discountPercentage', '10')
         ->set('isActive', true)
         ->call('saveOffer')
@@ -140,7 +140,7 @@ test('a global offer scheduled after the live one can be active', function () {
         ->assertDontSee(__('Turn it off first'))
         ->set('isActive', true)
         ->set('name', 'Next Month')
-        ->set('headline', 'Books on sale')
+        ->set('headline', 'Products on sale')
         ->set('discountPercentage', '10')
         ->call('saveOffer')
         ->assertHasNoErrors();

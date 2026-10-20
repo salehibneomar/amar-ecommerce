@@ -2,7 +2,7 @@
 
 namespace App\Livewire\Frontend\Search;
 
-use App\Models\Book;
+use App\Models\Product;
 use App\Services\Frontend\Shop\PageService;
 use Illuminate\Contracts\View\View;
 use Illuminate\Database\Eloquent\Collection;
@@ -11,7 +11,7 @@ use Livewire\Component;
 
 /**
  * @property-read bool $isSearching
- * @property-read Collection<int, Book> $results
+ * @property-read Collection<int, Product> $results
  */
 class Index extends Component
 {
@@ -35,7 +35,7 @@ class Index extends Component
     }
 
     /**
-     * @return Collection<int, Book>
+     * @return Collection<int, Product>
      */
     #[Computed]
     public function results(): Collection
@@ -50,7 +50,7 @@ class Index extends Component
     }
 
     /**
-     * @return Collection<int, Book>
+     * @return Collection<int, Product>
      */
     #[Computed]
     public function visibleResults(): Collection

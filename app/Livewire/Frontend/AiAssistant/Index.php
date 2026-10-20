@@ -3,7 +3,7 @@
 namespace App\Livewire\Frontend\AiAssistant;
 
 use App\Enums\AiAssistant\AiAssistantRoleEnum;
-use App\Models\Book;
+use App\Models\Product;
 use App\Services\Frontend\AiAssistant\AiAssistantSearchService;
 use App\Services\Frontend\AiAssistant\AiAssistantService;
 use Illuminate\Contracts\View\View;
@@ -13,7 +13,7 @@ use Livewire\Attributes\Computed;
 use Livewire\Component;
 
 /**
- * @property-read Collection<int, Book> $products
+ * @property-read Collection<int, Product> $products
  */
 class Index extends Component
 {
@@ -41,7 +41,7 @@ class Index extends Component
         $this->validate(['message' => ['required', 'string', 'max:'.aiAssistantMessageMaxLength()]]);
 
         $message = trim($this->message);
-        $result = $this->assistantService->reply($this->messages, $message, Auth::id() ? 'user:'.Auth::id() : 'ip:'.request()->ip(), Auth::user());
+        $result = $this->assistantService->reply($this->messages, $message, Auth::id() ? 'user:'.Auth::id() : 'ip:'.request()->ip());
 
         $this->messages[] = ['role' => AiAssistantRoleEnum::User->value, 'text' => $message, 'suggestions' => []];
         $this->messages[] = ['role' => AiAssistantRoleEnum::Assistant->value, 'text' => $result['reply'], 'suggestions' => $result['suggestions']];
@@ -57,7 +57,7 @@ class Index extends Component
     }
 
     /**
-     * @return Collection<int, Book>
+     * @return Collection<int, Product>
      */
     #[Computed]
     public function products(): Collection

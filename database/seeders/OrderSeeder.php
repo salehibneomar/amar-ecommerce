@@ -3,20 +3,18 @@
 namespace Database\Seeders;
 
 use App\Enums\Order\OrderStatusEnum;
-use App\Enums\Order\PaymentMethodEnum;
 use App\Enums\Order\PaymentStatusEnum;
 use App\Models\Order;
 use App\Models\Product;
 use App\Models\User;
 use Illuminate\Database\Seeder;
-use Illuminate\Support\Str;
 
 class OrderSeeder extends Seeder
 {
     public function run(): void
     {
         $customer = User::query()->where('email', 'customer@example.com')->firstOrFail();
-        $products = Product::query()->where('is_free', false)->orderBy('id')->limit(4)->get();
+        $products = Product::query()->orderBy('id')->limit(4)->get();
 
         $this->createOrder($customer, array_values($products->take(2)->all()), paid: true);
         $this->createOrder($customer, array_values($products->slice(2, 1)->all()), paid: false);
@@ -41,10 +39,8 @@ class OrderSeeder extends Seeder
             ->state([
                 'subtotal' => $subtotal,
                 'total' => $subtotal,
-                'status' => $paid ? OrderStatusEnum::Completed : OrderStatusEnum::Requested,
+                'status' => $paid ? OrderStatusEnum::Completed : OrderStatusEnum::Pending,
                 'payment_status' => $paid ? PaymentStatusEnum::Paid : PaymentStatusEnum::Pending,
-                'payment_method' => $paid ? PaymentMethodEnum::Bkash : null,
-                'transaction_id' => $paid ? Str::upper(Str::random(10)) : null,
                 'completed_at' => $paid ? now() : null,
                 'phone' => '01700000000',
             ])
@@ -54,6 +50,7 @@ class OrderSeeder extends Seeder
             $order->items()->create([
                 'product_id' => $product->id,
                 'product_name_snapshot' => $product->name,
+                'sku_snapshot' => $product->sku,
                 'quantity' => 1,
                 'unit_price' => $product->price,
                 'discount_percentage' => (int) $product->discount_percentage,

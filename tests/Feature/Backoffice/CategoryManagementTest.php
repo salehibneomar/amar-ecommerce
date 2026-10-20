@@ -2,8 +2,8 @@
 
 use App\Enums\User\PermissionEnum;
 use App\Livewire\Backoffice\Categories\Index;
-use App\Models\Book;
 use App\Models\Category;
+use App\Models\Product;
 use App\Models\User;
 use App\Services\Backoffice\Catalog\CategoryService;
 use Illuminate\Http\UploadedFile;
@@ -118,11 +118,11 @@ test('with one level there is no parent choice', function () {
         ->assertCount('categoryFilterOptions', 0);
 });
 
-test('a parent with sub-categories cannot be deleted and deleting a category uncategorises its books', function () {
+test('a parent with sub-categories cannot be deleted and deleting a category uncategorises its products', function () {
     $this->actingAs(User::factory()->superAdmin()->create());
     $parent = Category::factory()->create();
     $child = Category::factory()->childOf($parent)->create();
-    $book = Book::factory()->create(['category_id' => $child->id]);
+    $product = Product::factory()->create(['category_id' => $child->id]);
 
     Livewire::test(Index::class)
         ->call('confirmDeleteCategory', $parent->id)
@@ -136,7 +136,7 @@ test('a parent with sub-categories cannot be deleted and deleting a category unc
         ->call('deleteCategory');
 
     expect(Category::find($child->id))->toBeNull()
-        ->and($book->refresh()->category_id)->toBeNull();
+        ->and($product->refresh()->category_id)->toBeNull();
 });
 
 test('the sub-category filter loads root categories five at a time', function () {
@@ -206,6 +206,18 @@ test('categories can be filtered to root categories only', function () {
         ->set('categoryFilter.0', (string) $root->id)
         ->assertSet('rootOnly', false)
         ->assertSee($child->name);
+});
+
+test('square crops are never enlarged past the uploaded image', function () {
+    Storage::fake('public');
+    $category = Category::factory()->create();
+
+    $media = $category->attachMedia('category.media.image', UploadedFile::fake()->image('small.jpg', 400, 300));
+
+    expect(array_slice(getimagesize($media->getPath('large')) ?: [], 0, 2))->toBe([300, 300])
+        ->and(array_slice(getimagesize($media->getPath('regular')) ?: [], 0, 2))->toBe([300, 300])
+        ->and(array_slice(getimagesize($media->getPath('small')) ?: [], 0, 2))->toBe([64, 64])
+        ->and($media->getCustomProperty('width'))->toBe(400);
 });
 
 test('administrators upload a square category image from the row actions, shown small in the table, regular on the home page and large in the media view', function () {

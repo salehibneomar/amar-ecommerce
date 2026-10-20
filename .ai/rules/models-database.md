@@ -16,7 +16,7 @@ Index filter and sort columns, and add unique constraints for business rules.
 Orders snapshot names and prices (`*_snapshot`, `unit_price`, `line_total`) so later price changes never alter history.
 
 ## Factories and seeders
-Every model has a factory with meaningful states (`superAdmin()`, `admin()`, `moderator()`, `editor()`, `paid()`, `physical()`, …). Demo seeding is gated by `DB_SEEDING_ENABLED`.
+Every model has a factory with meaningful states (`superAdmin()`, `admin()`, `moderator()`, `editor()`, `paid()`, `stock()`, `outOfStock()`, …). Demo seeding is gated by `DB_SEEDING_ENABLED`.
 
 ## Live apps get new migrations only (APP_IS_LIVE)
 Before any schema change, check `APP_IS_LIVE` in `.env` (`grep '^APP_IS_LIVE=' .env`; missing means `false`).

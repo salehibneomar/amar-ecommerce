@@ -6,10 +6,19 @@ test('super admins see every settings item', function () {
     $this->actingAs(User::factory()->superAdmin()->create())
         ->get(route('settings.index'))
         ->assertOk()
-        ->assertSee(route('profile.edit'))
         ->assertSee(route('security.edit'))
         ->assertSee(route('manage.roles.index'))
         ->assertSee(route('system.edit'));
+});
+
+test('the profile page is in the backoffice user menu, not the settings list', function () {
+    $html = $this->actingAs(User::factory()->superAdmin()->create())
+        ->get(route('settings.index'))
+        ->assertOk()
+        ->assertDontSee(__('Update your name, email address and photo'))
+        ->getContent();
+
+    expect(preg_match('/<a\b[^>]*href="'.preg_quote(route('profile.edit'), '/').'"/', $html))->toBe(1);
 });
 
 test('customers cannot open the settings index', function () {

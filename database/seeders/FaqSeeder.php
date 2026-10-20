@@ -11,11 +11,11 @@ class FaqSeeder extends Seeder
     public function run(): void
     {
         $faqs = [
-            'How do I buy a book?' => 'Add the book to your cart, go to checkout, pay with bKash or Nagad and enter the transaction ID. We verify it and confirm your order.',
-            'When can I read a digital book?' => 'As soon as we verify your payment. The book then appears in My library and opens in your browser.',
-            'Can I read before buying?' => 'Yes. Every paid book has a free preview of the first few pages.',
-            'Do you deliver printed books?' => 'Yes. Printed books are delivered to the address you enter at checkout.',
-            'Can I read books on my phone?' => 'Yes. Books open in the browser on any device.',
+            'How do I place an order?' => 'Add products to your cart, go to checkout and enter your phone number and delivery address. We confirm the order and keep you updated.',
+            'How can I track my order?' => 'Open My orders in your account, or use Track order with your order ID and email.',
+            'How long does delivery take?' => 'Most orders are delivered within a few working days after they ship.',
+            'Can I cancel an order?' => 'Yes, before it ships. Contact us with your order ID.',
+            'What if a product is out of stock?' => 'You cannot add it to the cart until it is back in stock.',
         ];
 
         foreach ($faqs as $title => $description) {

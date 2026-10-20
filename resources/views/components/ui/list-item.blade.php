@@ -10,6 +10,6 @@
     </div>
     {{ $trailing ?? '' }}
     @if ($href && $chevron)
-        <flux:icon.chevron-right variant="mini" class="shrink-0 text-zinc-400 transition group-hover:translate-x-0.5 group-hover:text-brand-text" />
+        <flux:icon.chevron-right class="size-5 shrink-0 text-zinc-400 transition group-hover:translate-x-0.5 group-hover:text-brand-text" />
     @endif
 </{{ $href ? 'a' : 'div' }}>

@@ -2,12 +2,10 @@
 
 namespace App\Livewire\Frontend\Shop;
 
-use App\Models\Book;
-use App\Services\Frontend\Account\BookLibraryService;
+use App\Models\Product;
 use App\Services\Frontend\Shop\PageService;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 use Illuminate\Contracts\View\View;
-use Illuminate\Support\Facades\Auth;
 use Livewire\Attributes\Computed;
 use Livewire\Attributes\Session;
 use Livewire\Attributes\Url;
@@ -46,18 +44,15 @@ class Index extends Component
 
     protected PageService $pageService;
 
-    protected BookLibraryService $bookLibraryService;
-
     public function mount(): void
     {
         $this->categoryIds = $this->pageService->linkedCategories($this->filterCategoryIds());
         $this->categoryFilter = implode(',', $this->categoryIds);
     }
 
-    public function boot(PageService $pageService, BookLibraryService $bookLibraryService): void
+    public function boot(PageService $pageService): void
     {
         $this->pageService = $pageService;
-        $this->bookLibraryService = $bookLibraryService;
     }
 
     public function updatedSearch(): void
@@ -107,7 +102,7 @@ class Index extends Component
     }
 
     /**
-     * @return LengthAwarePaginator<int, Book>
+     * @return LengthAwarePaginator<int, Product>
      */
     #[Computed]
     public function products(): LengthAwarePaginator
@@ -122,15 +117,6 @@ class Index extends Component
     public function categories(): array
     {
         return $this->pageService->getCategoryTreeSlice($this->categoryLimit);
-    }
-
-    /**
-     * @return list<int>
-     */
-    #[Computed]
-    public function ownedIds(): array
-    {
-        return $this->bookLibraryService->ownedProductIds(Auth::user());
     }
 
     /**

@@ -55,15 +55,15 @@
         @isset($footer)
             {{ $footer }}
         @elseif ($showDefaultFooter)
-            <div class="flex flex-col-reverse gap-2 sm:flex-row sm:items-center sm:justify-end">
+            <x-form.actions>
                 @isset($footerActions)
                     <div class="flex flex-col gap-2 sm:me-auto sm:flex-row">{{ $footerActions }}</div>
                 @endisset
                 <flux:modal.close>
                     <x-ui.button type="button" class="w-full sm:w-auto">{{ $closeLabel }}</x-ui.button>
                 </flux:modal.close>
-                <x-ui.button type="submit" variant="primary" class="w-full sm:w-auto">{{ $submitLabel }}</x-ui.button>
-            </div>
+                <x-ui.button type="submit" variant="primary">{{ $submitLabel }}</x-ui.button>
+            </x-form.actions>
         @endisset
     </form>
 </x-ui.modal>

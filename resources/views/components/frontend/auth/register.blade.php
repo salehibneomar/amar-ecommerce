@@ -1,5 +1,5 @@
 <div class="flex flex-col gap-6">
-    <x-auth.header :title="__('Create an account')" :description="__('Build your library of farming books')" />
+    <x-auth.header :title="__('Create an account')" :description="__('Shop faster and track every order')" />
 
     <form wire:submit="register" class="flex flex-col gap-6">
         <flux:input wire:model="name" :label="__('Name')" type="text" required autofocus autocomplete="name"

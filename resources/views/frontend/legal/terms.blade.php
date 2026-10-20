@@ -17,26 +17,26 @@
         </x-frontend.cards.card>
 
         <x-frontend.cards.card>
-            <x-frontend.content.legal-section :title="__('Free preview and purchases')">
-                <p>{{ __('Anyone can read the free preview of each book. When you buy a digital book it stays in your library for as long as the platform runs. Orders and payments follow our refund and order policy.') }}</p>
+            <x-frontend.content.legal-section :title="__('Orders and purchases')">
+                <p>{{ __('Placing an order is an offer to buy. We confirm it once we check the order and the stock. Orders and payments follow our refund and order policy.') }}</p>
             </x-frontend.content.legal-section>
         </x-frontend.cards.card>
 
         <x-frontend.cards.card>
-            <x-frontend.content.legal-section :title="__('How you may use the books')">
-                <p>{{ __('All books and PDFs are for your personal study only. You may not:') }}</p>
+            <x-frontend.content.legal-section :title="__('Fair use')">
+                <p>{{ __('Please use the shop honestly. You may not:') }}</p>
                 <ul>
-                    <li>{{ __('Share, upload or send the books or downloaded PDFs to anyone else.') }}</li>
-                    <li>{{ __('Sell, reprint or copy the content for any business purpose.') }}</li>
-                    <li>{{ __('Try to get around the free preview limits or access content you have not paid for.') }}</li>
+                    <li>{{ __('Place fake orders or orders you do not plan to receive.') }}</li>
+                    <li>{{ __('Copy product photos or content for any business purpose.') }}</li>
+                    <li>{{ __('Try to break, overload or misuse the platform.') }}</li>
                 </ul>
-                <p>{{ __('If you break these rules we may block your account without a refund.') }}</p>
+                <p>{{ __('If you break these rules we may cancel your orders or block your account.') }}</p>
             </x-frontend.content.legal-section>
         </x-frontend.cards.card>
 
         <x-frontend.cards.card>
-            <x-frontend.content.legal-section :title="__('Our content')">
-                <p>{{ __('We work hard to keep our books accurate and up to date, but farming conditions differ from place to place and we cannot promise any result. Use the books alongside advice from your local agriculture office.') }}</p>
+            <x-frontend.content.legal-section :title="__('Product information')">
+                <p>{{ __('We work hard to keep product details, photos and prices accurate. Small differences in color or packaging can happen. Contact us if something does not match.') }}</p>
             </x-frontend.content.legal-section>
         </x-frontend.cards.card>
 

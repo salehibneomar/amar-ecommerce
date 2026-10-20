@@ -4,18 +4,21 @@ namespace App\Services\Frontend\Shop;
 
 use App\Enums\Order\OrderStatusEnum;
 use App\Enums\Order\PaymentStatusEnum;
+use App\Enums\Payment\PaymentGatewayEnum;
 use App\Mail\Order\OrderPlacedMail;
 use App\Mail\Order\OrderRequestedMail;
 use App\Models\Order;
+use App\Models\Payment;
 use App\Models\Product;
 use App\Models\User;
 use App\Services\Backoffice\Notification\NotificationService;
+use App\Services\Backoffice\Sales\OrderService as StaffOrderService;
 use App\Services\Mail\MailService;
+use App\Services\Payment\PaymentService;
 use App\Traits\Catalog\StockTrait;
 use App\Traits\Security\ThrottleTrait;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 use Illuminate\Database\Eloquent\Collection;
-use Illuminate\Support\Collection as SupportCollection;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\ValidationException;
 
@@ -27,22 +30,26 @@ class OrderService
 
     private const RECENT_ORDERS_LIMIT = 3;
 
+    private const HELD_CHECKOUT_KEY = 'checkout.held';
+
     private const PUBLIC_ID_ALPHABET = '23456789ABCDEFGHJKMNPQRSTUVWXYZ';
 
     public function __construct(
         private readonly CartService $cartService,
         private readonly NotificationService $notificationService,
         private readonly MailService $mailService,
+        private readonly PaymentService $paymentService,
+        private readonly StaffOrderService $staffOrderService,
     ) {}
 
     /**
-     * @param  array{phone: string, shipping_address: string|null, notes: string|null}  $data
+     * @param  array{customer_name: string, customer_email: string, phone: string, shipping_address: string, billing_address: string, notes: string|null}  $data
      */
-    public function placeOrder(User $user, array $data): Order
+    public function placeOrder(?User $user, array $data, string $throttleKey, ?PaymentGatewayEnum $gateway = null): Order
     {
-        $this->throttle('checkout:'.$user->id, throttleAttempts('checkout'), 'cart');
+        $this->throttle('checkout:'.$throttleKey, throttleAttempts('checkout'), 'cart');
 
-        $order = DB::transaction(function () use ($user, $data): Order {
+        $order = DB::transaction(function () use ($user, $data, $gateway): Order {
             $items = $this->cartService->getItems();
 
             if ($items->isEmpty()) {
@@ -51,24 +58,22 @@ class OrderService
 
             $summary = $this->cartService->summary($items);
 
-            if ($summary['requiresShipping'] && blank($data['shipping_address'])) {
-                throw ValidationException::withMessages(['shippingAddress' => __('A delivery address is required for printed books.')]);
-            }
-
             $order = new Order;
             $order->forceFill([
                 'public_order_id' => $this->generatePublicOrderId(),
-                'user_id' => $user->id,
-                'customer_name' => $user->name,
-                'customer_email' => $user->email,
+                'user_id' => $user?->id,
+                'customer_name' => $user->name ?? $data['customer_name'],
+                'customer_email' => $user->email ?? strtolower(trim($data['customer_email'])),
                 'subtotal' => $summary['subtotal'],
                 'discount_amount' => $summary['discount'],
                 'applied_offers' => $summary['offers'] ?: null,
                 'total' => $summary['total'],
-                'status' => OrderStatusEnum::Requested,
+                'currency' => appCurrency(),
+                'status' => OrderStatusEnum::Pending,
                 'payment_status' => PaymentStatusEnum::Pending,
                 'phone' => $data['phone'],
-                'shipping_address' => $summary['requiresShipping'] ? $data['shipping_address'] : null,
+                'shipping_address' => $data['shipping_address'],
+                'billing_address' => $data['billing_address'],
                 'notes' => filled($data['notes']) ? $data['notes'] : null,
             ])->save();
 
@@ -79,6 +84,7 @@ class OrderService
                 $order->items()->create([
                     'product_id' => $product->id,
                     'product_name_snapshot' => $product->name,
+                    'sku_snapshot' => $product->sku,
                     'quantity' => $item['quantity'],
                     'unit_price' => $product->price,
                     'discount_percentage' => (int) $product->discount_percentage,
@@ -88,10 +94,15 @@ class OrderService
                 ]);
             }
 
-            $user->forceFill([
+            $user?->forceFill([
                 'phone' => $user->phone ?: (User::query()->where('phone', $data['phone'])->exists() ? null : $data['phone']),
-                'address' => $user->address ?: ($summary['requiresShipping'] ? $data['shipping_address'] : null),
+                'shipping_address' => $user->shipping_address ?: $data['shipping_address'],
+                'billing_address' => $user->billing_address ?: $data['billing_address'],
             ])->save();
+
+            if ($gateway !== null) {
+                $order->setRelation('payment', $this->paymentService->open($order, $gateway));
+            }
 
             return $order;
         });
@@ -104,10 +115,49 @@ class OrderService
     }
 
     /**
+     * @param  array{customer_name: string, customer_email: string, phone: string, shipping_address: string, billing_address: string, notes: string|null}  $data
+     */
+    public function holdCheckout(array $data, PaymentGatewayEnum $gateway): void
+    {
+        session()->put(self::HELD_CHECKOUT_KEY, ['data' => $data, 'gateway' => $gateway->value]);
+    }
+
+    /**
+     * @return array{data: array{customer_name: string, customer_email: string, phone: string, shipping_address: string, billing_address: string, notes: string|null}, gateway: PaymentGatewayEnum, view: view-string}|null
+     */
+    public function heldCheckout(): ?array
+    {
+        /** @var array{data?: array{customer_name: string, customer_email: string, phone: string, shipping_address: string, billing_address: string, notes: string|null}, gateway?: string} $held */
+        $held = (array) session()->get(self::HELD_CHECKOUT_KEY, []);
+        $gateway = PaymentGatewayEnum::tryFrom($held['gateway'] ?? '');
+        $view = $gateway?->pageView();
+
+        if (! isset($held['data']) || $view === null || ! in_array($gateway, $this->paymentService->gateways(), true) || $this->cartService->count() === 0) {
+            return null;
+        }
+
+        return ['data' => $held['data'], 'gateway' => $gateway, 'view' => $view];
+    }
+
+    public function placeHeldCheckout(?User $user, string $throttleKey): Payment
+    {
+        $held = $this->heldCheckout() ?? throw ValidationException::withMessages(['checkout' => __('Your checkout has expired. Please check out again.')]);
+
+        $order = $this->placeOrder($user, $held['data'], $throttleKey, $held['gateway']);
+        session()->forget(self::HELD_CHECKOUT_KEY);
+
+        return $order->payment;
+    }
+
+    /**
      * @return list<array{icon: string, label: string, href: string}>
      */
     public function contactLinks(Order $order): array
     {
+        if (! $this->paymentService->isManual($order) || ! $order->status->isUnresolved() || $order->payment_status->isPaid()) {
+            return [];
+        }
+
         $message = __("Hi!\nI am :name, my email is :email\nI have placed an order on :app.\n\nMy Order ID: :order\nTotal: :total\n\nPlease share the payment process. Thank you!", [
             'name' => $order->customer_name,
             'email' => $order->customer_email,
@@ -131,14 +181,7 @@ class OrderService
 
     public function getOrderWithItems(Order $order): Order
     {
-        $order->load('items.product');
-
-        $order->items->pluck('product')
-            ->filter()
-            ->groupBy(fn (Product $product): string => $product::class)
-            ->each(fn (SupportCollection $products): Collection => Collection::make($products)->load('media'));
-
-        return $order;
+        return $order->load(['items.product.media', 'payment']);
     }
 
     /**
@@ -157,9 +200,19 @@ class OrderService
         return $user->orders()->withCount('items')->latest()->limit(self::RECENT_ORDERS_LIMIT)->get();
     }
 
-    public function countOrders(User $user): int
+    /**
+     * @return array{total: int, active: int, completed: int}
+     */
+    public function orderCounts(User $user): array
     {
-        return $user->orders()->count();
+        $counts = $user->orders()
+            ->selectRaw('count(*) as total')
+            ->selectRaw('sum(case when status in (?, ?, ?) then 1 else 0 end) as active', [OrderStatusEnum::Pending->value, OrderStatusEnum::Processing->value, OrderStatusEnum::Shipped->value])
+            ->selectRaw('sum(case when status = ? then 1 else 0 end) as completed', [OrderStatusEnum::Completed->value])
+            ->toBase()
+            ->first();
+
+        return ['total' => (int) $counts?->total, 'active' => (int) $counts?->active, 'completed' => (int) $counts?->completed];
     }
 
     public function getOrderForUser(User $user, Order $order): Order
@@ -167,6 +220,13 @@ class OrderService
         abort_unless($order->user_id === $user->id, 404);
 
         return $this->getOrderWithItems($order);
+    }
+
+    public function cancelForUser(User $user, Order $order): void
+    {
+        abort_unless($order->user_id === $user->id, 404);
+
+        $this->staffOrderService->cancel($order->id, pendingOnly: true);
     }
 
     public function findForTracking(string $publicOrderId, string $email, string $ip): ?Order
@@ -200,7 +260,7 @@ class OrderService
 
     private function sendPlacedMails(Order $order): void
     {
-        $this->mailService->send($order->customer_email, new OrderPlacedMail($order));
+        $this->mailService->send($order->customer_email, new OrderPlacedMail($order, $this->paymentService->isManual($order)));
 
         if ($ownerEmail = shopOwnerEmail()) {
             $this->mailService->send($ownerEmail, new OrderRequestedMail($order));

@@ -13,7 +13,7 @@ For install and server setup see `SETUP.md`. For architecture see `TECHNICAL.md`
 | `.env` or anything in `config/` | `php artisan config:clear` |
 | A Blade view | `php artisan view:clear` |
 | Tailwind classes or `app.css` | `npm run build` (or keep `npm run dev` running) |
-| Shop content (books, banners, FAQs) | Wait for the cache, or `php artisan cache:clear` (see §14) |
+| Shop content (products, banners, FAQs) | Wait for the cache, or `php artisan cache:clear` (see §14) |
 | Not sure | `php artisan optimize:clear`, then hard refresh the browser (Ctrl+Shift+R) |
 
 ---
@@ -110,10 +110,10 @@ Status colors (paid, cancelled, errors, edit buttons) stay semantic Flux colors 
 Inside `@theme { … }` (light mode):
 
 ```css
---color-canvas: var(--color-zinc-50);    /* page background */
---color-surface: #fafafa;                /* cards, navbars, sidebar, drawers */
---color-line: var(--color-zinc-200);     /* their borders */
---color-subtle: var(--color-zinc-100);   /* alternate page sections (e.g. "New arrivals") */
+--color-canvas: #f6f8fb;                 /* page background, a cool neutral */
+--color-surface: var(--color-white);     /* cards, drawers, menus */
+--color-line: #e2e8f0;                   /* their borders */
+--color-subtle: #eef2f7;                 /* alternate page sections (e.g. "New arrivals") */
 --color-media                            /* cover and image placeholders: product covers, category tiles, thumbnails (bg-media) */
 ```
 
@@ -126,7 +126,7 @@ And inside `.dark { … }` (dark mode):
 --color-subtle: var(--color-zinc-900);
 ```
 
-These tokens are lightly tinted with the brand for both panels, in light mode in `@theme` and in dark mode in `.dark` (see Dark mode below).
+In light mode the content is neutral and the brand tint lives on the bars: `--color-bar` (storefront header and footer, admin header and sidebar, brand 100) with a white active chip (`--color-bar-active*`). The hero gradient is the `bg-hero` utility. `--color-zinc-500` is a step darker than Tailwind's so muted text passes WCAG AA on every light surface. Dark mode keeps its own values in `.dark` (see Dark mode below).
 
 In views, use `bg-canvas`, `bg-surface`, `bg-subtle` and `border-line`. They switch between light and dark on their own, so **no `dark:` class is needed**.
 
@@ -134,9 +134,9 @@ In views, use `bg-canvas`, `bg-surface`, `bg-subtle` and `border-line`. They swi
 <div class="rounded-2xl border border-line bg-surface p-6">…</div>
 ```
 
-### Glass effect (storefront)
+### Glass effect (whole app)
 
-Floating storefront parts use frosted glass: `glass-bar` on the header and footer, `glass-solid` on the drawers (menu, cart, filters), which sit over a dark backdrop, and `glass` on the search popover, user and notification menus and the scroll-to-top button. Tune it once in `resources/css/app.css`: `--blur-glass` (blur strength), `--color-glass`, `--color-glass-solid` and `--color-glass-line` (panel tint, drawer tint and edge), `--shadow-glass`, each with a dark value in `.dark { … }`. Cards and content sections stay solid on purpose, for readability. Use `glass` only on overlays and floating panels.
+Bars and floating parts in both panels use frosted glass: `glass-bar` on the storefront header and footer and the admin header and sidebar, `glass-solid` on the drawers (storefront menu, cart, filters, admin mobile menu), which sit over a dark backdrop, and `glass` on the search popover, user and notification menus and the scroll-to-top button. Tune it once in `resources/css/app.css`: `--blur-glass` (blur strength), `--color-glass`, `--color-glass-solid` and `--color-glass-line` (panel tint, drawer tint and edge), `--shadow-glass`, each with a dark value in `.dark { … }`. Cards and content sections stay solid on purpose, for readability. Use `glass` only on overlays and floating panels.
 
 ### Alerts, banners and storefront cards
 
@@ -160,7 +160,7 @@ Dark mode follows the brand in both panels. In the `.dark { … }` block of `res
 
 Views never use `<flux:button>`, `<flux:badge>` or `<flux:avatar>` directly. They use our wrappers, so colors change in one place:
 
-- `x-ui.button` (`resources/views/components/ui/button.blade.php`) takes every Flux button prop and sets a `data-tone`: `variant="primary"` = brand, `variant="danger"` = red, a Flux `color` = that color, outline and filled = neutral, ghost and subtle = no tone (transparent). The tone rules near the top of `resources/css/app.css` give every toned button the same soft "Save" look: a light tint, matching text and a matching border. Storefront neutral buttons take a lighter brand tint (`[data-frontend]` rules). Special colors: `color="surface"` (card colored, sign in providers), `color="field"` (looks like an input, for a control beside selects), `color="overlay"` (on an image, and the round corner buttons on the admin sign in pages), `color="transparent"` (see-through with the primary border). A ghost or subtle button with a `color` keeps no fill and only colors its text (`variant="ghost" color="danger"` for a remove icon). Pass `bar` for buttons on the header bars and the admin sidebar. Never restyle a button with color classes, add a color here instead.
+- `x-ui.button` (`resources/views/components/ui/button.blade.php`) takes every Flux button prop and sets a `data-tone`: `variant="primary"` = brand, `variant="danger"` = red, a Flux `color` = that color, outline and filled = neutral, ghost and subtle = no tone (transparent). The tone rules near the top of `resources/css/app.css` give every toned button the same soft "Save" look: a light tint, matching text and a matching border. Primary (brand) buttons are solid brand and neutral buttons take the surface look, in both panels. Special colors: `color="surface"` (card colored, sign in providers), `color="field"` (looks like an input, for a control beside selects), `color="overlay"` (on an image, and the round corner buttons on the admin sign in pages), `color="transparent"` (see-through with the primary border). A ghost or subtle button with a `color` keeps no fill and only colors its text (`variant="ghost" color="danger"` for a remove icon). Pass `bar` for buttons on the header bars and the admin sidebar. Never restyle a button with color classes, add a color here instead.
 - `x-ui.card` (`resources/views/components/ui/card.blade.php`) is the one card box for both panels: border, surface, radius and shadow. `as` sets the tag (`section`, `form`, `ul`, `li`, `details`…) and `interactive` adds the brand border hover (no shadow, so list items stay flat). `x-frontend.cards.card` builds on it with a title, description, actions slot and padding, and its `interactive` cards (product, category, feature, contact) also lift a soft shadow on hover. Flux cards in the admin get the same look from one rule in `app.css`.
 - Brand-colored text (links, labels, hover text) uses the `--color-brand-text` token (`text-brand-text`, brand 700 in light and brand 300 in dark), set in `resources/css/app.css`. Change its shade there for the whole app.
 - `x-ui.list-item` (`resources/views/components/ui/list-item.blade.php`) is the one list row: `href` makes it a link with the row hover (`--color-row-hover`) and a chevron, and the `leading` and `trailing` slots hold an icon and badges or a price. `x-ui.list-link` (settings rows) and the order rows are built on it.
@@ -168,14 +168,15 @@ Views never use `<flux:button>`, `<flux:badge>` or `<flux:avatar>` directly. The
 - `x-ui.counter` (`resources/views/components/ui/counter.blade.php`) is the small count bubble on an icon (cart items, unread notifications): `count`, and `tone` (`danger` red by default, `accent` gold). It is built on `x-ui.badge` (`size="xs" circle`), hides itself at 0 and shows 99+ above 99.
 - `x-brand.edition` (`resources/views/components/brand/edition.blade.php`) shows the edition badge (`APP_EDITION`, default `Lite`) next to the logo in the storefront navbar and the admin. Leave `APP_EDITION` empty to hide it.
 - `x-ui.avatar` (`resources/views/components/ui/avatar.blade.php`) wraps `flux:avatar` with brand-tinted initials (light brand background, brand text, with dark-mode values). Photos show unchanged. Pass `bar` for an avatar inside the header bar (the user menu does), which uses the active nav pill colors (`--color-bar-active*`) so it stands out on the bar.
-- `x-ui.menu-item` wraps `flux:menu.item` with outline icons, for every dropdown item in both panels. Menus share one look in both panels (frosted panel, gray outline icons, brand-tinted hover from `--color-menu-hover`).
+- `x-ui.menu-item` wraps `flux:menu.item` with outline icons, for every dropdown item in both panels. Pass `current` to mark the page you are on with the `bar-active` chip. The storefront and admin user menus (`x-frontend.layout.user-menu`, `x-backoffice.layout.user-menu`) both build on `x-navigation.user-menu` and use it. Menus share one look in both panels (frosted panel, gray outline icons, brand-tinted hover from `--color-menu-hover`).
 - `x-ui.list-link` is a navigation row (icon, title, description, chevron) with the same brand-tinted hover, used by the admin Settings list.
 - `x-ui.button color="surface"` is a card-colored button with a brand-tinted border and brand hover, for third-party sign in (Google, Facebook) so the provider logo carries the color. Secondary (neutral) buttons inside an `x-ui.banner` automatically take this surface look, so they stand apart from the tinted banner and from the primary button.
+- In both panels, primary buttons are solid brand (`brand-600`, `brand-700` on hover) and secondary (neutral) buttons take the surface look, so the main action stands out. Every storefront page uses the `max-w-main` width through `x-frontend.layout.page` and `x-frontend.layout.section`. Change both in `resources/css/app.css` and those components.
 - `x-backoffice.management.action` is one table row action (an icon `x-ui.button` with a tooltip), and `x-backoffice.management.actions` lays a row of them out on one line.
 
 ### Admin header and sidebar
 
-The backoffice header (`layouts/backoffice.blade.php`) and sidebar use the same bar tokens as the storefront navbar (`--color-bar*`) as a solid color, with no glass effect: faded brand background, brand pill for the current item, bar hover. Changing the bar tokens restyles both panels.
+The backoffice header (`layouts/backoffice.blade.php`) and sidebar use the same `glass-bar` and bar tokens as the storefront navbar (`--color-bar*`): frosted faded brand background, brand pill for the current item, bar hover. Changing the bar tokens restyles both panels.
 
 ### Corner radius (whole app)
 
@@ -183,7 +184,7 @@ One radius scale sets every corner in the shop and the backoffice, Flux componen
 
 | Step | Value | Used for |
 |---|---|---|
-| `rounded-sm` | 6px | badges (status, Hot, Sale), small book-cover thumbnails |
+| `rounded-sm` | 6px | badges (status, Hot, Sale), small product thumbnails |
 | `rounded-md` | 8px | menu items, small buttons, inline notices, dropdown options, small icon badges (size-8/9) |
 | `rounded-lg` | 10px | buttons, inputs, selects, nav links, upload rows, icon badges (size-10/11), boxes nested in cards, images |
 | `rounded-xl` | 14px | cards, panels, list containers, empty states, popovers, modals, chat bubbles, large icon badges |
@@ -255,7 +256,7 @@ The mobile menu uses the same `nav-links` file, so it updates too.
 **Where:** `config/backoffice.php`
 
 ```php
-['label' => 'Books', 'icon' => 'book-open', 'route' => 'manage.books.index', 'active' => 'manage.books.*', 'permission' => PermissionEnum::ManageProducts->value],
+['label' => 'Products', 'icon' => 'cube', 'route' => 'manage.products.index', 'active' => 'manage.products.*', 'permission' => PermissionEnum::ManageProducts->value],
 ```
 
 - `icon`: any [Heroicon](https://heroicons.com) name (works offline once you know the name, e.g. `user-group`, `photo`).
@@ -292,7 +293,7 @@ Admins can also change a role's permissions in **Settings → Roles**.
 
 ---
 
-## 10. Status names and colors (orders, payments, books…)
+## 10. Status names and colors (orders, payments, products…)
 
 **Where:** `app/Enums/<Name>Enum.php`, methods `label()` and `color()`
 
@@ -306,22 +307,20 @@ Colors are Flux badge colors: `zinc`, `red`, `amber`, `green`, `blue`, `sky`, `p
 
 ---
 
-## 11. Upload limits and book preview
+## 11. Upload limits
 
 **Where:** `.env`
 
 ```env
-BOOK_STOCK_TYPE=both                              # both | digital | physical
-BOOK_FILE_MAX_SIZE_MB=100
-BOOK_COVER_MAX_SIZE_MB=3
+PRODUCT_IMAGE_MAX_FILES=5                         # images per product, the first is the thumbnail
+PRODUCT_IMAGE_MAX_SIZE_MB=3
 BANNER_IMAGE_MAX_SIZE_MB=5
 CATEGORY_IMAGE_MAX_SIZE_MB=3
 USER_AVATAR_MAX_SIZE_MB=2
 LIVEWIRE_TEMPORARY_FILE_UPLOAD_MAX_SIZE_MB=100   # must be ≥ the biggest limit above
-BOOK_PREVIEW_PAGES=5                              # free preview length
 ```
 
-`BOOK_STOCK_TYPE=physical` sells printed books only: the book form hides the stock type and free options, and the upload dialog takes a preview PDF (a few sample pages) that customers read as it is, with no trimming. `digital` hides the stock type choice. With a single type the books list and details hide the stock type badge, and the demo seed makes only that type. `both` works as before.
+Image sizes, square crops (capped at the uploaded size, never enlarged) and WebP quality (80) are in `config/product.php`, `config/category.php`, `config/banner.php` and `config/user.php`.
 
 Also check PHP's own limits (`upload_max_filesize`, `post_max_size` in `php.ini`).
 
@@ -356,7 +355,7 @@ PASSWORD_MIN_LENGTH=6
 
 ## 14. Shop content is slow to update
 
-The storefront caches books, banners, categories and FAQs.
+The storefront caches products, banners, categories and FAQs.
 
 ```env
 FRONTEND_CACHE_TTL_MINUTES=180
@@ -400,7 +399,7 @@ A new email: add `use MailQueueTrait` to the Mailable and send it with `MailServ
 **Where:** the Livewire component's action, in `app/Livewire/...`
 
 ```php
-$this->dispatch('toast-show', slots: ['text' => __('Book saved.')], dataset: ['variant' => 'success']);
+$this->dispatch('toast-show', slots: ['text' => __('Product saved.')], dataset: ['variant' => 'success']);
 ```
 
 `variant`: `success`, `warning` or `danger`.
@@ -441,12 +440,21 @@ Format PHP before committing: `vendor/bin/pint --dirty`
 
 | What | Change it in |
 |---|---|
-| Every customer drawer (menu, filters, cart): width, backdrop, slide | `resources/views/components/frontend/drawers/drawer.blade.php` |
+| Every drawer (storefront menu, filters, cart, admin mobile menu): width, backdrop, slide | `resources/views/components/ui/drawer.blade.php` |
 | Every action menu (user menu, notifications, avatar menu) | `resources/views/components/ui/dropdown.blade.php`. Props: `position`, `align`, `gap`, `menu-class`, `lock-scroll` (page can't scroll while open). Menus in a sticky bar (navbar, admin header) are pinned automatically and stay put while scrolling; the placement logic is the `dropdown` component in `resources/js/app.js` |
 | Floating panels such as the navbar search | `resources/views/components/ui/popover.blade.php` |
-| Dimmed backdrop behind drawers | `resources/views/components/ui/backdrop.blade.php` |
+| Dimmed backdrop behind drawers and storefront modals | the `scrim` utility in `resources/css/app.css` (used by `resources/views/components/ui/backdrop.blade.php` and by storefront modals through `data-panel="frontend"` on the layout body) |
 
-Open a drawer from any button with `<x-frontend.drawers.trigger name="cart">…</x-frontend.drawers.trigger>`.
+Open a drawer from any button with `<x-ui.drawer-trigger name="cart">…</x-ui.drawer-trigger>`.
+
+## 21a. Form buttons and galleries
+
+| What | Change it in |
+|---|---|
+| Where Save and Cancel sit in every page and modal form (right side, full width on phones) | `resources/views/components/form/actions.blade.php`. Wrap a form's buttons in `<x-form.actions>`, never align them by hand |
+| Address fields on both profile pages | `resources/views/components/form/address-form.blade.php` (logic in `app/Livewire/Concerns/InteractsWithAddresses.php`) |
+| Product image gallery (shop page and admin Images modal) | `resources/views/components/media/gallery.blade.php`. Props: `zoomable` (full-screen button), `first-label` (badge on the first thumbnail), `thumbnail-action` (Livewire method behind the star on each thumbnail, which saves that image as the thumbnail right away). Slots: `empty`, `overlay` |
+| Product image order | Staff use the up and down arrows in the Upload Images modal, or the star on a thumbnail in the Images preview (saved right away). The first image is the thumbnail |
 
 ## 22. Admin URL
 
@@ -454,10 +462,10 @@ Set `ADMIN_ROUTE_PREFIX` in `.env` (default `backoffice`). The admin login moves
 
 ## 23. SEO and link previews
 
-- **Where:** the `# === SEO ===` group in `.env`: `SEO_DESCRIPTION` (default description), `SEO_IMAGE` (default share image, empty uses the logo), `SEO_INDEXING_ENABLED` (`false` on staging hides every page). Book pages use their own description and cover.
+- **Where:** the `# === SEO ===` group in `.env`: `SEO_DESCRIPTION` (default description), `SEO_IMAGE` (default share image, empty uses the logo), `SEO_INDEXING_ENABLED` (`false` on staging hides every page). Product pages use their own description and first image.
 - **Per page:** pass `description` and `image` to `<x-layouts::frontend>`. Tags come from `x-ui.seo`.
 - **Hidden from search:** every page outside the storefront layout (admin, auth, errors) gets `noindex`.
-- **Sitemap:** `/sitemap.xml` lists the public pages and every in-stock or out-of-stock book (archived books are left out). Submit it once in Google Search Console.
+- **Sitemap:** `/sitemap.xml` lists the public pages and every in-stock or out-of-stock product (archived products are left out). Submit it once in Google Search Console.
 
 ## 24. Category depth
 

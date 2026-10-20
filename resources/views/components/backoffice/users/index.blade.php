@@ -63,7 +63,8 @@
                                 <x-backoffice.management.action
                                     :icon="$user->isBlocked() ? 'lock-open' : 'no-symbol'"
                                     :label="$user->isBlocked() ? __('Unblock') : __('Block')"
-                                    :variant="$user->isBlocked() ? 'primary' : 'danger'"
+                                    :variant="$user->isBlocked() ? 'filled' : 'danger'"
+                                    :color="$user->isBlocked() ? 'green' : null"
                                     x-on:click="openConfirmation('{{ $user->isBlocked() ? 'unblock' : 'block' }}', {{ $user->id }}, $el.dataset.userName)"
                                     data-user-name="{{ $user->name }}"
                                 />

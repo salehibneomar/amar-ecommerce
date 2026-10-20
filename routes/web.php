@@ -3,13 +3,13 @@
 use App\Enums\User\PermissionEnum;
 use App\Http\Controllers\Auth\SocialAuthController;
 use App\Http\Controllers\Backoffice\BannerController;
-use App\Http\Controllers\Backoffice\BookController;
 use App\Http\Controllers\Backoffice\CategoryController;
 use App\Http\Controllers\Backoffice\DashboardController;
 use App\Http\Controllers\Backoffice\FaqController;
 use App\Http\Controllers\Backoffice\NotificationController;
 use App\Http\Controllers\Backoffice\OfferController;
 use App\Http\Controllers\Backoffice\OrderController;
+use App\Http\Controllers\Backoffice\ProductController;
 use App\Http\Controllers\Backoffice\RoleController;
 use App\Http\Controllers\Backoffice\SalesReportController;
 use App\Http\Controllers\Backoffice\StaffController;
@@ -18,6 +18,7 @@ use App\Http\Controllers\Frontend\AccountController;
 use App\Http\Controllers\Frontend\AuthController;
 use App\Http\Controllers\Frontend\CartController;
 use App\Http\Controllers\Frontend\PageController;
+use App\Http\Controllers\Frontend\PaymentController;
 use Illuminate\Support\Facades\Route;
 
 Route::controller(PageController::class)->group(function () {
@@ -38,6 +39,14 @@ Route::controller(CartController::class)->group(function () {
     Route::get('checkout', 'checkout')->name('checkout');
     Route::get('track-order', 'track')->name('orders.track');
     Route::get('order/{order:public_order_id}', 'confirmation')->middleware('signed')->name('orders.confirmation');
+});
+
+Route::controller(PaymentController::class)->prefix('payments')->name('payments.')->group(function () {
+    Route::get('checkout', 'checkout')->name('checkout');
+    Route::post('checkout', 'place')->middleware('throttle:10,1')->name('place');
+    Route::get('{payment:reference}', 'show')->middleware('signed')->name('show');
+    Route::get('{payment:reference}/return', 'return')->middleware('throttle:30,1')->name('return');
+    Route::post('webhook/{gateway}', 'webhook')->name('webhook');
 });
 
 Route::prefix('user')
@@ -64,10 +73,9 @@ Route::prefix('user')
                 Route::get('profile', 'profile')->name('profile');
                 Route::get('settings', 'settings')->name('settings');
                 Route::get('notifications', 'notifications')->name('notifications');
-                Route::get('library', 'library')->name('library');
-                Route::get('books/{book}/download', 'downloadBook')->name('books.download');
                 Route::get('orders', 'orders')->name('orders');
                 Route::get('orders/{order:public_order_id}', 'orderDetail')->name('orders.detail');
+                Route::post('orders/{order:public_order_id}/cancel', 'cancelOrder')->middleware('throttle:10,1')->name('orders.cancel');
                 Route::get('orders/{order:public_order_id}/invoice', 'invoice')->name('orders.invoice');
             });
         });
@@ -101,13 +109,12 @@ Route::prefix(adminRoutePrefix())->group(function () {
                         Route::get('/', 'index')->name('index');
                     });
 
-                Route::controller(BookController::class)
-                    ->prefix('books')
-                    ->name('books.')
+                Route::controller(ProductController::class)
+                    ->prefix('products')
+                    ->name('products.')
                     ->middleware('can:'.PermissionEnum::ManageProducts->value)
                     ->group(function () {
                         Route::get('/', 'index')->name('index');
-                        Route::get('{book}/file', 'file')->name('file');
                     });
 
                 Route::controller(BannerController::class)

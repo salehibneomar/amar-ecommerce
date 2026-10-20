@@ -2,9 +2,9 @@
 
 use App\Livewire\Backoffice\Faqs\Index as FaqIndex;
 use App\Livewire\Backoffice\Offers\Index as OfferIndex;
-use App\Models\Book;
 use App\Models\Faq;
 use App\Models\Offer;
+use App\Models\Product;
 use App\Models\User;
 use Livewire\Livewire;
 
@@ -31,7 +31,7 @@ test('staff edits record the last updater and show it in the details modal', fun
 });
 
 test('customer actions do not change the last updater', function () {
-    $product = Book::factory()->create();
+    $product = Product::factory()->create();
 
     $this->actingAs(User::factory()->create());
     $product->update(['name' => 'Customer touched']);

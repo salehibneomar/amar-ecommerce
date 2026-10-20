@@ -36,7 +36,7 @@ test('publishing an active global offer notifies active customers only', functio
     Livewire::actingAs(User::factory()->superAdmin()->create())->test(OfferIndex::class)
         ->call('createOffer')
         ->set('name', 'Eid Sale')
-        ->set('headline', 'Books on sale')
+        ->set('headline', 'Products on sale')
         ->set('discountPercentage', '20')
         ->set('isActive', true)
         ->call('saveOffer')

@@ -4,9 +4,13 @@
         @include('partials.head')
     </head>
     <body class="min-h-screen bg-canvas antialiased">
-        <x-backoffice.layout.sidebar :navigation="backofficeNavigation()" />
-        <flux:header sticky class="z-10 flex items-center justify-between border-b border-bar-line bg-bar px-4">
-            <flux:sidebar.toggle icon="bars-3" class="cursor-pointer max-sm:size-8!" data-bar="true" />
+        <x-backoffice.layout.sidebar />
+        <flux:header sticky class="z-10 flex items-center justify-between border-b glass-bar px-4">
+            <flux:sidebar.toggle icon="bars-3" class="cursor-pointer max-lg:hidden!" data-bar="true" />
+            <x-ui.drawer-trigger name="backoffice-menu">
+                <x-ui.button variant="ghost" square bar class="shrink-0 cursor-pointer max-sm:size-8! lg:hidden" icon="bars-3" :aria-label="__('Open menu')" />
+            </x-ui.drawer-trigger>
+            <x-backoffice.layout.navigation-drawer />
             @hasstack('back-url')
                 <x-backoffice.layout.back-button :href="trim(view()->yieldPushContent('back-url'))" class="ms-1 max-lg:hidden!" bar />
             @endif
@@ -16,11 +20,9 @@
             </a>
             <flux:spacer />
             <div class="flex items-center gap-1.5 sm:gap-2">
-                <x-ui.theme-toggle variant="bar" class="max-lg:hidden!" />
+                <x-ui.theme-toggle class="max-lg:hidden!" />
                 <livewire:backoffice.notifications.dropdown />
-                <x-navigation.user-menu bar>
-                    <x-ui.menu-item :href="route('settings.index')" icon="cog" wire:navigate>{{ __('Settings') }}</x-ui.menu-item>
-                </x-navigation.user-menu>
+                <x-backoffice.layout.user-menu />
             </div>
         </flux:header>
         <flux:main class="flex min-h-[calc(100dvh-4rem)] flex-col">

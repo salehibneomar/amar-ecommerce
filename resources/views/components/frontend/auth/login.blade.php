@@ -1,5 +1,5 @@
 <div class="flex flex-col gap-6">
-    <x-auth.header :title="__('Welcome back')" :description="__('Log in to read your books')" />
+    <x-auth.header :title="__('Welcome back')" :description="__('Log in to track your orders')" />
 
     <form wire:submit="login" class="flex flex-col gap-6">
         <flux:input wire:model="email" :label="__('Email Address')" type="email" required autofocus

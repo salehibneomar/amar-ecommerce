@@ -4,11 +4,9 @@ namespace App\Services\Frontend\AiAssistant;
 
 use App\Enums\System\FrontendCacheKeyEnum;
 use App\Models\AiAssistantEmbedding;
-use App\Models\Book;
 use App\Models\Category;
-use App\Models\User;
+use App\Models\Product;
 use App\Resolvers\AiAssistant\AiAssistantProviderResolver;
-use App\Services\Frontend\Account\BookLibraryService;
 use App\Services\Frontend\Shop\PageService;
 use App\Traits\Cache\FrontendCacheTrait;
 use App\Traits\Query\CategoryTreeTrait;
@@ -20,7 +18,7 @@ class AiAssistantSearchService
 {
     use CategoryTreeTrait, FrontendCacheTrait;
 
-    /** @var array{products: array<int, Book>, categories: array<int, string>, texts: array<int, array{3: string, 2: string, 1: string}>}|null */
+    /** @var array{products: array<int, Product>, categories: array<int, string>, texts: array<int, array{3: string, 2: string, 1: string}>}|null */
     private ?array $catalogue = null;
 
     /** @var array<string, array<int, list<float>>>|null */
@@ -28,27 +26,24 @@ class AiAssistantSearchService
 
     public function __construct(
         private readonly PageService $pageService,
-        private readonly BookLibraryService $bookLibraryService,
         private readonly AiAssistantProviderResolver $providerResolver,
     ) {}
 
     /**
      * @return list<array<string, scalar|null>>
      */
-    public function candidates(string $query, ?User $user): array
+    public function candidates(string $query): array
     {
         $catalogue = $this->catalogue();
         $productIds = array_keys($catalogue['texts']);
-        $ids = $this->semanticIds($query, (new Book)->getMorphClass(), $productIds) ?: $this->keywordIds($query);
+        $ids = $this->semanticIds($query, (new Product)->getMorphClass(), $productIds) ?: $this->keywordIds($query);
         $ids = array_slice(array_values(array_unique([...$ids, ...$productIds])), 0, aiAssistantCandidates());
-        $owned = $this->bookLibraryService->ownedProductIds($user);
 
         return array_map(fn (int $ref, int $id): array => [
             'ref' => $ref + 1,
             'id' => $id,
             ...$catalogue['products'][$id]->aiAssistantDocument(),
             'category' => $catalogue['categories'][$catalogue['products'][$id]->category_id] ?? null,
-            'owned' => in_array($id, $owned, true),
         ], array_keys($ids), $ids);
     }
 
@@ -62,7 +57,7 @@ class AiAssistantSearchService
 
     /**
      * @param  list<int>  $ids
-     * @return Collection<int, Book>
+     * @return Collection<int, Product>
      */
     public function products(array $ids): Collection
     {
@@ -70,7 +65,7 @@ class AiAssistantSearchService
     }
 
     /**
-     * @return array{products: array<int, Book>, categories: array<int, string>, texts: array<int, array{3: string, 2: string, 1: string}>}
+     * @return array{products: array<int, Product>, categories: array<int, string>, texts: array<int, array{3: string, 2: string, 1: string}>}
      */
     private function catalogue(): array
     {

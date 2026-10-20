@@ -132,7 +132,7 @@ test('administrators view a customer\'s details from the row actions', function 
 
 test('empty fields in the details view show the configured empty value', function () {
     config(['app.empty_value' => 'Not set']);
-    $customer = User::factory()->create(['phone' => null, 'address' => null]);
+    $customer = User::factory()->create(['phone' => null]);
 
     Livewire::actingAs(User::factory()->superAdmin()->create())->test(Index::class)
         ->call('viewUser', $customer->id)

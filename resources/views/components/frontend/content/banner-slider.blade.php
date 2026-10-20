@@ -45,7 +45,7 @@
                 @if ($slide['image'])
                     <img src="{{ $slide['image'] }}" alt="{{ $slide['title'] }}" class="size-full object-cover" draggable="false" @if ($index > 0) loading="lazy" @endif />
                 @else
-                    <div class="size-full bg-linear-to-br from-brand-500 to-brand-800"></div>
+                    <div class="size-full bg-hero"></div>
                 @endif
 
                 @if ($slide['show_text'])
@@ -61,7 +61,7 @@
                             @if ($slide['link'])
                                 <a href="{{ $slide['link'] }}" class="inline-flex items-center gap-2 rounded-lg bg-white/90 px-5 py-2.5 text-sm font-semibold text-brand-800 transition-colors hover:bg-white" @if (str_starts_with($slide['link'], '/')) wire:navigate @endif>
                                     {{ __('Shop now') }}
-                                    <flux:icon.arrow-right variant="micro" />
+                                    <flux:icon.arrow-right class="size-4" />
                                 </a>
                             @endif
                         </div>

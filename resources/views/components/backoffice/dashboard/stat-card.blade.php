@@ -16,7 +16,7 @@
                 'text-emerald-600 dark:text-emerald-400' => $trendUp,
                 'text-rose-600 dark:text-rose-400' => ! $trendUp,
             ])>
-                <flux:icon :icon="$trendUp ? 'arrow-trending-up' : 'arrow-trending-down'" variant="micro" />
+                <flux:icon :icon="$trendUp ? 'arrow-trending-up' : 'arrow-trending-down'" class="size-4" />
                 {{ $trend }}
             </p>
         @endif

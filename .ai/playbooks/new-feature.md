@@ -13,7 +13,7 @@ Write three lines, and ask only if one is unclear:
 | Building | Copy from |
 |---|---|
 | Admin CRUD | Faqs: `FaqService`, `Livewire/Backoffice/Faqs/Index.php`, `components/backoffice/faqs/index.blade.php`, `FaqController`, `backoffice/faqs/index.blade.php` |
-| Admin with media | Banners or Books |
+| Admin with media | Banners, or Products for a multi-image gallery |
 | Storefront page | `PageController` + `PageService` + `frontend/<page>/index.blade.php` |
 | Interactive storefront | `Livewire/Frontend/Cart/*` + `CartService` |
 | Report or stats | `SalesReportService` + `Livewire/Backoffice/SalesReports` |

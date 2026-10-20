@@ -149,7 +149,9 @@ new #[Title('System')] class extends Component {
                     <x-media.upload :label="__('Favicon')" :field="$this->brandFields['favicon']" upload="faviconUpload" remove="removeFavicon" :selected="$faviconUpload" :marked-for-removal="$removeFavicon" />
                 </div>
 
-                <x-ui.button type="submit" variant="primary" data-test="save-brand-button">{{ __('Save') }}</x-ui.button>
+                <x-form.actions>
+                    <x-ui.button type="submit" variant="primary" data-test="save-brand-button">{{ __('Save') }}</x-ui.button>
+                </x-form.actions>
             </form>
 
             <flux:separator />
@@ -177,7 +179,9 @@ new #[Title('System')] class extends Component {
                         <flux:input :value="$this->bypassUrl" readonly copyable :label="__('Bypass Link')" :description="__('Opens the public site in this browser while maintenance is active.')" data-test="bypass-link" />
                     @endif
 
-                    <x-ui.button type="submit" variant="primary" data-test="save-maintenance-button">{{ __('Save') }}</x-ui.button>
+                    <x-form.actions>
+                        <x-ui.button type="submit" variant="primary" data-test="save-maintenance-button">{{ __('Save') }}</x-ui.button>
+                    </x-form.actions>
                 </form>
 
                 <div class="space-y-5 pt-8 lg:ps-8 lg:pt-0">

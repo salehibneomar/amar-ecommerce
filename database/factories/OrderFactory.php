@@ -3,7 +3,6 @@
 namespace Database\Factories;
 
 use App\Enums\Order\OrderStatusEnum;
-use App\Enums\Order\PaymentMethodEnum;
 use App\Enums\Order\PaymentStatusEnum;
 use App\Models\Order;
 use App\Models\User;
@@ -30,9 +29,12 @@ class OrderFactory extends Factory
             'subtotal' => $total,
             'discount_amount' => 0,
             'total' => $total,
-            'status' => OrderStatusEnum::Requested,
+            'currency' => appCurrency(),
+            'status' => OrderStatusEnum::Pending,
             'payment_status' => PaymentStatusEnum::Pending,
             'phone' => '01'.fake()->numerify('#########'),
+            'shipping_address' => fake()->address(),
+            'billing_address' => fn (array $attributes): string => $attributes['shipping_address'],
         ];
     }
 
@@ -41,8 +43,6 @@ class OrderFactory extends Factory
         return $this->state(fn (array $attributes): array => [
             'status' => OrderStatusEnum::Completed,
             'payment_status' => PaymentStatusEnum::Paid,
-            'payment_method' => PaymentMethodEnum::Bkash,
-            'transaction_id' => Str::upper(Str::random(10)),
             'completed_at' => now(),
         ]);
     }

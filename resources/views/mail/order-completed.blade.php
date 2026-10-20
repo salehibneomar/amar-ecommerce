@@ -1,14 +1,14 @@
 <x-mail::message>
-# {{ __('Your books are ready, :name!', ['name' => $order->customer_name]) }}
+# {{ __('Your order is complete, :name!', ['name' => $order->customer_name]) }}
 
-{{ __('Your payment has been verified and your order is complete. The books are unlocked in My library.') }}
+{{ __('Your order has been delivered and paid. We hope you enjoy it.') }}
 
 @include('mail.partials.order-panel')
 
-<x-mail::button :url="route('user.library')">
-{{ __('Start reading') }}
+<x-mail::button :url="route('shop')">
+{{ __('Shop again') }}
 </x-mail::button>
 
-{{ __('Happy reading,') }}<br>
+{{ __('Thanks for shopping with us,') }}<br>
 {{ config('app.name') }}
 </x-mail::message>

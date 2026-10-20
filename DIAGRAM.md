@@ -22,7 +22,8 @@ erDiagram
         string google_id
         string facebook_id
         string phone UK
-        text address
+        text shipping_address
+        text billing_address
         timestamp deleted_at
     }
     roles {
@@ -85,24 +86,18 @@ erDiagram
     products {
         bigint id PK
         bigint category_id FK
+        string sku UK
         string name
         string slug UK
         int price
         tinyint discount_percentage
         int quantity
         string status "ProductStatusEnum"
-        string stock_type "StockTypeEnum"
         string badge "ProductBadgeEnum"
-        bool is_free
         bool is_featured
-        string type "subclass name, e.g. book"
+        string type "child type name, null for plain products"
         bigint updated_by FK
         timestamp deleted_at
-    }
-    books {
-        bigint product_id PK, FK
-        string author
-        int pages
     }
     ai_assistant_embeddings {
         bigint id PK
@@ -116,7 +111,8 @@ erDiagram
         bigint id PK
         string model_type
         bigint model_id
-        string collection_name "file, preview, cover, image, avatar"
+        string collection_name "images, image, avatar, logo, icon, favicon"
+        int order_column "gallery order, first is the thumbnail"
         string file_name
         string disk
         json generated_conversions
@@ -168,6 +164,7 @@ erDiagram
         string contact_mode "ContactModeEnum"
         string phone
         text shipping_address
+        text billing_address
         timestamp completed_at
         bigint completed_by FK
         bigint updated_by FK
@@ -177,18 +174,13 @@ erDiagram
         bigint order_id FK
         bigint product_id FK
         string product_name_snapshot
+        string sku_snapshot
         int quantity
         int unit_price
         tinyint discount_percentage
         string offer_name_snapshot
         tinyint offer_discount_percentage
         int line_total
-    }
-    book_reads {
-        bigint id PK
-        bigint user_id FK
-        bigint product_id FK
-        timestamp opened_at
     }
     faqs {
         bigint id PK
@@ -226,9 +218,8 @@ erDiagram
 
     categories ||--o{ categories : "parent of"
     categories ||--o{ products : contains
-    products ||--o| books : "book details (type = book)"
     products ||..o| ai_assistant_embeddings : "AI search vector (morph)"
-    products ||..o{ media : "files and cover"
+    products ||..o{ media : "images (up to 5, ordered)"
     banners ||..o{ media : image
     categories ||..o{ media : image
     users ||..o{ media : avatar
@@ -241,8 +232,6 @@ erDiagram
     products ||--o{ order_items : "sold as"
     users ||--o{ orders : "completes (completed_by)"
 
-    users ||--o{ book_reads : opens
-    products ||--o{ book_reads : "opened as"
 
     users ||..o{ notifications : receives
 
@@ -300,18 +289,13 @@ classDiagram
         +CategoryStatusEnum status
     }
     class Product {
+        +string sku
         +int price
         +int discount_percentage
-        +StockTypeEnum stock_type
         +ProductStatusEnum status
         +int final_price
-    }
-    class Book {
-        +string author
-        +int pages
-        +bool is_previewable
-        +string cover_preview_url
-        +mediaConfigPaths() list
+        +list gallery_images
+        +string thumbnail_url
     }
     class Order {
         +string public_order_id
@@ -352,7 +336,6 @@ classDiagram
     User "1" --> "*" Order : orders
     Category "1" --> "*" Category : children
     Category "1" --> "*" Product : products
-    Product <|-- Book : type = book
     Order "1" --> "*" OrderItem : items
     OrderItem "*" --> "1" Product : product
     Offer "*" --> "*" Category : categories (offerables)
@@ -381,8 +364,6 @@ classDiagram
         class FrontendOrderService["OrderService"]
         class CartService
         class PageService
-        class BookLibraryService
-        class BookReaderService
         class AccountService
         class AiAssistantService
         class AiAssistantSearchService
@@ -395,8 +376,7 @@ classDiagram
         class StaffPaymentService
         class RoleService
         class DashboardService
-        class BookService
-        class BookPreviewService
+        class ProductService
     }
     namespace Auth {
         class InboxService
@@ -414,9 +394,17 @@ classDiagram
     namespace Payment {
         class PaymentGatewayInterface {
             <<interface>>
-            +confirm(Order) bool
+            +initiate(Payment) string
+            +confirm(Payment) bool
+            +status(Payment) PaymentStatusEnum
+            +cancel(Payment)
+            +webhookReference(Request) string
+            +pageData(Payment) array
         }
+        class PaymentService
+        class CodPaymentGatewayService
         class ManualPaymentGatewayService
+        class StripePaymentGatewayService
         class PaymentGatewayResolver
     }
     namespace AiAssistant {
@@ -444,28 +432,28 @@ classDiagram
     FrontendOrderService --> CartService
     FrontendOrderService --> NotificationService
     FrontendOrderService --> MailService
+    FrontendOrderService --> PaymentService
     BackofficeOrderService --> MailService
+    BackofficeOrderService --> PaymentService
     MaintenanceModeService --> SystemSettingService
     CartService --> PageService
-    CartService --> BookLibraryService
-    BookReaderService --> BookService
-    BookReaderService --> BookPreviewService
-    BookReaderService --> BookLibraryService
     AccountService --> EmailVerificationService
-    BackofficeOrderService --> PaymentGatewayResolver
+    AccountService --> FrontendOrderService
+    EmailVerificationService --> FrontendOrderService
     BackofficeOrderService --> NotificationService
     OfferService --> NotificationService
     StaffPaymentService --> StaffService
     DashboardService --> BackofficeOrderService
-    BookService --> BookPreviewService
+    PaymentService --> PaymentGatewayResolver
     PaymentGatewayResolver --> PaymentGatewayInterface
+    CodPaymentGatewayService ..|> PaymentGatewayInterface
     ManualPaymentGatewayService ..|> PaymentGatewayInterface
+    StripePaymentGatewayService ..|> PaymentGatewayInterface
     AiAssistantService --> AiAssistantSearchService
     AiAssistantService --> AiAssistantProviderResolver
     AiAssistantSearchService --> PageService
-    AiAssistantSearchService --> BookLibraryService
     AiAssistantSearchService --> AiAssistantProviderResolver
-    BookService ..> AiAssistantEmbeddingTrait : uses
+    ProductService ..> AiAssistantEmbeddingTrait : uses
     AiAssistantProviderResolver --> AiAssistantProviderInterface
     AiAssistantGeminiService ..|> AiAssistantProviderInterface
     AiAssistantCacheService ..|> AiAssistantProviderInterface
@@ -506,25 +494,39 @@ sequenceDiagram
     participant App
     actor S as Staff
     C->>App: Add to cart (session), open checkout
-    App-->>C: Guests are sent to register (customers log in only once verified)
-    C->>App: Place order (phone, address for printed books)
+    App-->>C: Signed-in customers get their phone and addresses prefilled
+    C->>App: Place order (guests add name and email, optionally create an account)
+    Note over C,App: Card skips this until Pay is clicked on the payment page
+    App-->>C: Guest orders join the account once that email is verified or logs in
     App-->>C: Order ID + WhatsApp/Messenger/email links with the total pre-filled
     App-->>S: "New order" email to SHOP_OWNER_EMAIL
-    C->>S: Pay with bKash/Nagad, send TrxID
-    S->>App: Record contact, enter TrxID, mark paid
-    App-->>C: Completed email, invoice, books unlocked in Library
+    alt Card (Stripe)
+        App-->>C: Branded payment page with the cart (no order yet)
+        C->>App: Pay places the order and creates the PaymentIntent
+        C->>App: Return from Stripe, plus Stripe webhook
+        App->>App: PaymentService::sync() asks Stripe, marks paid or failed
+    else bKash or Nagad
+        C->>S: Pay with bKash/Nagad, send TrxID
+        S->>App: Record contact, enter TrxID, mark paid
+    else Cash on delivery
+        S->>App: Mark paid when the cash is collected
+    end
+    S->>App: Mark processing, shipped, completed
+    App-->>C: Status emails and the invoice
 ```
 
 ### Order status
 
 ```mermaid
 stateDiagram-v2
-    [*] --> Requested
-    Requested --> Acknowledged: staff records contact
-    Requested --> Completed: payment verified
-    Acknowledged --> Completed: payment verified
-    Requested --> Cancelled: staff cancels (stock restored)
-    Acknowledged --> Cancelled
+    [*] --> Pending
+    Pending --> Processing: staff confirms, or payment is verified
+    Processing --> Shipped
+    Shipped --> Completed
+    Pending --> Cancelled: staff or the customer cancels (stock restored)
+    Processing --> Cancelled
+    Shipped --> Cancelled
+    Cancelled --> [*]: final
 ```
 
 ### Staff updates an order
@@ -625,13 +627,13 @@ sequenceDiagram
     participant SS as AiAssistantSearchService
     participant P as AI provider (Gemini)
 
-    C->>LW: "A Bangla novel for a 12 year old under 300"
-    LW->>AS: reply(history, message, throttleKey, user)
+    C->>LW: "A gift for a 12 year old under 300"
+    LW->>AS: reply(history, message, throttleKey)
     AS->>AS: throttle, mask emails and phone numbers
-    AS->>SS: candidates(message, user)
+    AS->>SS: candidates(message)
     SS->>P: embed(message) [only when vectors exist]
     SS->>SS: cosine rank cached vectors, else keyword score, fill with newest
-    SS-->>AS: top AI_ASSISTANT_CANDIDATES rows: ref + aiAssistantDocument() + category + owned
+    SS-->>AS: top AI_ASSISTANT_CANDIDATES rows: ref + aiAssistantDocument() + category
     AS->>P: generateJson(system prompt + candidates without ids, history, schema) [cached by request hash]
     alt provider error
         AS->>SS: matches(message) keyword only
@@ -642,7 +644,7 @@ sequenceDiagram
         AS-->>LW: reply + suggestions
     end
     LW->>SS: products(ids) for the cards (prices from the shop data)
-    LW-->>C: reply bubble + clickable book list items
+    LW-->>C: reply bubble + clickable product list items
 ```
 
-Book writes in `BookService` call `syncAiAssistantEmbeddingLater()` from `AiAssistantEmbeddingTrait`, which embeds after the response. It re-embeds only when the text hash or the embedding model changed. `php artisan ai-assistant:embed` backfills every model listed in `ai-assistant.models`.
+Product writes in `ProductService` call `syncAiAssistantEmbeddingLater()` from `AiAssistantEmbeddingTrait`, which embeds after the response. It re-embeds only when the text hash or the embedding model changed. `php artisan ai-assistant:embed` backfills every model listed in `ai-assistant.models`.

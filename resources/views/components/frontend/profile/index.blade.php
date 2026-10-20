@@ -1,4 +1,4 @@
-<x-frontend.layout.page :title="__('Profile')" :subtitle="__('Update your photo, name, email address and mobile number.')">
+<x-frontend.layout.page :title="__('Profile')" :subtitle="__('Update your photo, name, email address and mobile number and addresses.')">
     <x-frontend.cards.card>
         <form wire:submit="updateProfile" class="space-y-6">
             <x-media.avatar-upload :name="$name" :url="$this->avatarUrl" :accept="mediaAccept('user.media.avatar')" />
@@ -6,10 +6,14 @@
             <flux:input wire:model="email" :label="__('Email Address')" type="email" required autocomplete="email" />
             <flux:input wire:model="phone" :label="__('Mobile Number')" type="tel" inputmode="numeric" :maxlength="validPhoneLength()" placeholder="01XXXXXXXXX" autocomplete="tel" />
 
-            <div class="flex justify-end">
+            <x-form.actions>
                 <x-ui.button variant="primary" type="submit">{{ __('Save') }}</x-ui.button>
-            </div>
+            </x-form.actions>
         </form>
+    </x-frontend.cards.card>
+
+    <x-frontend.cards.card :title="__('Addresses')" :description="__('Used to fill in checkout faster.')">
+        <x-form.address-form />
     </x-frontend.cards.card>
 
     <x-frontend.cards.card :title="__('Connected accounts')" :description="__('Social accounts you can use to log in.')">

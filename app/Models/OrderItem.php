@@ -11,6 +11,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
  * @property int $order_id
  * @property int|null $product_id
  * @property string $product_name_snapshot
+ * @property string|null $sku_snapshot
  * @property int $quantity
  * @property int $unit_price
  * @property int $discount_percentage
@@ -25,6 +26,7 @@ class OrderItem extends Model
         'order_id',
         'product_id',
         'product_name_snapshot',
+        'sku_snapshot',
         'quantity',
         'unit_price',
         'discount_percentage',

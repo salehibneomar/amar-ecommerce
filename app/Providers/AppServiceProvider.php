@@ -5,10 +5,8 @@ namespace App\Providers;
 use App\Enums\User\PermissionEnum;
 use App\Enums\User\UserRoleEnum;
 use App\Models\User;
-use App\Resolvers\Pdf\PdfViewerDocumentResolver;
 use App\Services\Backoffice\System\MaintenanceModeService;
 use App\Services\Backoffice\System\SystemSettingService;
-use App\Services\Frontend\Account\BookReaderService;
 use App\Services\Frontend\AiAssistant\AiAssistantSearchService;
 use App\Traits\Cache\ClearsFrontendCacheTrait;
 use Carbon\CarbonImmutable;
@@ -34,13 +32,11 @@ use Illuminate\Support\ServiceProvider;
 use Illuminate\Validation\Rules\Password;
 use Illuminate\View\View as ViewInstance;
 use Spatie\MediaLibrary\MediaCollections\Models\Media;
-use Trianity\LaravelPdfViewer\Contracts\PdfDocumentResolver;
 
 class AppServiceProvider extends ServiceProvider
 {
     public function register(): void
     {
-        $this->app->bind(PdfDocumentResolver::class, PdfViewerDocumentResolver::class);
         $this->app->scoped(AiAssistantSearchService::class);
         $this->app->scoped(SystemSettingService::class);
         $this->app->afterResolving(MaintenanceModeManager::class, fn (MaintenanceModeManager $manager): MaintenanceModeManager => $manager->extend('system', fn (Application $app): MaintenanceModeService => $app->make(MaintenanceModeService::class)));
@@ -50,7 +46,6 @@ class AppServiceProvider extends ServiceProvider
     {
         $this->configureDefaults();
         $this->configureAdminAuthorization();
-        $this->configurePdfViewerAuthorization();
         $this->configurePasswordResetUrl();
         $this->configureEmailVerificationUrl();
         $this->configureRoleUserProvider();
@@ -102,11 +97,6 @@ class AppServiceProvider extends ServiceProvider
     private function configureAdminAuthorization(): void
     {
         Gate::before(static fn (User $user, string $ability): ?bool => $user->isSuperAdmin() && PermissionEnum::tryFrom($ability) !== null ? true : null);
-    }
-
-    private function configurePdfViewerAuthorization(): void
-    {
-        Gate::define('viewPdfDocument', static fn (?User $user, string $documentId): bool => app(BookReaderService::class)->canView($user, $documentId));
     }
 
     private function configurePasswordResetUrl(): void

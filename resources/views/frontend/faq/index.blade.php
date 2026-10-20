@@ -1,5 +1,5 @@
 <x-layouts::frontend :title="__('FAQ')">
-    <x-frontend.layout.page :title="__('Frequently asked questions')" :subtitle="__('Quick answers about books, payments and your access.')"
+    <x-frontend.layout.page :title="__('Frequently asked questions')" :subtitle="__('Quick answers about orders, delivery and payments.')"
         x-data="{
             search: '',
             titles: {{ Js::from(array_column($faqs, 'title')) }},

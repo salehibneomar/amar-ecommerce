@@ -14,7 +14,7 @@ return [
                 'regular' => ['width' => 1600, 'height' => 600],
             ],
             'conversion_format' => 'webp',
-            'conversion_quality' => 85,
+            'conversion_quality' => 80,
         ],
     ],
 ];

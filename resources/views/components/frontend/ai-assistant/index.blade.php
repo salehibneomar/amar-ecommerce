@@ -98,9 +98,9 @@
         <div class="mx-auto max-w-3xl px-4 pt-2 pb-4 sm:px-6">
             <form x-ref="form" wire:submit="send"
                 x-on:submit="pending = $wire.message; $refs.input.style.height = 'auto'"
-                class="flex items-end gap-2 rounded-xl border border-line bg-surface p-2 shadow-card transition-colors focus-within:border-brand-400 dark:focus-within:border-brand-600">
+                class="flex items-end gap-2 rounded-xl border border-line bg-surface p-2 shadow-card transition-colors focus-within:border-brand-400 focus-within:outline-hidden focus-within:ring-2 focus-within:ring-accent focus-within:ring-offset-2 focus-within:ring-offset-accent-foreground dark:focus-within:border-brand-600">
                 <textarea x-ref="input" wire:model="message" rows="1" maxlength="{{ aiAssistantMessageMaxLength() }}"
-                    placeholder="{{ __('Ask about books…') }}" aria-label="{{ __('Message') }}"
+                    placeholder="{{ __('Ask about products…') }}" aria-label="{{ __('Message') }}"
                     x-on:input="$el.style.height = 'auto'; $el.style.height = Math.min($el.scrollHeight, 200) + 'px'"
                     x-on:keydown.enter="if (! $event.shiftKey) { $event.preventDefault(); $refs.form.requestSubmit() }"
                     wire:loading.attr="disabled" wire:target="send"
@@ -110,7 +110,7 @@
             </form>
             <flux:error name="message" class="mt-2" />
             <p class="mt-2 text-center text-xs text-zinc-500 dark:text-zinc-400">
-                {{ __('AI can make mistakes. Check prices and details on the book page.') }}</p>
+                {{ __('AI can make mistakes. Check prices and details on the product page.') }}</p>
         </div>
     </div>
 </div>

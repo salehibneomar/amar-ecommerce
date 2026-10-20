@@ -25,7 +25,7 @@ class NotificationService
         $actorName = $actor instanceof User && $actor->isBackofficeUser() ? $actor->name : null;
         $status = strtolower($order->status->label());
 
-        if ($order->status === OrderStatusEnum::Requested) {
+        if ($order->status === OrderStatusEnum::Pending) {
             $this->send($this->staffWith(PermissionEnum::ManageOrders), NotificationTypeEnum::OrderPlaced, 'New order #:id was placed.', ['id' => $order->public_order_id], 'manage.orders.index', ['order' => $order->id]);
 
             return;

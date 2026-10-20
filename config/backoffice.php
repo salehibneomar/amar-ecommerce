@@ -16,7 +16,7 @@ return [
         [
             'heading' => 'Catalog',
             'items' => [
-                ['label' => 'Books', 'icon' => 'book-open', 'route' => 'manage.books.index', 'active' => 'manage.books.*', 'permission' => PermissionEnum::ManageProducts->value],
+                ['label' => 'Products', 'icon' => 'cube', 'route' => 'manage.products.index', 'active' => 'manage.products.*', 'permission' => PermissionEnum::ManageProducts->value],
                 ['label' => 'Categories', 'icon' => 'squares-2x2', 'route' => 'manage.categories.index', 'active' => 'manage.categories.*', 'permission' => PermissionEnum::ManageCategories->value],
             ],
         ],

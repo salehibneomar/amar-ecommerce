@@ -5,7 +5,7 @@ use App\Enums\System\FrontendCacheKeyEnum;
 use App\Livewire\Frontend\Cart\Checkout;
 use App\Livewire\Frontend\Cart\Counter;
 use App\Livewire\Frontend\Shop\Index as ShopIndex;
-use App\Models\Book;
+use App\Models\Product;
 use App\Models\User;
 use App\Traits\Catalog\StockTrait;
 use Illuminate\Support\Facades\Cache;
@@ -34,21 +34,21 @@ function warmProductsCache(): void
 }
 
 test('a normal sale takes stock without clearing the product cache', function () {
-    $book = Book::factory()->physical(5)->create();
+    $product = Product::factory()->stock(5)->create();
     warmProductsCache();
 
-    stock()->takeStock($book, 2);
+    stock()->takeStock($product, 2);
 
-    expect($book->refresh()->quantity)->toBe(3)
-        ->and($book->status)->toBe(ProductStatusEnum::InStock)
+    expect($product->refresh()->quantity)->toBe(3)
+        ->and($product->status)->toBe(ProductStatusEnum::InStock)
         ->and(productsCacheIsWarm())->toBeTrue();
 });
 
-test('selling the last copy marks the book out of stock and clears the product cache', function () {
+test('selling the last item marks the product out of stock and clears the product cache', function () {
     $customer = User::factory()->create();
-    $book = Book::factory()->physical(1)->create();
+    $product = Product::factory()->stock(1)->create();
 
-    Livewire::actingAs($customer)->test(Counter::class)->call('add', $book->id);
+    Livewire::actingAs($customer)->test(Counter::class)->call('add', $product->id);
     warmProductsCache();
 
     Livewire::actingAs($customer)->test(Checkout::class)
@@ -57,47 +57,44 @@ test('selling the last copy marks the book out of stock and clears the product c
         ->call('placeOrder')
         ->assertHasNoErrors();
 
-    expect($book->refresh()->quantity)->toBe(0)
-        ->and($book->status)->toBe(ProductStatusEnum::OutOfStock)
+    expect($product->refresh()->quantity)->toBe(0)
+        ->and($product->status)->toBe(ProductStatusEnum::OutOfStock)
         ->and(productsCacheIsWarm())->toBeFalse();
 });
 
 test('stock can never be oversold', function () {
-    $book = Book::factory()->physical(2)->create(['name' => 'Rare Book']);
+    $product = Product::factory()->stock(2)->create(['name' => 'Rare Product']);
 
-    expect(fn () => stock()->takeStock($book, 3))->toThrow(ValidationException::class, 'Only 2 copies of Rare Book are left.')
-        ->and($book->refresh()->quantity)->toBe(2);
+    expect(fn () => stock()->takeStock($product, 3))->toThrow(ValidationException::class, 'Only 2 of Rare Product are left.')
+        ->and($product->refresh()->quantity)->toBe(2);
 });
 
-test('returned stock re-lists only books that had run out', function () {
-    $soldOut = Book::factory()->physical(1)->create();
-    $hidden = Book::factory()->physical(4)->create(['status' => ProductStatusEnum::OutOfStock]);
-    $digital = Book::factory()->create();
+test('returned stock re-lists only products that had run out', function () {
+    $soldOut = Product::factory()->stock(1)->create();
+    $hidden = Product::factory()->stock(4)->create(['status' => ProductStatusEnum::OutOfStock]);
     $service = stock();
 
     $service->takeStock($soldOut, 1);
     warmProductsCache();
     $service->restoreStock($soldOut->id, 1);
     $service->restoreStock($hidden->id, 1);
-    $service->restoreStock($digital->id, 1);
 
     expect($soldOut->refresh()->status)->toBe(ProductStatusEnum::InStock)
         ->and($soldOut->quantity)->toBe(1)
         ->and(productsCacheIsWarm())->toBeFalse()
         ->and($hidden->refresh()->status)->toBe(ProductStatusEnum::OutOfStock)
-        ->and($hidden->quantity)->toBe(5)
-        ->and($digital->refresh()->quantity)->toBeNull();
+        ->and($hidden->quantity)->toBe(5);
 });
 
-test('sold out books stay listed in the shop with an out of stock badge but cannot be bought', function () {
-    $book = Book::factory()->physical(1)->create(['name' => 'Sold Out Book']);
-    stock()->takeStock($book, 1);
+test('sold out products stay listed in the shop with an out of stock badge but cannot be bought', function () {
+    $product = Product::factory()->stock(1)->create(['name' => 'Sold Out Product']);
+    stock()->takeStock($product, 1);
 
     Livewire::test(ShopIndex::class)
-        ->assertSee(['Sold Out Book', 'Out of Stock'])
-        ->assertDontSeeHtml("productId: {$book->id} })");
+        ->assertSee(['Sold Out Product', 'Out of Stock'])
+        ->assertDontSeeHtml("productId: {$product->id} })");
 
-    Livewire::test(Counter::class)->call('add', $book->id);
+    Livewire::test(Counter::class)->call('add', $product->id);
 
     expect(session('cart', []))->toBe([]);
 });

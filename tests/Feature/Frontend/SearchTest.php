@@ -1,25 +1,25 @@
 <?php
 
 use App\Livewire\Frontend\Search\Index;
-use App\Models\Book;
+use App\Models\Product;
 use Livewire\Livewire;
 
-test('the navbar search shows the top five in-stock books whose title matches', function () {
-    Book::factory()->count(6)->sequence(fn ($sequence) => ['name' => 'Rice Guide '.($sequence->index + 1)])->create();
-    Book::factory()->create(['name' => 'Mango Basics']);
-    Book::factory()->archived()->create(['name' => 'Rice Archive']);
+test('the navbar search shows the top five in-stock products whose name matches', function () {
+    Product::factory()->count(6)->sequence(fn ($sequence) => ['name' => 'Rice Cooker '.($sequence->index + 1)])->create();
+    Product::factory()->create(['name' => 'Mango Juice']);
+    Product::factory()->archived()->create(['name' => 'Rice Cooker Archive']);
 
     Livewire::test(Index::class)
         ->set('query', 'rice')
         ->assertCount('visibleResults', 5)
-        ->assertSee('Rice Guide')
-        ->assertDontSee(['Mango Basics', 'Rice Archive'])
+        ->assertSee('Rice Cooker')
+        ->assertDontSee(['Mango Juice', 'Rice Cooker Archive'])
         ->assertSeeHtml('data-test="search-see-more"')
         ->assertSeeHtml('href="'.route('shop', ['q' => 'rice']).'"');
 });
 
 test('the navbar search hides see more when every match fits', function () {
-    Book::factory()->count(5)->sequence(fn ($sequence) => ['name' => 'Rice Guide '.($sequence->index + 1)])->create();
+    Product::factory()->count(5)->sequence(fn ($sequence) => ['name' => 'Rice Cooker '.($sequence->index + 1)])->create();
 
     Livewire::test(Index::class)
         ->set('query', 'rice')
@@ -28,14 +28,14 @@ test('the navbar search hides see more when every match fits', function () {
 });
 
 test('the navbar search waits for two characters and reports no matches', function () {
-    Book::factory()->create(['name' => 'Rice Guide']);
+    Product::factory()->create(['name' => 'Rice Cooker']);
 
     Livewire::test(Index::class)
         ->set('query', 'r')
         ->assertCount('visibleResults', 0)
         ->assertDontSeeHtml('data-test="search-results"')
         ->set('query', 'zz')
-        ->assertSee('No books match');
+        ->assertSee('No products match');
 });
 
 test('every search box uses the global debounce and clears without it', function () {

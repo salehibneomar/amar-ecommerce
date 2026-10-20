@@ -21,7 +21,7 @@ enum PermissionEnum: string
         return match ($this) {
             self::ManageOrders => __('Manage orders'),
             self::ViewReports => __('View sales reports'),
-            self::ManageProducts => __('Manage books'),
+            self::ManageProducts => __('Manage products'),
             self::ManageCategories => __('Manage categories'),
             self::ManageBanners => __('Manage banners'),
             self::ManageFaqs => __('Manage FAQs'),

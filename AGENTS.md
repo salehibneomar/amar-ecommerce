@@ -4,7 +4,7 @@ Single source of instructions for every AI coding agent. `CLAUDE.md` imports it.
 
 ## Project
 
-Laravel 13 / PHP 8.4 ecommerce boilerplate that client shops start from, so shared code stays generic. First product type: a Bangladesh bookshop selling PDF and printed books, paid manually by bKash or Nagad and verified by staff, after which books unlock in the customer's library. Staff use the backoffice with role permissions (Super Admin does everything) plus per-person permissions. Stack: Livewire 4, Flux UI 2, Tailwind 4, Fortify, Socialite, spatie permission and medialibrary, Pest 5, Larastan, Pint. Architecture: `TECHNICAL.md`.
+Laravel 13 / PHP 8.4 ecommerce boilerplate that client shops start from, so shared code stays generic. It ships as a simple generic shop: one flat `products` table whose base `Product` model can host child product types, up to five images per product (the first is the thumbnail), tracked stock, and Stripe/SSLCommerz-style orders (order status, payment status, a `payments` row per attempt). `PAYMENT_GATEWAYS` lists the gateways customers pick from at checkout (`cod`, `manual` for bKash or Nagad verified by staff, `stripe`), and blank means no payment step. Staff use the backoffice with role permissions (Super Admin does everything) plus per-person permissions. Stack: Livewire 4, Flux UI 2, Tailwind 4, Fortify, Socialite, spatie permission and medialibrary, Pest 5, Larastan, Pint. Architecture: `TECHNICAL.md`.
 
 ## Agent mode (DEV_AI_AGENT)
 

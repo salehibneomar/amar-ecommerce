@@ -87,11 +87,9 @@ new #[Title('Security')] class extends Component {
                 viewable
             />
 
-            <div class="flex items-center gap-4">
-                <x-ui.button variant="primary" type="submit" data-test="update-password-button">
-                    {{ __('Save') }}
-                </x-ui.button>
-            </div>
+            <x-form.actions>
+                <x-ui.button variant="primary" type="submit" data-test="update-password-button">{{ __('Save') }}</x-ui.button>
+            </x-form.actions>
         </form>
 
     </x-pages::settings.layout>

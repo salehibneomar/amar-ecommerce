@@ -28,7 +28,9 @@ return Application::configure(basePath: dirname(__DIR__))
             'email/*',
             'livewire-*',
             'flux/*',
+            'payments/webhook/*',
         ]);
+        $middleware->validateCsrfTokens(except: ['payments/webhook/*']);
         $middleware->alias([
             'backoffice' => BackofficeMiddleware::class,
             'customer' => CustomerMiddleware::class,

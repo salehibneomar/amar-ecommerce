@@ -1,7 +1,7 @@
 <x-mail::message>
 # {{ __('New order') }}
 
-{{ __(':name just placed an order. Please get in touch with them and check their payment when it comes in.', ['name' => $order->customer_name]) }}
+{{ __(':name just placed an order. Please review and confirm it.', ['name' => $order->customer_name]) }}
 
 @include('mail.partials.order-panel')
 

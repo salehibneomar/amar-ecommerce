@@ -8,7 +8,6 @@ use App\Enums\Content\BannerStatusEnum;
 use App\Enums\Content\FaqStatusEnum;
 use App\Enums\System\FrontendCacheKeyEnum;
 use App\Models\Banner;
-use App\Models\Book;
 use App\Models\Category;
 use App\Models\Faq;
 use App\Models\Offer;
@@ -35,7 +34,7 @@ class PageService
 
     private const TITLE_SEARCH_LIMIT = 5;
 
-    private const FINAL_PRICE_SQL = 'CASE WHEN is_free THEN 0 ELSE ROUND(price * (100 - COALESCE(discount_percentage, 0)) / 100.0) END';
+    private const FINAL_PRICE_SQL = 'ROUND(price * (100 - COALESCE(discount_percentage, 0)) / 100.0)';
 
     private const FAQS_LIMIT = 15;
 
@@ -148,7 +147,7 @@ class PageService
     }
 
     /**
-     * @return Collection<int, Book>
+     * @return Collection<int, Product>
      */
     public function getFeaturedProducts(): Collection
     {
@@ -156,7 +155,7 @@ class PageService
     }
 
     /**
-     * @return Collection<int, Book>
+     * @return Collection<int, Product>
      */
     public function getNewArrivals(int $limit = self::NEW_ARRIVALS_LIMIT): Collection
     {
@@ -164,20 +163,20 @@ class PageService
     }
 
     /**
-     * @return Collection<int, Book>
+     * @return Collection<int, Product>
      */
     public function searchProductsByTitle(string $title, int $limit = self::TITLE_SEARCH_LIMIT): Collection
     {
         $title = trim($title);
 
         if ($title === '') {
-            return (new Book)->newCollection();
+            return (new Product)->newCollection();
         }
 
-        return Book::query()
+        return Product::query()
             ->with('media')
             ->where('status', ProductStatusEnum::InStock)
-            ->where('name', 'like', "%{$title}%")
+            ->where(fn (Builder $query): Builder => $query->where('name', 'like', "%{$title}%")->orWhere('sku', $title))
             ->latest()
             ->orderByDesc('id')
             ->limit($limit)
@@ -185,7 +184,7 @@ class PageService
     }
 
     /**
-     * @return Collection<int, Book>
+     * @return Collection<int, Product>
      */
     public function getListedProducts(): Collection
     {
@@ -194,7 +193,7 @@ class PageService
 
     public function countProducts(): int
     {
-        return $this->rememberFrontendCacheVariant(FrontendCacheKeyEnum::Products, ['count'], fn (): int => Book::query()->where('status', ProductStatusEnum::InStock)->count());
+        return $this->rememberFrontendCacheVariant(FrontendCacheKeyEnum::Products, ['count'], fn (): int => Product::query()->where('status', ProductStatusEnum::InStock)->count());
     }
 
     /**
@@ -202,11 +201,11 @@ class PageService
      */
     public function getSitemapProducts(): array
     {
-        return $this->rememberFrontendCacheVariant(FrontendCacheKeyEnum::Products, ['sitemap'], fn (): array => array_values(Book::query()
+        return $this->rememberFrontendCacheVariant(FrontendCacheKeyEnum::Products, ['sitemap'], fn (): array => array_values(Product::query()
             ->whereIn('status', self::LISTED_STATUSES)
             ->orderByDesc('id')
             ->get(['id', 'slug', 'updated_at', 'type'])
-            ->map(fn (Book $product): array => ['slug' => $product->slug, 'updated_at' => $product->updated_at?->toAtomString()])
+            ->map(fn (Product $product): array => ['slug' => $product->slug, 'updated_at' => $product->updated_at?->toAtomString()])
             ->all()));
     }
 
@@ -255,7 +254,7 @@ class PageService
 
     /**
      * @param  list<int>  $categoryIds
-     * @return LengthAwarePaginator<int, Book>
+     * @return LengthAwarePaginator<int, Product>
      */
     public function searchProducts(string $search = '', array $categoryIds = [], string $sort = 'latest', ?int $minPrice = null, ?int $maxPrice = null, ?int $page = null): LengthAwarePaginator
     {
@@ -264,13 +263,10 @@ class PageService
         sort($categoryIds);
 
         $load = function () use ($search, $categoryIds, $sort, $minPrice, $maxPrice, $page): array {
-            $paginator = Book::query()
+            $paginator = Product::query()
                 ->with('media')
                 ->whereIn('status', self::LISTED_STATUSES)
-                ->when($search !== '', fn (Builder $query): Builder => $query->where(
-                    fn (Builder $inner): Builder => $inner->where('name', 'like', "%{$search}%")
-                        ->orWhere('author', 'like', "%{$search}%"),
-                ))
+                ->when($search !== '', fn (Builder $query): Builder => $query->where(fn (Builder $query): Builder => $query->where('name', 'like', "%{$search}%")->orWhere('sku', $search)))
                 ->when($categoryIds !== [], fn (Builder $query): Builder => $query->whereIn('category_id', $categoryIds))
                 ->when($minPrice !== null, fn (Builder $query): Builder => $query->whereRaw(self::FINAL_PRICE_SQL.' >= ?', [$minPrice]))
                 ->when($maxPrice !== null, fn (Builder $query): Builder => $query->whereRaw(self::FINAL_PRICE_SQL.' <= ?', [$maxPrice]))
@@ -281,7 +277,7 @@ class PageService
                 ->paginate(self::PRODUCTS_PER_PAGE, ['*'], 'page', $page);
 
             return [
-                'items' => $paginator->getCollection()->map(fn (Book $product): array => $this->toFrontendCachePayload($product, 'media'))->all(),
+                'items' => $paginator->getCollection()->map(fn (Product $product): array => $this->toFrontendCachePayload($product, 'media'))->all(),
                 'total' => $paginator->total(),
             ];
         };
@@ -291,7 +287,7 @@ class PageService
             : $load();
 
         return new LengthAwarePaginatorInstance(
-            $this->collectFromFrontendCachePayloads(Book::class, $result['items']),
+            $this->collectFromFrontendCachePayloads(Product::class, $result['items']),
             $result['total'],
             self::PRODUCTS_PER_PAGE,
             $page,
@@ -299,9 +295,9 @@ class PageService
         );
     }
 
-    public function getProductBySlug(string $slug): Book
+    public function getProductBySlug(string $slug): Product
     {
-        return Book::query()
+        return Product::query()
             ->with(['media', 'category'])
             ->where('slug', $slug)
             ->where('status', '!=', ProductStatusEnum::Archived)
@@ -309,15 +305,15 @@ class PageService
     }
 
     /**
-     * @return Collection<int, Book>
+     * @return Collection<int, Product>
      */
-    public function getRelatedProducts(Book $product): Collection
+    public function getRelatedProducts(Product $product): Collection
     {
         if ($product->category_id === null) {
             return new Collection;
         }
 
-        return Book::query()
+        return Product::query()
             ->with('media')
             ->where('status', ProductStatusEnum::InStock)
             ->where('category_id', $product->category_id)
@@ -364,22 +360,22 @@ class PageService
 
     /**
      * @param  array<int|string, mixed>  $variant
-     * @param  Closure(Builder<Book>): Builder<Book>  $scope
+     * @param  Closure(Builder<Product>): Builder<Product>  $scope
      * @param  list<ProductStatusEnum>  $statuses
-     * @return Collection<int, Book>
+     * @return Collection<int, Product>
      */
     private function cachedProducts(array $variant, Closure $scope, array $statuses = [ProductStatusEnum::InStock]): Collection
     {
-        return $this->collectFromFrontendCachePayloads(Book::class, $this->rememberFrontendCacheVariant(
+        return $this->collectFromFrontendCachePayloads(Product::class, $this->rememberFrontendCacheVariant(
             FrontendCacheKeyEnum::Products,
             $variant,
             function () use ($scope, $statuses): array {
-                $query = Book::query()->with('media');
+                $query = Product::query()->with('media');
                 $query->whereIn('status', $statuses)->latest()->orderByDesc('id');
 
                 return $scope($query)
                     ->get()
-                    ->map(fn (Book $product): array => $this->toFrontendCachePayload($product, 'media'))
+                    ->map(fn (Product $product): array => $this->toFrontendCachePayload($product, 'media'))
                     ->all();
             },
         ));

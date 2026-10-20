@@ -1,6 +1,6 @@
 <?php
 
-use App\Models\Book;
+use App\Models\Product;
 use App\Services\AiAssistant\AiAssistantGeminiService;
 
 return [
@@ -15,10 +15,10 @@ return [
     'max_output_tokens' => (int) env('AI_ASSISTANT_MAX_OUTPUT_TOKENS', 1024),
     'example_prompts' => array_values(array_filter(array_map('trim', explode('|', (string) env(
         'AI_ASSISTANT_EXAMPLE_PROMPTS_UI',
-        'Suggest a book on rice farming|Which books help with fish farming?|Do you sell printed books or only PDFs?',
+        'Suggest a gift under 1000|What is new this week?|Which products are on sale?',
     ))))),
     'models' => [
-        Book::class,
+        Product::class,
     ],
     'providers' => [
         'gemini' => [

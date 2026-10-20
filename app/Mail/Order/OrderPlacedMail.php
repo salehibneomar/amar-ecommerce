@@ -14,7 +14,7 @@ class OrderPlacedMail extends Mailable
 {
     use MailQueueTrait, Queueable, SerializesModels;
 
-    public function __construct(public Order $order) {}
+    public function __construct(public Order $order, public bool $isManualPayment = false) {}
 
     public function envelope(): Envelope
     {

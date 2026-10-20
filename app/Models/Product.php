@@ -4,8 +4,9 @@ namespace App\Models;
 
 use App\Enums\Catalog\ProductBadgeEnum;
 use App\Enums\Catalog\ProductStatusEnum;
-use App\Enums\Catalog\StockTypeEnum;
 use App\Enums\System\FrontendCacheKeyEnum;
+use App\Interfaces\AiAssistant\AiAssistantInterface;
+use App\Traits\AiAssistant\ProductAiAssistantTrait;
 use App\Traits\Cache\ClearsFrontendCacheTrait;
 use App\Traits\Model\CmsUpdateTrackerTrait;
 use App\Traits\Model\MediaTrait;
@@ -21,32 +22,35 @@ use Illuminate\Database\Query\Builder as QueryBuilder;
 use Illuminate\Support\Str;
 use Spatie\MediaLibrary\HasMedia;
 use Spatie\MediaLibrary\InteractsWithMedia;
+use Spatie\MediaLibrary\MediaCollections\Models\Media;
 
 /**
  * @property int $id
  * @property int|null $category_id
+ * @property string $sku
  * @property string $name
  * @property string $slug
  * @property string|null $description
  * @property int $price
  * @property int|null $discount_percentage
- * @property int|null $quantity
+ * @property int $quantity
  * @property ProductStatusEnum $status
- * @property StockTypeEnum $stock_type
  * @property ProductBadgeEnum|null $badge
- * @property bool $is_free
  * @property bool $is_featured
- * @property string $type
+ * @property string|null $type
  * @property-read int $final_price
  * @property-read bool $has_discount
  * @property-read bool $has_any_media
- * @property-read bool $is_digital
+ * @property-read string|null $thumbnail_url
+ * @property-read string|null $image_url
+ * @property-read string|null $large_image_url
+ * @property-read list<array{id: non-negative-int, thumbnail: string, large: string}> $gallery_images
  * @property-read Category|null $category
  */
-class Product extends Model implements HasMedia
+class Product extends Model implements AiAssistantInterface, HasMedia
 {
     /** @use HasFactory<ProductFactory<static>> */
-    use ClearsFrontendCacheTrait, CmsUpdateTrackerTrait, HasFactory, InteractsWithMedia, MediaTrait, SoftDeletes {
+    use ClearsFrontendCacheTrait, CmsUpdateTrackerTrait, HasFactory, InteractsWithMedia, MediaTrait, ProductAiAssistantTrait, SoftDeletes {
         MediaTrait::registerMediaCollections insteadof InteractsWithMedia;
         MediaTrait::registerMediaConversions insteadof InteractsWithMedia;
     }
@@ -55,6 +59,7 @@ class Product extends Model implements HasMedia
 
     protected $fillable = [
         'category_id',
+        'sku',
         'name',
         'slug',
         'description',
@@ -62,9 +67,7 @@ class Product extends Model implements HasMedia
         'discount_percentage',
         'quantity',
         'status',
-        'stock_type',
         'badge',
-        'is_free',
         'is_featured',
         'type',
     ];
@@ -85,6 +88,14 @@ class Product extends Model implements HasMedia
      * @var array<string, mixed>
      */
     private array $dirtyDetailAttributes = [];
+
+    /**
+     * @return list<string>
+     */
+    public function mediaConfigPaths(): array
+    {
+        return ['product.media.images'];
+    }
 
     /**
      * @return list<string>
@@ -219,9 +230,7 @@ class Product extends Model implements HasMedia
             'discount_percentage' => 'integer',
             'quantity' => 'integer',
             'status' => ProductStatusEnum::class,
-            'stock_type' => StockTypeEnum::class,
             'badge' => ProductBadgeEnum::class,
-            'is_free' => 'boolean',
             'is_featured' => 'boolean',
         ];
     }
@@ -257,11 +266,41 @@ class Product extends Model implements HasMedia
     }
 
     /**
-     * @return Attribute<bool, never>
+     * @return Attribute<string|null, never>
      */
-    protected function isDigital(): Attribute
+    protected function thumbnailUrl(): Attribute
     {
-        return Attribute::get(fn (): bool => $this->stock_type === StockTypeEnum::Digital);
+        return Attribute::get(fn (): ?string => $this->mediaUrl('product.media.images', 'small'));
+    }
+
+    /**
+     * @return Attribute<string|null, never>
+     */
+    protected function imageUrl(): Attribute
+    {
+        return Attribute::get(fn (): ?string => $this->mediaUrl('product.media.images', 'regular'));
+    }
+
+    /**
+     * @return Attribute<string|null, never>
+     */
+    protected function largeImageUrl(): Attribute
+    {
+        return Attribute::get(fn (): ?string => $this->mediaUrl('product.media.images', 'large'));
+    }
+
+    /**
+     * @return Attribute<list<array{id: non-negative-int, thumbnail: string, large: string}>, never>
+     */
+    protected function galleryImages(): Attribute
+    {
+        return Attribute::get(fn (): array => array_values($this->configuredMediaItems('product.media.images')
+            ->map(fn (Media $media): array => [
+                'id' => $media->id,
+                'thumbnail' => $this->mediaItemUrl($media, 'small'),
+                'large' => $this->mediaItemUrl($media, 'large'),
+            ])
+            ->all()));
     }
 
     /**

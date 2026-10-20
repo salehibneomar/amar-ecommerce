@@ -2,8 +2,8 @@
 
 use App\Enums\Order\OrderStatusEnum;
 use App\Enums\User\PermissionEnum;
-use App\Models\Book;
 use App\Models\Order;
+use App\Models\Product;
 use App\Models\User;
 
 test('guests are redirected to the login page', function () {
@@ -25,7 +25,7 @@ test('moderators can visit the dashboard', function () {
         ->assertOk();
 });
 
-test('the dashboard summarises customers revenue orders and books', function () {
+test('the dashboard summarises customers revenue orders and products', function () {
     $this->travelTo('2026-10-15 12:00:00');
     $admin = User::factory()->superAdmin()->create();
     $customer = User::factory()->create(['name' => 'Old Customer', 'created_at' => '2026-09-10 10:00:00']);
@@ -38,18 +38,18 @@ test('the dashboard summarises customers revenue orders and books', function () 
     Order::factory()->for($customer)->create(['total' => 999]);
     Order::factory()->for($customer)->create(['status' => OrderStatusEnum::Cancelled, 'created_at' => '2026-09-20 10:00:00']);
 
-    Book::factory()->create(['created_at' => '2026-09-01 10:00:00']);
-    Book::factory()->create();
-    Book::factory()->archived()->create();
+    Product::factory()->create(['created_at' => '2026-09-01 10:00:00']);
+    Product::factory()->create();
+    Product::factory()->archived()->create();
 
     $this->actingAs($admin)
         ->get(route('dashboard'))
         ->assertOk()
-        ->assertViewHas('stats', fn (array $stats): bool => array_column($stats, 'value') === ['3', '2', '৳400', '3']
+        ->assertViewHas('stats', fn (array $stats): bool => array_column($stats, 'value') === ['3', '2', formatMoney(400), '3']
             && array_column($stats, 'trend') === ['+2 this month', null, '+100% vs last month', '+2 this month'])
         ->assertViewHas('panels', fn (array $panels): bool => $panels['orders']['pipeline']['total'] === 2
             && $panels['orders']['pipeline']['pending'] === 1
-            && array_column($panels['orders']['pipeline']['stages'], 'value') === [1, 0, 1, 0]
+            && array_column($panels['orders']['pipeline']['stages'], 'value') === [1, 0, 0, 1, 0]
             && array_column($panels['inventory'], 'value') === [2, 0, 1])
         ->assertSeeInOrder(['Blocked Customer', 'New Customer', 'Old Customer'])
         ->assertSee(['AE-DONE01', '1 open order'])
@@ -66,7 +66,7 @@ test('moderators only see dashboard sections they have permission for', function
         ->assertOk()
         ->assertViewHas('stats', [])
         ->assertViewHas('panels', [])
-        ->assertDontSee(['Private Customer', 'AE-HIDDEN', __('Revenue this month'), __('Book inventory')]);
+        ->assertDontSee(['Private Customer', 'AE-HIDDEN', __('Revenue this month'), __('Product inventory')]);
 
     $moderator->givePermissionTo(PermissionEnum::ManageOrders->value);
 
@@ -75,5 +75,5 @@ test('moderators only see dashboard sections they have permission for', function
         ->assertViewHas('stats', fn (array $stats): bool => array_column($stats, 'label') === [__('Orders this month')])
         ->assertViewHas('panels', fn (array $panels): bool => array_keys($panels) === ['orders'])
         ->assertSee('AE-HIDDEN')
-        ->assertDontSee(['Private Customer', __('Revenue this month'), __('Book inventory')]);
+        ->assertDontSee(['Private Customer', __('Revenue this month'), __('Product inventory')]);
 });

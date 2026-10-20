@@ -10,9 +10,9 @@ class BannerSeeder extends Seeder
     public function run(): void
     {
         $banners = [
-            ['কৃষকের হাতে জ্ঞানের আলো', 'কৃষি, প্রাণিসম্পদ ও মৎস্য চাষের সেরা বইগুলো এক জায়গায়'],
-            ['ডিজিটাল বই, যেকোনো সময়', 'কিনুন আর সাথে সাথে পড়া শুরু করুন, মোবাইল বা কম্পিউটারে'],
-            ['নতুন বই প্রতি মাসে', 'আমাদের সংগ্রহে প্রতিনিয়ত যোগ হচ্ছে নতুন বই'],
+            ['Everything you need in one place', 'Electronics, fashion and home essentials at fair prices'],
+            ['Fast delivery to your door', 'Order today and track every step until it arrives'],
+            ['New arrivals every week', 'Fresh products join the shop all the time'],
         ];
 
         foreach ($banners as $index => [$title, $subtitle]) {

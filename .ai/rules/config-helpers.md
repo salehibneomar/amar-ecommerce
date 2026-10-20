@@ -13,14 +13,14 @@ paths:
 ## Where things live
 - App-wide settings: `config/app.php`, including `currency` and `currency_symbol`.
 - Shop contact channels and the order prefix: `config/shop.php`.
-- Payment methods and gateways: `config/payment.php`.
+- Enabled payment gateways, the gateway class map, manual payment numbers and gateway keys: `config/payment.php` (read keys with `paymentGatewaySetting('<gateway>', '<key>')`).
 - Rate limits: `config/throttle.php`.
-- Media rules: `config/book.php` and `config/banner.php`.
+- Media rules: `config/product.php`, `config/category.php` and `config/banner.php`.
 
 Universal helpers such as `formatMoney()`, `formatDateTime()` and `sanitizeRichText()` live in `app/Helpers/helpers.php` and never mention a specific page.
 
 ## Helper files stay generic
-- `config_helpers.php`: one function per config key, returning `string`, `int`, `float`, `bool`, `?string` or a plain `array`. Add the helper together with the key (`bookPreviewPages()`, `throttleAttempts()`).
+- `config_helpers.php`: one function per config key, returning `string`, `int`, `float`, `bool`, `?string` or a plain `array`. Add the helper together with the key (`paymentGateways()`, `throttleAttempts()`).
 - `helpers.php`: only project-agnostic utilities that could be copied into another project unchanged (`plainText()`, `generateMediaName()`).
 - Neither file imports or returns app classes (enums, models, services, interfaces), queries the database, or holds domain rules or table names.
 - Domain logic built on a setting goes in the service that owns the data, and callers inject it. Example: order transaction ID validation belongs in `Backoffice/Sales/OrderService`, not in a helper.

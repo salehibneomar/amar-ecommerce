@@ -46,6 +46,11 @@ function mediaMimeTypes(string $configPath): array
     return array_values((array) mediaConfig($configPath, 'mime_types', []));
 }
 
+function mediaMaxFiles(string $configPath): int
+{
+    return max(1, (int) mediaConfig($configPath, 'max_files', 1));
+}
+
 function mediaMaxSize(string $configPath): int
 {
     return (int) mediaConfig($configPath, 'max_size', 0);
@@ -214,19 +219,32 @@ function paymentConfig(string $key, mixed $default = null): mixed
     return config("payment.{$key}", $default);
 }
 
-function paymentDefaultMethod(): string
+/**
+ * @return list<string>
+ */
+function paymentGateways(): array
 {
-    return (string) paymentConfig('default_method', 'bkash');
+    return array_values((array) paymentConfig('enabled', []));
 }
 
-function paymentGatewayClass(string $method): ?string
+function paymentDefaultMethod(): string
 {
-    return paymentConfig("gateways.{$method}") ?: null;
+    return (string) paymentConfig('manual.default_method', 'bkash');
+}
+
+function paymentGatewayClass(string $gateway): ?string
+{
+    return paymentConfig("gateways.{$gateway}") ?: null;
+}
+
+function paymentGatewaySetting(string $gateway, string $key): ?string
+{
+    return (string) paymentConfig("{$gateway}.{$key}") ?: null;
 }
 
 function paymentAccountNumber(string $method): ?string
 {
-    return paymentConfig("numbers.{$method}") ?: null;
+    return paymentConfig("manual.numbers.{$method}") ?: null;
 }
 
 function aiAssistantConfig(string $key, mixed $default = null): mixed
@@ -401,21 +419,6 @@ function frontendCacheStore(): ?string
 function frontendCacheTtl(): int
 {
     return max(1, (int) config('cache.frontend.ttl_minutes', 180)) * 60;
-}
-
-function bookPreviewConfig(string $key, mixed $default = null): mixed
-{
-    return config("book.preview.{$key}", $default);
-}
-
-function bookPreviewPages(): int
-{
-    return max(1, (int) bookPreviewConfig('pages', 5));
-}
-
-function bookType(): string
-{
-    return (string) config('book.type', 'both');
 }
 
 /**

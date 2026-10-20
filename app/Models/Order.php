@@ -4,7 +4,6 @@ namespace App\Models;
 
 use App\Enums\Order\ContactModeEnum;
 use App\Enums\Order\OrderStatusEnum;
-use App\Enums\Order\PaymentMethodEnum;
 use App\Enums\Order\PaymentStatusEnum;
 use App\Traits\Model\CmsUpdateTrackerTrait;
 use Carbon\CarbonImmutable;
@@ -14,6 +13,7 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\Relations\HasOne;
 
 /**
  * @property int $id
@@ -27,14 +27,14 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
  * @property int $extra_discount_percentage
  * @property int $extra_discount_amount
  * @property int $total
+ * @property string $currency
  * @property OrderStatusEnum $status
  * @property PaymentStatusEnum $payment_status
- * @property PaymentMethodEnum|null $payment_method
- * @property string|null $transaction_id
  * @property ContactModeEnum|null $contact_mode
  * @property CarbonImmutable|null $customer_contact_recorded_at
  * @property string $phone
- * @property string|null $shipping_address
+ * @property string $shipping_address
+ * @property string $billing_address
  * @property string|null $notes
  * @property string|null $internal_note
  * @property CarbonImmutable|null $completed_at
@@ -44,6 +44,7 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
  * @property-read bool $has_invoice
  * @property-read int $total_before_extra_discount
  * @property-read string $customer_contact_label
+ * @property-read Payment|null $payment
  */
 class Order extends Model
 {
@@ -68,7 +69,6 @@ class Order extends Model
             'total' => 'integer',
             'status' => OrderStatusEnum::class,
             'payment_status' => PaymentStatusEnum::class,
-            'payment_method' => PaymentMethodEnum::class,
             'contact_mode' => ContactModeEnum::class,
             'customer_contact_recorded_at' => 'datetime',
             'completed_at' => 'datetime',
@@ -80,7 +80,7 @@ class Order extends Model
      */
     protected function hasInvoice(): Attribute
     {
-        return Attribute::get(fn (): bool => $this->payment_status === PaymentStatusEnum::Paid);
+        return Attribute::get(fn (): bool => $this->payment_status->isPaid());
     }
 
     /**
@@ -118,6 +118,22 @@ class Order extends Model
     }
 
     /**
+     * @return HasMany<Payment, $this>
+     */
+    public function payments(): HasMany
+    {
+        return $this->hasMany(Payment::class);
+    }
+
+    /**
+     * @return HasOne<Payment, $this>
+     */
+    public function payment(): HasOne
+    {
+        return $this->hasOne(Payment::class)->latestOfMany();
+    }
+
+    /**
      * @return BelongsTo<User, $this>
      */
     public function completedBy(): BelongsTo
@@ -127,11 +143,16 @@ class Order extends Model
 
     public function isCancellable(): bool
     {
-        return $this->status->isUnresolved();
+        return $this->status->isUnresolved() && ! $this->payment_status->isPaid();
+    }
+
+    public function isCancellableByCustomer(): bool
+    {
+        return $this->status === OrderStatusEnum::Pending && $this->isCancellable();
     }
 
     public function isExtraDiscountEditable(): bool
     {
-        return $this->status->isUnresolved();
+        return $this->status->isUnresolved() && ! $this->payment_status->isPaid() && ! ($this->payment?->gateway->isOnline() ?? false);
     }
 }

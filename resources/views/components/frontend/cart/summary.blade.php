@@ -1,5 +1,6 @@
 @props([
     'summary',
+    'delivery' => true,
 ])
 
 <dl {{ $attributes->class(['space-y-2 text-sm']) }}>
@@ -31,7 +32,7 @@
             <dd class="shrink-0">− {{ formatMoney($summary['extraDiscount']) }}</dd>
         </div>
     @endif
-    @if ($summary['requiresShipping'])
+    @if ($delivery)
         <div class="flex justify-between text-zinc-500 dark:text-zinc-400">
             <dt>{{ __('Delivery') }}</dt>
             <dd>{{ __('Confirmed by phone') }}</dd>

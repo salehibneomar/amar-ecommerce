@@ -30,9 +30,7 @@
                 <strong style="color: #000000;">{{ $order->customer_name }}</strong><br>
                 {{ $order->customer_email }}<br>
                 {{ $order->phone }}
-                @if ($order->shipping_address)
-                    <br>{{ $order->shipping_address }}
-                @endif
+                <br>{{ $order->billing_address }}
             </td>
             <td style="width: 50%;">
                 <table>
@@ -57,6 +55,9 @@
                 <tr>
                     <td>
                         <strong style="color: #000000;">{{ $item->product_name_snapshot }}</strong>
+                        @if ($item->sku_snapshot)
+                            <div class="muted" style="font-size: 9px;">{{ __('SKU') }}: {{ $item->sku_snapshot }}</div>
+                        @endif
                         @if ($item->discount_percentage)
                             <div class="muted" style="font-size: 9px;">{{ __(':percent% off', ['percent' => $item->discount_percentage]) }}</div>
                         @endif
@@ -95,12 +96,12 @@
         </tr>
     </table>
 
-    @if ($order->payment_method)
+    @if ($order->payment)
         <div style="margin-top: 32px;">
             <div class="label">{{ __('Payment details') }}</div>
             <table class="meta" style="width: 60%;">
-                <tr><td class="muted" style="width: 40%;">{{ __('Method') }}</td><td>{{ $order->payment_method->label() }}</td></tr>
-                <tr><td class="muted">{{ __('Transaction ID') }}</td><td>{{ $order->transaction_id }}</td></tr>
+                <tr><td class="muted" style="width: 40%;">{{ __('Method') }}</td><td>{{ $order->payment->methodLabel() }}</td></tr>
+                <tr><td class="muted">{{ __('Transaction ID') }}</td><td>{{ $order->payment->transaction_id ?? appEmptyValue() }}</td></tr>
             </table>
         </div>
     @endif

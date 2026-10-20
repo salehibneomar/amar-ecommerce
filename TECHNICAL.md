@@ -30,8 +30,8 @@ How AmarEcommerce Lite, the ecommerce boilerplate for client shop projects, is b
 | UI | Livewire 4, Flux UI 2, Blade components, Alpine.js, Tailwind CSS 4, Vite |
 | Auth | Fortify (staff login, password reset, 2FA), custom customer auth, Socialite (Google, Facebook) |
 | Roles | spatie/laravel-permission: roles `super_admin`, `admin`, `moderator`, `editor`, custom roles and `user`, with `PermissionEnum` permissions |
-| Files | spatie/laravel-medialibrary (book PDFs, previews, covers, banner images) |
-| PDF | trianity/laravel-pdf-viewer (reader), pdf-lib via Node.js (preview trimming), mpdf/mpdf via `MpdfTrait` (invoices): Hind Siliguri for Bangla and English, bundled mPDF fonts for other scripts via `MpdfFontResolver` |
+| Files | spatie/laravel-medialibrary (product galleries, category and banner images, avatars, brand images) |
+| PDF | mpdf/mpdf via `MpdfTrait` (invoices): Hind Siliguri for Bangla and English, bundled mPDF fonts for other scripts via `MpdfFontResolver` |
 | Database | MySQL / MariaDB (tests: in-memory SQLite) |
 | Cache | Database store by default, swappable to Redis through `.env` |
 | Quality | Pest 5, Larastan (PHPStan), Pint, Laravel Boost (MCP and agent guidelines) |
@@ -71,27 +71,27 @@ app/
 ├── Http/Middleware/          Auth/ (Guest, NotBlocked, PasswordResetThrottle), Access/ (Backoffice, Customer, AppOwner)
 ├── Interfaces/               AiAssistant/ (AiAssistantInterface for opt-in models, AiAssistantProviderInterface for AI vendors), Payment/ (PaymentGatewayInterface)
 ├── Livewire/
-│   ├── Backoffice/<Area>/Index.php   Banners, Books, Categories, Faqs, Staff, Roles, StaffPayments,
-│   │                                 Offers, Orders, SalesReports, Users
+│   ├── Backoffice/<Area>/Index.php   Banners, Products, Categories, Faqs, Staff, Roles, StaffPayments,
+│   │                                 Offers, Orders, SalesReports, Users, Notifications
 │   ├── Frontend/<Area>/              Auth/*, Cart/{Index,Counter,Checkout}, Orders/Track, Profile,
-│   │                                 Reader, Settings, Shop
-│   └── Concerns/InteractsWithTable.php   Search, sort, per-page, pagination for admin tables
-├── Mail/Order/               OrderPlaced, OrderRequested (owner), OrderAcknowledged, OrderCompleted, OrderCancelled
-├── Models/                   User, Category, Product, Book, Banner, Offer, Order, OrderItem, Faq,
-│                             StaffProfile, StaffPayment, AiAssistantEmbedding
-├── Resolvers/                Payment/ (PaymentGatewayResolver), Pdf/ (PdfViewerDocument, MpdfFont), AiAssistant/ (AiAssistantProviderResolver)
+│   │                                 Settings, Shop, Search, Notifications, AiAssistant
+│   └── Concerns/             InteractsWithTable (admin tables), InteractsWithAvatar, InteractsWithAddresses, InteractsWithCategoryLevels
+├── Mail/Order/               OrderPlaced, OrderRequested (owner), OrderProcessing, OrderShipped, OrderCompleted, OrderCancelled
+├── Models/                   User, Category, Product, Banner, Offer, Order, OrderItem, Payment, Faq,
+│                             StaffProfile, StaffPayment, SystemSetting, AiAssistantEmbedding
+├── Resolvers/                Payment/ (PaymentGatewayResolver), Pdf/ (MpdfFont), AiAssistant/ (AiAssistantProviderResolver)
 ├── Services/
 │   ├── Auth/                 EmailVerificationService, PasswordResetService, SocialAuthService
-│   ├── Backoffice/           Catalog/ (Book, BookPreview, Category), Content/ (Banner, Faq, Offer),
+│   ├── Backoffice/           Catalog/ (Product, Category), Content/ (Banner, Faq, Offer),
 │   │                         Sales/ (Order, SalesReport, Dashboard), People/ (User, Staff, StaffPayment, Role),
 │   │                         System/ (System, SystemSetting, MaintenanceMode), Notification/
-│   ├── Frontend/             Shop/ (PageService: cached public data, Cart, Order), Account/ (Account, BookLibrary,
-│   │                         BookReader), AiAssistant/ (AiAssistant, AiAssistantSearch)
+│   ├── Frontend/             Shop/ (PageService: cached public data, Cart, Order), Account/ (Account),
+│   │                         AiAssistant/ (AiAssistant, AiAssistantSearch)
 │   ├── AiAssistant/          AiAssistantGeminiService, AiAssistantCacheService (response cache)
 │   ├── Mail/                 MailService (sends now or queues, per MAIL_QUEUE_ENABLED)
-│   └── Payment/              ManualPaymentGatewayService, InvoiceService
-└── Traits/                   Model/ (Media, CmsUpdateTracker), Query/ (TableQuery, CategoryTree), Cache/ (FrontendCache),
-                              Pdf/ (PdfLib / Ghostscript, Mpdf), AiAssistant/ (3), Mail/ (MailQueue), Security/ (Throttle)
+│   └── Payment/              PaymentService, Cod/Manual/StripePaymentGatewayService, InvoiceService
+└── Traits/                   Model/ (Media, CmsUpdateTracker), Query/ (TableQuery, CategoryTree), Cache/ (FrontendCache, ClearsFrontendCache),
+                              Catalog/ (Stock), Pdf/ (Mpdf), AiAssistant/ (3), Mail/ (MailQueue), Security/ (Throttle)
 
 resources/views/
 ├── backoffice/<area>/index.blade.php    Admin page shells (layout + Livewire component)
@@ -114,11 +114,11 @@ resources/views/
 | `MailQueueTrait` | Retry settings for every Mailable when the mail queue is on: `backoff()` and `retryUntil()` from `MAIL_QUEUE_*` |
 | `CategoryTreeTrait` | Ancestor path and root of categories at any depth (one query per level). Used by offer search and offer matching |
 | `CmsUpdateTrackerTrait` | Sets `updated_by` to the staff user who saves the model (categories, products, banners, offers, faqs, orders) |
-| `PdfLibTrait` / `GhostscriptTrait` | Interchangeable PDF engines (`pdfPageCount()`, `trimPdf()`) |
+| `StockTrait` | The only place stock changes: atomic `takeStock()` and `restoreStock()` |
 | `AiAssistantTrait` | Model side of the AI assistant: `aiAssistantEmbedding()` relation and a default `aiAssistantEmbeddingQuery()`. Pair with `AiAssistantInterface` |
-| `AiAssistantEmbeddingTrait` | Service side: `syncAiAssistantEmbeddingLater($model)` embeds after the response with `defer()`; `syncAiAssistantEmbedding($model)` embeds now when the text hash changed. Used by `BookService` and `ai-assistant:embed`; does nothing for models without `AiAssistantInterface` |
+| `AiAssistantEmbeddingTrait` | Service side: `syncAiAssistantEmbeddingLater($model)` embeds after the response with `defer()`; `syncAiAssistantEmbedding($model)` embeds now when the text hash changed. Used by `ProductService` and `ai-assistant:embed`; does nothing for models without `AiAssistantInterface` |
 
-A trait is a complete, self-contained feature that unrelated classes plug in as a whole: all media handling (`MediaTrait`), public caching (`FrontendCacheTrait`), rate limiting (`ThrottleTrait`), or interchangeable engines with the same method signatures (`PdfLibTrait` / `GhostscriptTrait`). It is not a place to park a method or two. Create a new trait only when it groups every method the feature needs, isn't tied to one caller, and at least two unrelated classes use it or it swaps with a trait of the same shape. The codebase is modular on purpose, with scalable, loosely coupled and reusable modules in mind for future features, so a trait that has one user today is also fine when it is such a module (`ProductAiAssistantTrait` for more product types, `AiAssistantTrait` for any model with `AiAssistantInterface`, `MpdfTrait` as a swappable PDF renderer). Otherwise put the method in the service that owns the data, or in the existing trait for that feature. Livewire concerns in `app/Livewire/Concerns` (`InteractsWithTable`, `InteractsWithNotifications`) follow the same rules.
+A trait is a complete, self-contained feature that unrelated classes plug in as a whole: all media handling (`MediaTrait`), public caching (`FrontendCacheTrait`), rate limiting (`ThrottleTrait`), or stock changes (`StockTrait`). It is not a place to park a method or two. Create a new trait only when it groups every method the feature needs, isn't tied to one caller, and at least two unrelated classes use it or it swaps with a trait of the same shape. The codebase is modular on purpose, with scalable, loosely coupled and reusable modules in mind for future features, so a trait that has one user today is also fine when it is such a module (`ProductAiAssistantTrait` for more product types, `AiAssistantTrait` for any model with `AiAssistantInterface`, `MpdfTrait` as a swappable PDF renderer). Otherwise put the method in the service that owns the data, or in the existing trait for that feature. Livewire concerns in `app/Livewire/Concerns` (`InteractsWithTable`, `InteractsWithNotifications`) follow the same rules.
 
 ## 4. Roles and access
 
@@ -145,19 +145,17 @@ The full entity relationship diagram is in [DIAGRAM.md](DIAGRAM.md#1-entity-rela
 
 | Table | Purpose and key columns |
 |---|---|
-| `users` | Customers and staff. `status` (active/blocked), `email_verified_at`, `google_id`, `facebook_id`, `phone` (unique, nullable, exactly `VALID_PHONE_LENGTH` digits, set from the profile page), `address` |
+| `users` | Customers and staff. `status` (active/blocked), `email_verified_at`, `google_id`, `facebook_id`, `phone` (unique, nullable, exactly `VALID_PHONE_LENGTH` digits, set from the profile page), `shipping_address`, `billing_address` (saved from either profile page through `Livewire\Concerns\InteractsWithAddresses`, prefilled at checkout, and filled from the first order when still empty) |
 | `roles`, `permissions`, `model_has_*`, `role_has_permissions` | spatie/laravel-permission. `roles.name` is the fixed key and `roles.label` the editable display name. Role permissions are defaults, `model_has_permissions` holds per-person extras |
-| `categories` | Self-referencing tree (`parent_id`) with `depth` (root = 1), `status`, `sort_order`, `is_featured`, soft deletes, and an optional square image (`category.media.image`, cropped to `small` 64² for the admin table, `regular` 400² for the home page cards, `large` 600² for the admin media view; uploaded from the row's Upload action, like books). `APP_CATEGORY_LEVEL` (1–3, default 2) caps the depth: `CategoryService` validates parents against it and shifts a moved branch's depth, and queries never read deeper categories. Admin pickers stack `x-ui.load-more-select` per level (`x-backoffice.management.category-level-select` + `InteractsWithCategoryLevels`); only the root is required. The storefront never loads every category: the shop sidebar fetches a page of roots plus their sub-categories (one query per level, cached per page; "Load more" for the next page, `Shop\Index::CATEGORY_PAGE_SIZE`, kept in the session), the shop filter shows books of the ticked categories only (ticking or unticking a category does the same to its sub-categories, `PageService::selectCategories()`; a category link such as a home card or breadcrumb ticks its sub-categories, `linkedCategories()`), the breadcrumb (`getCategoryTrail()`) reads one category's parents, and the AI labels only the categories in-stock books use. Sidebar pages and featured categories are cached under `frontend.categories` |
-| `products` | Generic sellable item shared by every product type: `price` (integer), `discount_percentage`, `quantity`, `status`, `stock_type` (digital/physical), `badge` (`ProductBadgeEnum`), `is_free`, `is_featured`, `type` (snake-case name of the subclass, e.g. `book`), soft deletes |
-| `books` | Book-only columns of a `type = book` product, keyed by `product_id` (also its primary key): `author`, `pages`. Read and written through the `Book` model |
+| `categories` | Self-referencing tree (`parent_id`) with `depth` (root = 1), `status`, `sort_order`, `is_featured`, soft deletes, and an optional square image (`category.media.image`, cropped to `small` 64² for the admin table, `regular` 400² for the home page cards, `large` 600² for the admin media view; uploaded from the row's Upload action, like products). `APP_CATEGORY_LEVEL` (1–3, default 2) caps the depth: `CategoryService` validates parents against it and shifts a moved branch's depth, and queries never read deeper categories. Admin pickers stack `x-ui.load-more-select` per level (`x-backoffice.management.category-level-select` + `InteractsWithCategoryLevels`); only the root is required. The storefront never loads every category: the shop sidebar fetches a page of roots plus their sub-categories (one query per level, cached per page; "Load more" for the next page, `Shop\Index::CATEGORY_PAGE_SIZE`, kept in the session), the shop filter shows products of the ticked categories only (ticking or unticking a category does the same to its sub-categories, `PageService::selectCategories()`; a category link such as a home card or breadcrumb ticks its sub-categories, `linkedCategories()`), the breadcrumb (`getCategoryTrail()`) reads one category's parents, and the AI labels only the categories in-stock products use. Sidebar pages and featured categories are cached under `frontend.categories` |
+| `products` | Generic sellable item shared by every product type: `sku` (unique, searchable in the backoffice and storefront), `price` (integer), `discount_percentage`, `quantity`, `status`, `badge` (`ProductBadgeEnum`), `is_featured`, `type` (null for plain products, otherwise the snake-case name of a child type), soft deletes. Up to `PRODUCT_IMAGE_MAX_FILES` images in the `images` media collection, in the order staff set, the first one being the thumbnail |
 | `ai_assistant_embeddings` | One AI search vector per record of any model that implements `AiAssistantInterface` (polymorphic `embeddable`, unique): `model`, `content_hash` (sha256 of model and text, so unchanged records are never re-embedded), `vector` (json, unit length) |
-| `media` | spatie/medialibrary, polymorphic: book `file`, `preview` and `cover`, banner `image`, user `avatar` |
-| `banners` | Home slider: title, link, schedule (`starts_at`/`ends_at`), `status` (`BannerStatusEnum`), `sort_order`, and an optional wide image (`banner.media.image`, uploaded from the row's Upload action like books and categories; a banner without an image shows as a text slide) |
+| `media` | spatie/medialibrary, polymorphic: product `images` (ordered by `order_column`), category and banner `image`, user `avatar`, brand logo, icon and favicon |
+| `banners` | Home slider: title, link, schedule (`starts_at`/`ends_at`), `status` (`BannerStatusEnum`), `sort_order`, and an optional wide image (`banner.media.image`, uploaded from the row's Upload action like products and categories; a banner without an image shows as a text slide) |
 | `offers` | Percentage discount with an optional schedule and a required `headline` (the big line of the home page offer banner, also shown under the name in the admin list). `type` is `global` (whole shop) or `specific` (root categories in `offerables`; a match on any category resolves to its root, and the offer covers every level below it). At checkout each cart line gets the highest live offer that covers it, rounded once per offer. Two active global offers cannot overlap in dates (an empty start counts from today, an empty end never ends); `OFFER_GLOBAL_ONLY` hides and ignores specific offers |
 | `offerables` | Polymorphic pivot (`offer_id`, `offerable_type`, `offerable_id`): what a specific offer covers. Categories today; products or other targets can be added without a new table |
-| `orders` | `public_order_id` (`<PREFIX>-XXXXXX`), customer snapshot, `subtotal`, `discount_amount`, `applied_offers` (JSON snapshot of each offer at checkout: name, percentage, categories, amount), `extra_discount_percentage`, `extra_discount_amount`, `total` (integers; staff set the extra discount in Manage order, as a percentage of `subtotal − discount_amount`, capped by `SHOP_MAX_EXTRA_DISCOUNT`), `status`, `payment_status`, `payment_method`, `transaction_id`, contact, shipping, completion |
-| `order_items` | `product_name_snapshot`, `quantity`, `unit_price`, `discount_percentage`, `offer_name_snapshot`, `offer_discount_percentage` (the offer that covered this line at checkout), `line_total` (integers) |
-| `book_reads` | One row per user and product with `opened_at` (continue reading) |
+| `orders` | `public_order_id` (`<PREFIX>-XXXXXX`), customer snapshot, `subtotal`, `discount_amount`, `applied_offers` (JSON snapshot of each offer at checkout: name, percentage, categories, amount), `extra_discount_percentage`, `extra_discount_amount`, `total` (integers; staff set the extra discount in Manage order, as a percentage of `subtotal − discount_amount`, capped by `SHOP_MAX_EXTRA_DISCOUNT`, locked once the order is paid or uses an online gateway), `status`, `payment_status`, `payment_method`, `transaction_id`, contact, `shipping_address`, `billing_address` (a copy of the shipping address when the customer ticks "same as delivery"), completion. `user_id` is null for guest orders |
+| `order_items` | `product_name_snapshot`, `sku_snapshot`, `quantity`, `unit_price`, `discount_percentage`, `offer_name_snapshot`, `offer_discount_percentage` (the offer that covered this line at checkout), `line_total` (integers) |
 | `staff_profiles` | One row per staff member: `compensation_type` (salary/percentage), `compensation_value` (integer), `joined_at`, `left_at` |
 | `staff_payments` | One payment per staff member per month, with snapshots of sales and compensation |
 | `faqs` | `title`, `description`, `status` |
@@ -168,8 +166,7 @@ The full entity relationship diagram is in [DIAGRAM.md](DIAGRAM.md#1-entity-rela
 **Design decisions**
 
 - **Snapshots:** order items keep the name, unit price and discount, so later price edits never change past orders or invoices.
-- **Ownership:** a customer owns a product when it appears in one of their orders with `payment_status = paid`, as decided by `BookLibraryService::ownsProduct()`.
-- **Stock:** `StockTrait` (`Traits/Catalog`, used by the checkout and the backoffice order services) is the only place stock changes. `takeStock()` is one atomic `UPDATE … WHERE quantity >= ?` inside the checkout transaction, so stock can never be oversold and no row lock is held; `restoreStock()` adds it back on cancel. Selling the last copy switches the book to `OutOfStock`, and returning stock to a book that ran out switches it back (a book an admin set to `OutOfStock` stays so). The shop page still lists `OutOfStock` books with an "Out of Stock" badge and a disabled cart button; the book page hides Buy and Add to cart, and the cart refuses anything not `InStock`. Only these switches clear the product cache (after commit); ordinary sales leave it warm because the storefront never shows `quantity`.
+- **Stock:** `StockTrait` (`Traits/Catalog`, used by the checkout and the backoffice order services) is the only place stock changes. `takeStock()` is one atomic `UPDATE … WHERE quantity >= ?` inside the checkout transaction, so stock can never be oversold and no row lock is held; `restoreStock()` adds it back on cancel. Selling the last unit switches the product to `OutOfStock`, and returning stock to a product that ran out switches it back (a product an admin set to `OutOfStock` stays so). The shop page still lists `OutOfStock` products with an "Out of Stock" badge and a disabled cart button, the product page hides Buy and Add to cart, and the cart refuses anything not `InStock`. Only these switches clear the product cache (after commit); ordinary sales leave it warm because the storefront never shows `quantity`.
 - **Enums as strings:** status columns store enum values, so the database stays readable.
 
 ## 6. Core flows
@@ -179,32 +176,24 @@ The full entity relationship diagram is in [DIAGRAM.md](DIAGRAM.md#1-entity-rela
 See the checkout sequence and the order status diagram in [DIAGRAM.md](DIAGRAM.md#3-sequence-diagrams).
 
 - Marking the payment as paid always completes the order. Cancelled orders are frozen.
-- Payment gateways use a strategy: `PaymentGatewayInterface` with `ManualPaymentGatewayService`, picked by `PaymentGatewayResolver` from `config/payment.php`.
+- Customers can cancel their own order only while it is `Pending` and unpaid (`Order::isCancellableByCustomer()`). `Frontend\OrderService::cancelForUser()` checks ownership and reuses `Backoffice\OrderService::cancel(pendingOnly: true)`, which rechecks the status under the row lock, so stock, payment, emails and staff notifications match a staff cancel.
+- Payment gateways use a strategy: `PaymentGatewayEnum` (`cod`, `manual`, `stripe`) names them, `config/payment.php` maps each to a `PaymentGatewayInterface` class (`CodPaymentGatewayService`, `ManualPaymentGatewayService`, `StripePaymentGatewayService`) and `PaymentGatewayResolver` builds it. Offline gateways share `OfflinePaymentGatewayTrait` (no redirect, no provider status, no webhook).
+- `PAYMENT_GATEWAYS` lists the gateways offered at checkout. The customer's choice becomes the order's `payments` row, so `payments.gateway` is the order's payment type. Manual (TrxID, contact links) UI is gated per order with `PaymentService::isManual($order)`.
+- Online flow (`PaymentController`, routes `payments.*`): a gateway with a payment page (`PaymentGatewayEnum::pageView()`) places no order at checkout. `OrderService::holdCheckout()` keeps the details in the session and `payments.checkout` shows the cart with the Payment Element in deferred mode (amount only, no PaymentIntent). Clicking Pay posts to `payments.place`, which places the order, opens the payment and creates the PaymentIntent, then the browser confirms it with the returned client secret. A declined card retries on the same intent. An unpaid order is paid later from the signed `payments.show` page, which creates a PaymentIntent lazily (idempotent on the payment reference). Both pages render the Stripe Payment Element styled from the theme tokens (`stripePayment` in `resources/js/app.js`). Stripe returns to `payments.return`, and `POST payments/webhook/{gateway}` (CSRF free, signature checked) also arrives. Both call `PaymentService::sync()`, which asks the gateway for the real status and updates the payment and the order. The confirmation page shows a Pay button while an online payment is pending or failed.
+- Stripe amounts are sent in minor units (`× 100`, or `× 1` / `× 1000` for zero and three decimal currencies). Staff cancelling an order also cancels the PaymentIntent.
 - Order emails go through `Mail\MailService::send()`. With `MAIL_QUEUE_ENABLED=false` they are sent with `defer()` after the response, so no worker is needed, and the `failover` mailer writes them to the log if SMTP is down. With `true` they are queued on the `smtp` mailer and `MailQueueTrait` retries them (`backoff()`, `retryUntil()`) until the mail server is back. Every new Mailable uses `MailQueueTrait` and is sent through `MailService`. Verification and password reset emails stay immediate because their links expire in minutes.
+- Guests can check out without an account. They give a name and email, which become the order's customer snapshot and get the order emails. They can tick "Create an account with these details": the account is registered first (same rules as the register page), then the order is placed as a guest order.
+- Guest orders join an account through `OrderService::claimGuestOrders()`, matched by email, once that email is verified: on email verification, social login and password login (`AccountService::login()`).
 - Guests can track an order at `/track-order` (order ID + email, throttled).
-
-### Reading a book
-
-1. A product card dispatches `open-book`. `Livewire\Frontend\Reader\Index` calls `BookReaderService::open()`.
-2. Owners and free books get the full file. Everyone else gets the preview (`preview-<id>`) when one exists.
-3. The `viewPdfDocument` gate re-checks `BookReaderService::canView()` on every stream request.
-4. `BookLibraryService` records the open in `book_reads`.
 
 ### Product types
 
-`Product` holds only what every product shares: price, discount, stock, status, category, badge, media and orders. Each type is one subclass model, picked by `products.type`, with its own columns in its own table (class table inheritance):
+`Product` holds only what every product shares: price, discount, stock, status, category, badge, images and orders. Plain products need nothing else. A shop that sells a special kind of product adds one subclass model, picked by `products.type`, with its own columns in its own table (class table inheritance):
 
-- `Book extends Product` and is the only book model. It declares `$detailTable = 'books'` and `$detailColumns = ['author', 'pages']`, so `$book->author` and `Book::create([..., 'author' => ...])` work like any other attribute. It also owns the book media (`file`, `preview`, `cover`), cover URLs and previews. For the AI assistant it uses `ProductAiAssistantTrait` and only names its extra field (`aiAssistantColumns()` returns `author`).
-- `Product` does the work for any type that declares a detail table: a `type` global scope, a left join of the detail table that selects its columns whenever `products.*` is selected, and a split save (the `products` row first, then an upsert into the detail table, only for changed detail columns). Aggregates and custom selects stay untouched. The detail table must not repeat `products` column names (no `id` or timestamps), so unqualified `where`, `orderBy` and `latest()` stay unambiguous.
-- Types follow a naming convention, so `Product` never references a subclass: `type = book` hydrates as `App\Models\Book` (`Product::newFromBuilder()`), and a subclass's `type` is its snake-case class name (`productType()`), used by the type scope and set on save. Generic code such as cart lines, order items, stock and categories can query `Product` and still get `Book` instances.
-- Polymorphic rows (`media`, `ai_assistant_embeddings`) store the subclass (`App\Models\Book`), so Spatie builds conversions from the right model. Generic code that reaches products through `OrderItem` loads media per concrete class (`Frontend\OrderService::getOrderWithItems()`).
-- Book screens and the storefront catalogue query `Book`. Generic services keep using `Product`; rows they load are `Book` instances, but without the book columns, since only a `Book` query joins `books`.
-
-### Book previews
-
-`BookPreviewService` counts the pages of a paid book. If the book is longer than `BOOK_PREVIEW_PAGES`, it stores the first pages in the `preview` collection. Failures are logged and retried after 10 minutes.
-
-`BOOK_STOCK_TYPE` (`both`, `digital`, `physical`) only changes the UI and access rules; the schema stays the same. `bookType()` (config helper) returns the raw setting, and `BookTypeEnum::current()` turns it into the enum (`stockType()`, `stockTypes()`, `isPhysicalOnly()`, `pdfMedia()`). Views get an `isPhysicalOnly` flag from their Livewire component or controller. In `physical` mode, `BookService` saves every book as paid and physical, and staff upload the preview straight into the `preview` collection (`bookType()->pdfMedia()`). `BookPreviewService` then returns it untouched, and `BookReaderService` always opens that preview, with no download.
+- A child type extends `Product` and declares `$detailTable` and `$detailColumns`. For example, `Shirt extends Product` with `$detailTable = 'shirts'` and `$detailColumns = ['size', 'color']` makes `$shirt->size` and `Shirt::create([..., 'size' => 'M'])` work like any other attribute. For the AI assistant it uses `ProductAiAssistantTrait` and only names its extra fields (`aiAssistantColumns()`).
+- `Product` does the work for any type that declares a detail table: a `type` global scope, a left join of the detail table that selects its columns whenever `products.*` is selected, and a split save (the `products` row first, then an upsert into the detail table, only for changed detail columns). Aggregates and custom selects stay untouched. The detail table is keyed by `product_id` and must not repeat `products` column names (no `id` or timestamps), so unqualified `where`, `orderBy` and `latest()` stay unambiguous.
+- Types follow a naming convention, so `Product` never references a subclass: `type = shirt` hydrates as `App\Models\Shirt` (`Product::newFromBuilder()`), and a subclass's `type` is its snake-case class name (`productType()`), used by the type scope and set on save. Generic code such as cart lines, order items, stock and categories queries `Product` and still gets the child instances.
+- Polymorphic rows (`media`, `ai_assistant_embeddings`) store the concrete class, so Spatie builds conversions from the right model. Generic code that reaches products through `OrderItem` loads media per concrete class (`Frontend\OrderService::getOrderWithItems()`).
 
 ### AI shopping assistant (beta)
 
@@ -212,10 +201,10 @@ See the RAG sequence in [DIAGRAM.md](DIAGRAM.md#ai-assistant-suggestions-rag) an
 
 - `Livewire\Frontend\AiAssistant\Index` is the **Ask AI** page (`/ai-assistant`, route `assistant`, `customer` middleware). It returns 404 and its nav link is hidden when `isAiAssistantEnabled()` is false. History lives only in the component.
 - **Opt-in models:** a model joins the assistant by implementing `AiAssistantInterface` and using `AiAssistantTrait` (like `HasMedia` + `InteractsWithMedia`), and by being listed in `ai-assistant.models`. Services only check `instanceof`. `aiAssistantDocument()` whitelists the public fields the provider may see, `aiAssistantEmbeddingText()` is what gets embedded, and `aiAssistantEmbeddingQuery()` picks which records to embed. `Product` is the first one.
-- `AiAssistantSearchService::candidates()` picks up to `AI_ASSISTANT_CANDIDATES` in-stock products from the cached catalogue: cosine similarity on cached vectors when an embedding model is set, otherwise a weighted keyword score (name, author and category, description). Owned books are flagged.
+- `AiAssistantSearchService::candidates()` picks up to `AI_ASSISTANT_CANDIDATES` in-stock products from the cached catalogue: cosine similarity on cached vectors when an embedding model is set, otherwise a weighted keyword score (name, category, description).
 - `AiAssistantService::reply()` throttles, masks emails and phone numbers, sends the candidates with a `ref` number instead of the database id, the trimmed history and a JSON schema, maps the returned refs back to ids (max `AI_ASSISTANT_RESULTS`), and falls back to keyword matches when the provider fails. Cards read names and prices from the shop data, never from the model.
 - Providers use a strategy like payments: `AiAssistantProviderInterface` (`embed()`, `generateJson()`) with `AiAssistantGeminiService`, picked by `AiAssistantProviderResolver`, which wraps it in `AiAssistantCacheService` when `AI_ASSISTANT_CACHE_MINUTES` is above 0. Identical requests (same prompt, candidates and history) and query embeddings are then served from the frontend cache store. Index-time embeddings are never cached.
-- Any service that writes an opt-in model uses `AiAssistantEmbeddingTrait` and calls `syncAiAssistantEmbeddingLater($model)` (`BookService` after create and update). `php artisan ai-assistant:embed` backfills every listed model. No service depends on the assistant services to stay indexed.
+- Any service that writes an opt-in model uses `AiAssistantEmbeddingTrait` and calls `syncAiAssistantEmbeddingLater($model)` (`ProductService` after create and update). `php artisan ai-assistant:embed` backfills every listed model. No service depends on the assistant services to stay indexed.
 
 ### Maintenance and branding
 
@@ -228,7 +217,7 @@ Settings → System (`manage_system`, password confirmation) holds branding, mai
 
 ### Navbar search
 
-The search icon opens `x-ui.popover` with `Livewire/Frontend/Search/Index`. From two characters it shows the top five in-stock books whose title matches, as `product-list-item` rows, plus "See more" (to `/shop?q=…`) when a sixth exists. `PageService::searchProductsByTitle()` runs one limited database query (in-stock, title `LIKE`, at most six rows), so memory stays flat as the catalogue grows.
+The search icon opens `x-ui.popover` with `Livewire/Frontend/Search/Index`. From two characters it shows the top five in-stock products whose name matches, as `product-list-item` rows, plus "See more" (to `/shop?q=…`) when a sixth exists. `PageService::searchProductsByTitle()` runs one limited database query (in-stock, title `LIKE`, at most six rows), so memory stays flat as the catalogue grows.
 
 ### Staff pay
 
@@ -251,7 +240,7 @@ Only **public, shared** data is cached. Admin screens and per-user data always r
 | Key (`FrontendCacheKeyEnum`) | Contents | Cleared by (`ClearsFrontendCacheTrait` on the model) |
 |---|---|---|
 | `frontend.categories.*` | Shop sidebar batches (roots + sub-categories per "Load more" size) and featured categories (landing page), per category level | `Category` saves and deletes |
-| `frontend.products.*` | Small separate entries, each as plain payloads: featured books, new arrivals (per limit), the in-stock count, sitemap slugs, the AI catalogue, and each shop page (categories, sort, price, page; not free-text search) + total | `Product` saves, deletes and media (not stock-only changes), `Category` changes, `StockTrait` when a book sells out or returns |
+| `frontend.products.*` | Small separate entries, each as plain payloads: featured products, new arrivals (per limit), the in-stock count, sitemap slugs, the AI catalogue, and each shop page (categories, sort, price, page; not free-text search) + total | `Product` saves, deletes and media (not stock-only changes), `Category` changes, `StockTrait` when a product sells out or returns |
 | `frontend.banners` | Active banners | `Banner` saves, deletes and media |
 | `frontend.offers` | Active offers | `Offer` saves and deletes, `Category` changes, plus `OfferService` after its category `sync()` |
 | `frontend.faqs` | Active FAQs | `Faq` saves and deletes |
@@ -271,7 +260,7 @@ Only **public, shared** data is cached. Admin screens and per-user data always r
 - `SESSION_SECURE_COOKIE=true` live keeps the login cookie on HTTPS. Pages outside the storefront layout send `noindex`.
 - The whole admin area sits under `ADMIN_ROUTE_PREFIX` (default `backoffice`); a hard-to-guess value hides the admin login from bots.
 - Role and permission middleware on every backoffice area. Blocked users are logged out by `not-blocked`.
-- Signed URLs for order confirmation and email verification. A gate check on every PDF stream.
+- Signed URLs for order confirmation and email verification.
 - Configurable rate limits (`config/throttle.php`): login, register, checkout, order tracking, password reset, verification email.
 - Rich text is sanitised (`sanitizeRichText()`). Uploads are validated by extension, MIME type and size from config.
 - No PHP objects in the cache.
@@ -282,8 +271,8 @@ Only **public, shared** data is cached. Admin screens and per-user data always r
 |---|---|
 | `config/app.php` | Name, owner, developer, `currency`, `currency_symbol` |
 | `config/shop.php` | Order prefix, owner/support email, WhatsApp, Messenger, Facebook page/group |
-| `config/payment.php` | Default method, bKash/Nagad numbers, method → gateway class |
-| `config/book.php`, `config/banner.php`, `config/category.php`, `config/user.php` | Preview pages, PDF engine binaries, media collections, sizes, conversions. `file_prefix` names stored files (avatars are `avatar-…`) |
+| `config/payment.php` | Enabled gateways, gateway → class map, bKash/Nagad numbers, Stripe keys |
+| `config/product.php`, `config/banner.php`, `config/category.php`, `config/user.php` | Media collections, limits, sizes and conversions. `file_prefix` names stored files (avatars are `avatar-…`) |
 | `config/throttle.php` | Rate limits and resend cooldowns |
 | `config/system.php` | Brand media (logo, icon, favicon): types, sizes and the `default` file each one falls back to |
 | `config/theme.php` | Brand and gold color palettes, plus the brand, dark-mode and foreground shades. `<x-brand.theme-colors />` (in `partials/head`) prints them as `--theme-*` CSS variables that the `@theme` tokens in `app.css` point at, and the mail theme (`vendor/mail/html/themes/brand.blade.php`) reads them too. Read with `themePalettes()`, `themeBrandColor()`, `themeBrandDarkColor()`, `themeBrandForeground()` |
@@ -304,8 +293,8 @@ Both helper files (autoloaded from `composer.json`) stay generic. `config_helper
 - Reusable components take data through props:
   - backoffice: `x-backoffice.management.*`;
   - storefront: `x-frontend.layout.page`, `x-frontend.layout.section`, `x-frontend.cards.card`, `x-frontend.cards.product-card`, `x-frontend.cart.summary`, `x-frontend.orders.items` (compact receipt), `x-frontend.orders.summary` (totals for any order);
-  - storefront rows and overlays: `x-frontend.cards.product-tile` (grid card) and `x-frontend.cards.product-list-item` (row card, also used by "Continue reading" and AI suggestions), `x-frontend.drawers.drawer` + `x-frontend.drawers.trigger` (menu, filters and cart all use one drawer wrapper, opened by name);
-  - shared: `x-ui.price`, `x-ui.badge`, `x-ui.tabs`, `x-media.upload`, `x-ui.error-page`, `x-ui.search-input` (every live search; debounce from `APP_SEARCH_DEBOUNCE_MS`, instant clear), `x-ui.dropdown` (every action menu, wraps `flux:dropdown`), `x-ui.popover` (floating panels such as the navbar search), `x-ui.backdrop`, `x-ui.load-more-select` (select that loads options in batches with a "Load more…" item; used by admin filters and the parent category field), `x-ui.seo` (description, canonical and OpenGraph/Twitter tags; storefront layout only, defaults from `config/seo.php` (`SEO_DESCRIPTION`, `SEO_IMAGE`, `SEO_INDEXING_ENABLED`), book pages pass their description and cover; `/sitemap.xml` lists public pages and in-stock or out-of-stock books, never archived ones).
+  - storefront rows and overlays: `x-frontend.cards.product-tile` (grid card) and `x-frontend.cards.product-list-item` (row card, also used by search, "New Products" and AI suggestions), `x-ui.drawer` + `x-ui.drawer-trigger` (menu, filters and cart all use one drawer wrapper, opened by name);
+  - shared: `x-ui.price`, `x-ui.badge`, `x-ui.tabs`, `x-media.upload`, `x-ui.error-page`, `x-ui.search-input` (every live search; debounce from `APP_SEARCH_DEBOUNCE_MS`, instant clear), `x-ui.dropdown` (every action menu, wraps `flux:dropdown`), `x-ui.popover` (floating panels such as the navbar search), `x-ui.backdrop`, `x-ui.load-more-select` (select that loads options in batches with a "Load more…" item; used by admin filters and the parent category field), `x-ui.seo` (description, canonical and OpenGraph/Twitter tags; storefront layout only, defaults from `config/seo.php` (`SEO_DESCRIPTION`, `SEO_IMAGE`, `SEO_INDEXING_ENABLED`), product pages pass their description and first image, `/sitemap.xml` lists public pages and in-stock or out-of-stock products, never archived ones).
 - Every admin table uses `InteractsWithTable` + `TableQueryTrait` + the `management-*` components.
 - Alpine handles client-only behaviour.
 - Brand colors come only from `config/theme.php` (see HOW_TO.md §4). Views use the `brand-*`, `gold-*` and surface tokens, never hex or raw palette names for brand elements. Changing a brand color needs no rebuild.
@@ -316,8 +305,7 @@ Both helper files (autoloaded from `composer.json`) stay generic. `config_helper
 
 - Pest feature tests live in `tests/Feature/{Auth,Backoffice,Frontend,Settings}`, one file per feature.
 - Tests use in-memory SQLite and the array cache.
-- Factories have states such as `superAdmin()`, `admin()`, `moderator()`, `editor()`, `blocked()`, `unverified()`, `paid()`, `physical()`, `free()`.
-- PDF tests skip themselves without pdf-lib (`skipWithoutPdfLib()`).
+- Factories have states such as `superAdmin()`, `admin()`, `moderator()`, `editor()`, `blocked()`, `unverified()`, `featured()`, `stock()`, `outOfStock()`, `archived()`, `paid()`.
 - **Never run tests with `.env` exported**:
 
 ```bash
@@ -345,7 +333,7 @@ composer types:check
 | Idea | Where it plugs in |
 |---|---|
 | JSON API / mobile app | Reuse the services; add API controllers and resources |
-| Automatic bKash/Nagad payments | A new `PaymentGatewayInterface` class plus one line in `config/payment.php` |
-| Other product types | A model that extends `Product` (like `Book`), named after its `type` value, and, if needed, a details table like `books` declared with `$detailTable` and `$detailColumns` |
+| New payment gateway (SSLCommerz, bKash API…) | A `PaymentGatewayEnum` case, a `PaymentGatewayInterface` class, one line in `config/payment.php` and, for an embedded page, a `frontend/payments/<gateway>` view |
+| Other product types | A model that extends `Product` (like `Shirt`), named after its `type` value, and, if needed, a details table like `shirts` declared with `$detailTable` and `$detailColumns` (see Product types) |
 | Redis cache | `FRONTEND_CACHE_STORE=redis` |
 | Scheduled reminders or auto-cancel | A scheduled command calling `Backoffice\OrderService` (needs cron) |

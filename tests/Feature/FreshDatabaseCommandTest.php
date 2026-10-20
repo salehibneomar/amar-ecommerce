@@ -1,6 +1,6 @@
 <?php
 
-use App\Models\Book;
+use App\Models\Product;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\Artisan;
 use Illuminate\Support\Facades\Storage;
@@ -9,7 +9,7 @@ use Spatie\MediaLibrary\MediaCollections\Models\Media;
 test('the fresh command removes stored media directories before running migrate fresh', function () {
     Storage::fake('local');
     Storage::fake('public');
-    Storage::disk('local')->put('1/book.pdf', 'pdf');
+    Storage::disk('local')->put('1/file.pdf', 'pdf');
     Storage::disk('public')->put('25/cover.jpg', 'image');
     Storage::disk('local')->put('livewire-tmp/upload.tmp', 'temporary');
 
@@ -34,8 +34,8 @@ test('the fresh command clears media library items before rebuilding the databas
     Storage::fake('local');
     Storage::fake('public');
     Artisan::command('migrate:fresh {--seed} {--force}', fn (): int => 0);
-    $book = Book::factory()->create();
-    $book->attachMedia('book.media.cover', UploadedFile::fake()->image('cover.jpg'));
+    $product = Product::factory()->create();
+    $product->attachMedia('product.media.images', UploadedFile::fake()->image('photo.jpg'));
 
     $this->artisan('app:fresh')->assertSuccessful();
 

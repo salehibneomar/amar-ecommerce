@@ -1,10 +1,11 @@
 <?php
 
 use App\Enums\Order\OrderStatusEnum;
-use App\Enums\Order\PaymentMethodEnum;
 use App\Enums\Order\PaymentStatusEnum;
+use App\Enums\Payment\PaymentGatewayEnum;
 use App\Livewire\Backoffice\Orders\Index;
 use App\Models\Order;
+use App\Models\Payment;
 use App\Models\User;
 use App\Services\Backoffice\Sales\SalesReportService;
 use Livewire\Livewire;
@@ -29,6 +30,20 @@ test('an extra discount is applied on the total after the offer discount when th
     expect($order->extra_discount_percentage)->toBe(15)
         ->and($order->extra_discount_amount)->toBe(134)
         ->and($order->total)->toBe(761);
+});
+
+test('the extra discount is locked once an online payment is started', function () {
+    $order = Order::factory()->create(['subtotal' => 1000, 'total' => 1000]);
+    Payment::factory()->for($order)->create(['gateway' => PaymentGatewayEnum::Stripe, 'amount' => 1000]);
+
+    Livewire::actingAs(User::factory()->superAdmin()->create())->test(Index::class)
+        ->call('viewOrder', $order->id)
+        ->set('extraDiscountPercentage', '10')
+        ->assertSet('extraDiscountPreview', ['percentage' => 0, 'amount' => 0, 'total' => 1000])
+        ->call('save')
+        ->assertHasErrors('extraDiscountPercentage');
+
+    expect($order->refresh()->total)->toBe(1000);
 });
 
 test('saving a new extra discount replaces the old one and zero removes it', function () {
@@ -70,24 +85,22 @@ test('an empty extra discount saves as no discount', function () {
     expect($order->refresh()->total)->toBe(1000)->and($order->extra_discount_percentage)->toBe(0);
 });
 
-test('an extra discount can be added in the same save that marks a requested or acknowledged order as paid', function (OrderStatusEnum $status) {
+test('an extra discount can be added in the same save that marks a pending or processing order as paid', function (OrderStatusEnum $status) {
     $order = Order::factory()->create(['subtotal' => 255, 'total' => 255, 'status' => $status]);
 
     Livewire::actingAs(User::factory()->superAdmin()->create())->test(Index::class)
         ->call('viewOrder', $order->id)
         ->set('extraDiscountPercentage', '5')
-        ->set('paymentMethod', PaymentMethodEnum::Bkash->value)
-        ->set('trxId', 'ZANGTRXD')
         ->set('orderPaymentStatus', PaymentStatusEnum::Paid->value)
         ->call('save')
         ->assertHasNoErrors();
 
     $order->refresh();
 
-    expect($order->status)->toBe(OrderStatusEnum::Completed)
+    expect($order->status)->toBe(OrderStatusEnum::Processing)
         ->and($order->extra_discount_amount)->toBe(13)
         ->and($order->total)->toBe(242);
-})->with([OrderStatusEnum::Requested, OrderStatusEnum::Acknowledged]);
+})->with([OrderStatusEnum::Pending, OrderStatusEnum::Processing]);
 
 test('the extra discount is locked once the order is paid', function () {
     $order = Order::factory()->paid()->create(['subtotal' => 1000, 'total' => 900, 'extra_discount_percentage' => 10, 'extra_discount_amount' => 100]);
@@ -123,17 +136,17 @@ test('the customer order page only mentions an extra discount when there is one'
 });
 
 test('staff without the manage orders permission cannot reach the extra discount', function () {
-    $this->actingAs(User::factory()->moderator()->create())
+    $this->actingAs(User::factory()->editor()->create())
         ->get(route('manage.orders.index'))
         ->assertRedirect(route('dashboard'));
 });
 
 test('a cancelled order keeps its total when saved with an extra discount', function () {
-    $order = Order::factory()->create(['subtotal' => 1000, 'total' => 1000, 'status' => OrderStatusEnum::Cancelled, 'payment_status' => PaymentStatusEnum::NotPaid]);
+    $order = Order::factory()->create(['subtotal' => 1000, 'total' => 1000, 'status' => OrderStatusEnum::Cancelled, 'payment_status' => PaymentStatusEnum::Cancelled]);
 
     Livewire::actingAs(User::factory()->superAdmin()->create())->test(Index::class)
         ->call('viewOrder', $order->id)
-        ->set('orderStatus', OrderStatusEnum::Requested->value)
+        ->set('orderStatus', OrderStatusEnum::Pending->value)
         ->set('extraDiscountPercentage', '10')
         ->call('save')
         ->assertHasErrors('orderStatus');

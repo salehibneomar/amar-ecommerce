@@ -19,7 +19,7 @@
                 @foreach ([
                     ['banknotes', __('Revenue'), formatMoney($this->summary['revenue'])],
                     ['shopping-bag', __('Paid orders'), number_format($this->summary['orders'])],
-                    ['book-open', __('Books sold'), number_format($this->summary['items'])],
+                    ['cube', __('Items sold'), number_format($this->summary['items'])],
                     ['calculator', __('Average order'), formatMoney($this->summary['average'])],
                     ['receipt-percent', __('Offer discount given'), formatMoney($this->summary['discount'])],
                 ] as [$icon, $label, $value])
@@ -49,7 +49,7 @@
     </div>
 
     <div class="grid grid-cols-1 gap-4 lg:grid-cols-2">
-        <x-backoffice.dashboard.panel :title="__('Top books')" :description="__('Best sellers this month')">
+        <x-backoffice.dashboard.panel :title="__('Top products')" :description="__('Best sellers this month')">
             <div class="divide-y divide-line">
                 @forelse ($this->topProducts as $product)
                     <div class="flex items-center gap-3 py-2.5 text-sm">

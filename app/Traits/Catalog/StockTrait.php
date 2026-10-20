@@ -3,7 +3,6 @@
 namespace App\Traits\Catalog;
 
 use App\Enums\Catalog\ProductStatusEnum;
-use App\Enums\Catalog\StockTypeEnum;
 use App\Enums\System\FrontendCacheKeyEnum;
 use App\Models\Product;
 use Illuminate\Support\Facades\DB;
@@ -13,15 +12,11 @@ trait StockTrait
 {
     private function takeStock(Product $product, int $quantity): void
     {
-        if ($product->stock_type !== StockTypeEnum::Physical || $product->quantity === null) {
-            return;
-        }
-
         $taken = Product::query()->whereKey($product->id)->where('quantity', '>=', $quantity)->decrement('quantity', $quantity);
 
         if ($taken === 0) {
             throw ValidationException::withMessages([
-                'cart' => __('Only :count copies of :name are left.', ['count' => (int) Product::query()->whereKey($product->id)->value('quantity'), 'name' => $product->name]),
+                'cart' => __('Only :count of :name are left.', ['count' => (int) Product::query()->whereKey($product->id)->value('quantity'), 'name' => $product->name]),
             ]);
         }
 
@@ -30,11 +25,7 @@ trait StockTrait
 
     private function restoreStock(int $productId, int $quantity): void
     {
-        $restored = Product::query()
-            ->whereKey($productId)
-            ->where('stock_type', StockTypeEnum::Physical)
-            ->whereNotNull('quantity')
-            ->increment('quantity', $quantity);
+        $restored = Product::query()->whereKey($productId)->increment('quantity', $quantity);
 
         if ($restored > 0) {
             $this->switchStockStatus($productId, ProductStatusEnum::OutOfStock, ProductStatusEnum::InStock, $quantity);

@@ -8,8 +8,6 @@
 @source '../../vendor/laravel/framework/src/Illuminate/Pagination/resources/views/*.blade.php';
 @source '../../vendor/livewire/flux-pro/stubs/**/*.blade.php';
 @source '../../vendor/livewire/flux/stubs/**/*.blade.php';
-@source '../../vendor/trianity/laravel-pdf-viewer/resources/views/**/*.blade.php';
-@source '../../vendor/trianity/laravel-pdf-viewer/src/**/*.php';
 
 @custom-variant dark (&:where(.dark, .dark *));
 
@@ -106,24 +104,17 @@
     background-color: color-mix(in oklab, var(--button-tone) 36%, transparent);
 }
 
-/* Storefront neutral buttons take a lighter brand tint, so secondary actions match the brand UI while primary stays stronger. */
-[data-frontend] [data-flux-button][data-tone='neutral'] {
-    --button-tone: var(--color-accent);
-    background-color: color-mix(in oklab, var(--button-tone) 7%, transparent);
-    border-color: color-mix(in oklab, var(--button-tone) 20%, transparent);
+/* Primary buttons are solid brand in both panels, so the main action stands out from the tinted secondary ones. */
+[data-flux-button][data-tone='brand'],
+.dark [data-flux-button][data-tone='brand'] {
+    background-color: var(--color-brand-600);
+    color: var(--color-brand-foreground);
+    border-color: var(--color-brand-600);
 }
 
-[data-frontend] [data-flux-button][data-tone='neutral']:hover {
-    background-color: color-mix(in oklab, var(--button-tone) 15%, transparent);
-}
-
-[data-frontend].dark [data-flux-button][data-tone='neutral'] {
-    background-color: color-mix(in oklab, var(--button-tone) 14%, transparent);
-    border-color: color-mix(in oklab, var(--button-tone) 28%, transparent);
-}
-
-[data-frontend].dark [data-flux-button][data-tone='neutral']:hover {
-    background-color: color-mix(in oklab, var(--button-tone) 24%, transparent);
+[data-flux-button][data-tone='brand']:hover,
+.dark [data-flux-button][data-tone='brand']:hover {
+    background-color: var(--color-brand-700);
 }
 
 /*
@@ -148,29 +139,29 @@ ui-checkbox:is([data-checked], [data-indeterminate]) [data-flux-checkbox-indicat
 }
 
 /*
- * Surface buttons (`color="surface"`, third-party sign in): card-colored with a brand-tinted border and brand hover, so the provider logo carries the color.
- * Secondary (neutral) buttons inside a tinted banner use the same look, so they stand apart from the banner and from the primary button.
+ * Surface buttons (`color="surface"`, third-party sign in): card-colored with the neutral border and brand hover, so the provider logo carries the color.
+ * Secondary (neutral) buttons use the same look in both panels, so the solid brand primary stays the one clear action.
  */
-:is([data-flux-button][data-tone='surface'], [data-banner] [data-flux-button][data-tone='neutral']) {
+[data-flux-button]:is([data-tone='surface'], [data-tone='neutral']) {
     --button-tone: var(--color-accent);
     background-color: var(--color-surface);
     color: var(--color-zinc-800);
-    border-color: color-mix(in oklab, var(--button-tone) 25%, var(--color-line));
+    border-color: var(--color-line);
     box-shadow: var(--shadow-card);
 }
 
-:is([data-flux-button][data-tone='surface'], [data-banner] [data-flux-button][data-tone='neutral']):hover {
+[data-flux-button]:is([data-tone='surface'], [data-tone='neutral']):hover {
     background-color: var(--color-menu-hover);
     color: var(--color-bar-active-foreground);
 }
 
-.dark :is([data-flux-button][data-tone='surface'], [data-banner] [data-flux-button][data-tone='neutral']) {
+.dark [data-flux-button]:is([data-tone='surface'], [data-tone='neutral']) {
     background-color: var(--color-zinc-800);
     color: var(--color-zinc-100);
-    border-color: color-mix(in oklab, var(--button-tone) 30%, transparent);
+    border-color: var(--color-zinc-700);
 }
 
-.dark :is([data-flux-button][data-tone='surface'], [data-banner] [data-flux-button][data-tone='neutral']):hover {
+.dark [data-flux-button]:is([data-tone='surface'], [data-tone='neutral']):hover {
     background-color: var(--color-menu-hover);
     color: var(--color-bar-active-foreground);
 }
@@ -295,7 +286,7 @@ ui-checkbox:is([data-checked], [data-indeterminate]) [data-flux-checkbox-indicat
 
 [data-flux-callout][data-tone] {
     --callout-border: color-mix(in oklab, var(--alert-tone) 32%, transparent);
-    --callout-background: color-mix(in oklab, var(--alert-tone) 8%, transparent);
+    --callout-background: color-mix(in oklab, var(--alert-tone) 14%, var(--color-surface));
     --callout-heading: color-mix(in oklab, var(--alert-tone) 70%, black);
     --callout-text: var(--color-zinc-600);
     --callout-icon: var(--alert-tone);
@@ -303,19 +294,19 @@ ui-checkbox:is([data-checked], [data-indeterminate]) [data-flux-checkbox-indicat
 
 .dark [data-flux-callout][data-tone] {
     --callout-border: color-mix(in oklab, var(--alert-tone) 40%, transparent);
-    --callout-background: color-mix(in oklab, var(--alert-tone) 14%, transparent);
+    --callout-background: color-mix(in oklab, var(--alert-tone) 18%, var(--color-surface));
     --callout-heading: color-mix(in oklab, var(--alert-tone) 45%, white);
     --callout-text: var(--color-zinc-300);
 }
 
 [data-banner][data-tone] {
-    background-color: color-mix(in oklab, var(--alert-tone) 8%, transparent);
+    background-color: color-mix(in oklab, var(--alert-tone) 14%, var(--color-surface));
     border-width: 1px;
-    border-color: color-mix(in oklab, var(--alert-tone) 32%, transparent);
+    border-color: color-mix(in oklab, var(--alert-tone) 40%, transparent);
 }
 
 .dark [data-banner][data-tone] {
-    background-color: color-mix(in oklab, var(--alert-tone) 14%, transparent);
+    background-color: color-mix(in oklab, var(--alert-tone) 18%, var(--color-surface));
     border-color: color-mix(in oklab, var(--alert-tone) 40%, transparent);
 }
 
@@ -425,26 +416,29 @@ ui-checkbox:is([data-checked], [data-indeterminate]) [data-flux-checkbox-indicat
     --color-accent-foreground: var(--color-brand-foreground);
 
     /*
-     * Surface colors for both panels: page background, cards/bars, their borders and alternate (muted) sections,
-     * lightly tinted with the brand. Dark-mode values are in the `.dark` block below.
+     * Surface colors for both panels: a cool neutral page, white cards, neutral borders, alternate (muted) sections
+     * and image placeholders. Blue stays on the bars, actions and active states. Dark-mode values are in the `.dark` block below.
      */
-    --color-canvas: var(--color-brand-50);
-    --color-surface: color-mix(in oklab, var(--color-brand-50) 20%, var(--color-white));
-    --color-line: color-mix(in oklab, var(--color-brand-200) 60%, var(--color-zinc-200));
-    --color-subtle: color-mix(in oklab, var(--color-brand-50) 50%, var(--color-white));
-    --color-media: color-mix(in oklab, var(--color-brand-100) 70%, var(--color-brand-50));
+    --color-canvas: #f6f8fb;
+    --color-surface: var(--color-white);
+    --color-line: #e2e8f0;
+    --color-subtle: #eef2f7;
+    --color-media: #f1f4f8;
+
+    /* Muted text a step darker than Tailwind's, so it passes WCAG AA (4.5:1) on every light surface above. */
+    --color-zinc-500: #696972;
 
     /*
-     * Storefront header and footer bars. Point `--color-bar` at a brand shade (and the foreground at white)
-     * for a colored bar, but keep enough contrast for the logo.
+     * Header, footer and admin sidebar bars: the light brand tint that frames the neutral content.
+     * Active items are a white chip with brand text. Keep enough contrast for the logo.
      */
-    --color-bar: color-mix(in oklab, var(--color-brand-200) 55%, var(--color-brand-100));
-    --color-bar-line: color-mix(in oklab, var(--color-brand-300) 70%, var(--color-brand-200));
+    --color-bar: var(--color-brand-100);
+    --color-bar-line: var(--color-brand-200);
     --color-bar-foreground: var(--color-zinc-800);
     --color-bar-muted: var(--color-zinc-700);
-    --color-bar-hover: color-mix(in oklab, var(--color-brand-300) 60%, var(--color-brand-200));
-    --color-bar-active: color-mix(in oklab, var(--color-accent) 14%, var(--color-bar));
-    --color-bar-active-line: color-mix(in oklab, var(--color-accent) 22%, transparent);
+    --color-bar-hover: color-mix(in oklab, var(--color-brand-200) 70%, var(--color-brand-100));
+    --color-bar-active: var(--color-white);
+    --color-bar-active-line: var(--color-brand-200);
     --color-bar-active-foreground: color-mix(in oklab, var(--color-accent) 80%, black);
     --color-tint: color-mix(in oklab, var(--color-accent) 14%, var(--color-surface));
     --color-tint-line: color-mix(in oklab, var(--color-accent) 22%, transparent);
@@ -454,12 +448,12 @@ ui-checkbox:is([data-checked], [data-indeterminate]) [data-flux-checkbox-indicat
     --color-brand-text: var(--color-brand-700);
 
     /*
-     * Storefront glass: floating panels (`glass`, `glass-solid` for drawers and menus), header and footer (`glass-bar`)
-     * Floating panels only, never the page background.
+     * Glass for both panels: floating panels (`glass`, `glass-solid` for drawers, menus and popovers, softly tinted with the bar),
+     * the bars (`glass-bar` on the storefront header and footer, the admin header and sidebar). Floating panels and bars only, never the page background.
      */
     --blur-glass: 16px;
     --color-glass: color-mix(in oklab, var(--color-surface) 62%, transparent);
-    --color-glass-solid: color-mix(in oklab, var(--color-surface) 80%, transparent);
+    --color-glass-solid: color-mix(in oklab, color-mix(in oklab, var(--color-bar) 45%, var(--color-surface)) 88%, transparent);
     --color-glass-line: color-mix(in oklab, var(--color-white) 70%, transparent);
     --shadow-glass: 0 8px 32px -8px color-mix(in oklab, var(--color-brand-900) 22%, transparent);
 
@@ -513,6 +507,11 @@ ui-checkbox:is([data-checked], [data-indeterminate]) [data-flux-checkbox-indicat
     }
 }
 
+/* The storefront hero: the one strong brand surface (banner slides without an image, the fallback hero). */
+@utility bg-hero {
+    background-image: linear-gradient(to bottom right, var(--color-brand-600), var(--color-brand-900));
+}
+
 @utility glass {
     background-color: var(--color-glass);
     border-color: var(--color-glass-line);
@@ -547,6 +546,17 @@ ui-checkbox:is([data-checked], [data-indeterminate]) [data-flux-checkbox-indicat
 
 [data-flux-menu] {
     @apply glass-solid;
+}
+
+/* The dimmed, blurred layer behind drawers and storefront modals. The fallback covers browsers where `::backdrop` does not inherit theme variables. */
+@utility scrim {
+    background-color: color-mix(in oklab, var(--color-brand-950, rgb(0 0 0)) 40%, transparent);
+    -webkit-backdrop-filter: blur(8px);
+    backdrop-filter: blur(8px);
+}
+
+[data-panel='frontend'] [data-flux-modal] > dialog::backdrop {
+    @apply scrim;
 }
 
 [data-flux-menu] [data-flux-menu-item-icon] {
@@ -605,6 +615,18 @@ html:has(ui-dropdown [popover]:popover-open:not(.dropdown-lock-scroll)) {
 
 [data-flux-label] {
     @apply  !mb-0 !leading-tight;
+}
+
+[data-flux-field]:has(> [data-flux-checkbox], > [data-flux-radio]) {
+    @apply items-center gap-x-2.5;
+}
+
+[data-flux-field] > :is([data-flux-checkbox], [data-flux-radio]) {
+    @apply !mt-0 -translate-y-px;
+}
+
+[data-flux-field]:has(> [data-flux-checkbox], > [data-flux-radio]) > [data-flux-label] {
+    @apply !leading-[1.125rem];
 }
 
 [data-flux-field]:not(:has(> [data-flux-checkbox], > [data-flux-radio])) > [data-flux-label] {

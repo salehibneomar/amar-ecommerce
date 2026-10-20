@@ -87,7 +87,7 @@
             @endisset
 
             @isset($panels['inventory'])
-                <x-backoffice.dashboard.panel class="min-w-0 lg:flex-1" :title="__('Book inventory')" :description="__('Availability across the catalogue')">
+                <x-backoffice.dashboard.panel class="min-w-0 lg:flex-1" :title="__('Product inventory')" :description="__('Availability across the catalogue')">
                     <div class="space-y-5">
                         @foreach ($panels['inventory'] as $item)
                             <x-backoffice.dashboard.progress-item :label="$item['label']" :value="$item['value']"

@@ -1,42 +1,28 @@
 <x-layouts::frontend :title="__('Dashboard')">
-    <x-frontend.layout.page :title="__('Welcome, :name', ['name' => $user->name])" :subtitle="__('Your books, orders and reading in one place.')">
+    <x-frontend.layout.page :title="__('Welcome, :name', ['name' => $user->name])" :subtitle="__('Your orders and account in one place.')">
         <x-slot:actions>
             <x-ui.button variant="primary" size="sm" icon="building-storefront" :href="route('shop')" wire:navigate>{{ __('Shop') }}</x-ui.button>
         </x-slot:actions>
 
         <div class="grid gap-5 md:grid-cols-3">
-            <x-frontend.cards.dashboard-tile icon="local_library" tone="success" :label="__('Books You Own')" :value="$ownedBooksCount" :hint="__('Free books are always readable too.')">
-                <x-ui.button size="sm" :href="route('user.library')" wire:navigate>{{ __('Open My Library') }}</x-ui.button>
+            <x-frontend.cards.dashboard-tile icon="receipt_long" :label="__('Orders')" :value="$orderCounts['total']" :hint="__('Member since :date', ['date' => $user->created_at->format('d M Y')])">
+                <x-ui.button size="xs" variant="ghost" icon-trailing="arrow-right" class="-me-2" :href="route('user.orders')" wire:navigate>{{ __('View Orders') }}</x-ui.button>
             </x-frontend.cards.dashboard-tile>
-            <x-frontend.cards.dashboard-tile icon="receipt_long" :label="__('Orders')" :value="$ordersCount" :hint="__('Member since :date', ['date' => $user->created_at->format('d M Y')])">
-                <x-ui.button size="sm" :href="route('user.orders')" wire:navigate>{{ __('View Orders') }}</x-ui.button>
-            </x-frontend.cards.dashboard-tile>
-            <x-frontend.cards.dashboard-tile icon="menu_book" :label="__('Books Opened')" :value="$openedBooksCount"
-                :hint="$openedBooksCount ? __('Keep up the good work!') : __('Open a book to get started.')" />
+            <x-frontend.cards.dashboard-tile icon="local_shipping" :label="__('In Progress')" :value="$orderCounts['active']"
+                :hint="$orderCounts['active'] ? __('We will keep you updated.') : __('No orders on the way.')" />
+            <x-frontend.cards.dashboard-tile icon="task_alt" tone="success" :label="__('Completed')" :value="$orderCounts['completed']" :hint="__('Thank you for shopping with us.')" />
         </div>
 
-        @if ($recentBooks->isNotEmpty())
-            <x-frontend.cards.card :title="__('Continue reading')" :description="__('Books you opened recently.')">
-                <div class="grid grid-cols-2 gap-3 md:grid-cols-3">
-                    @foreach ($recentBooks as $book)
-                        <x-frontend.cards.product-list-item wire:key="recent-book-{{ $book->id }}" :product="$book" as="button" type="button"
-                            :meta="__('Opened :time', ['time' => $book->last_opened_at->diffForHumans()])"
-                            x-data x-on:click="Livewire.dispatch('open-book', { bookId: {{ $book->id }} })" />
-                    @endforeach
-                </div>
-            </x-frontend.cards.card>
-        @endif
-
-        @if ($recentOrders->isNotEmpty() || $newBooks->isNotEmpty())
-            <x-frontend.cards.card :padded="false" @class(['grid overflow-hidden', 'divide-y divide-line lg:grid-cols-2 lg:divide-x lg:divide-y-0' => $recentOrders->isNotEmpty() && $newBooks->isNotEmpty()])>
-                @if ($newBooks->isNotEmpty())
-                    <x-frontend.cards.card :framed="false" :title="__('Recently added books')" :description="__('The newest books in the shop.')">
+        @if ($recentOrders->isNotEmpty() || $newProducts->isNotEmpty())
+            <x-frontend.cards.card :padded="false" @class(['grid overflow-hidden', 'divide-y divide-line lg:grid-cols-2 lg:divide-x lg:divide-y-0' => $recentOrders->isNotEmpty() && $newProducts->isNotEmpty()])>
+                @if ($newProducts->isNotEmpty())
+                    <x-frontend.cards.card :framed="false" :title="__('Recently added products')" :description="__('The newest products in the shop.')">
                         <x-slot:actions>
                             <x-ui.button size="sm" variant="ghost" icon-trailing="arrow-right" :href="route('shop')" wire:navigate>{{ __('Browse All') }}</x-ui.button>
                         </x-slot:actions>
                         <div class="grid gap-3">
-                            @foreach ($newBooks as $book)
-                                <x-frontend.cards.product-list-item wire:key="new-book-{{ $book->id }}" :product="$book" />
+                            @foreach ($newProducts as $product)
+                                <x-frontend.cards.product-list-item wire:key="new-product-{{ $product->id }}" :product="$product" />
                             @endforeach
                         </div>
                     </x-frontend.cards.card>
@@ -64,6 +50,4 @@
             </x-frontend.cards.card>
         @endif
     </x-frontend.layout.page>
-
-    <livewire:frontend.reader.index />
 </x-layouts::frontend>

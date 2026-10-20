@@ -1,5 +1,5 @@
 <x-layouts::frontend :title="__('Contact')">
-    <x-frontend.layout.page :title="__('Contact us')" :subtitle="__('Questions about books, payments or your access? Reach us on any channel below.')">
+    <x-frontend.layout.page :title="__('Contact us')" :subtitle="__('Questions about products, orders or delivery? Reach us on any channel below.')">
         <div class="grid gap-5 sm:grid-cols-2 lg:grid-cols-4">
             @foreach ($channels as $channel)
                 <x-frontend.cards.contact-card :icon="$channel['icon']" :title="$channel['title']" :value="$channel['value']" :href="$channel['href']" :action="$channel['action']" />

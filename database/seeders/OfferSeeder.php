@@ -12,9 +12,9 @@ class OfferSeeder extends Seeder
     public function run(): void
     {
         Offer::factory()->create([
-            'name' => 'উদ্বোধনী অফার',
-            'headline' => 'সব বইয়ে ১০% ছাড়',
-            'description' => 'অফার পেতে আজই অর্ডার করুন',
+            'name' => 'Opening Offer',
+            'headline' => '10% off everything',
+            'description' => 'Order today to get the offer',
             'discount_percentage' => 10,
             'starts_at' => now()->subDay(),
             'ends_at' => now()->addMonth(),
@@ -25,13 +25,13 @@ class OfferSeeder extends Seeder
         }
 
         Offer::factory()->create([
-            'name' => 'শিশু-কিশোর উৎসব',
-            'headline' => 'শিশু-কিশোর বইয়ে ২০% ছাড়',
+            'name' => 'Fashion Week',
+            'headline' => '20% off fashion',
             'type' => OfferTypeEnum::Specific,
-            'description' => 'অফার পেতে আজই অর্ডার করুন',
+            'description' => 'Order today to get the offer',
             'discount_percentage' => 20,
             'starts_at' => now()->subDay(),
             'ends_at' => now()->addMonth(),
-        ])->categories()->attach(Category::query()->where('name', 'শিশু-কিশোর')->value('id'));
+        ])->categories()->attach(Category::query()->where('name', 'Fashion')->value('id'));
     }
 }

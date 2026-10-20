@@ -69,7 +69,8 @@ class Index extends Component
             __('Facebook Login') => $user->facebook_id !== null,
             __('Two-Factor Login') => $user->two_factor_confirmed_at !== null,
             __('Registered') => formatDateTime($user->created_at),
-            __('Address') => $user->address,
+            __('Shipping Address') => $user->shipping_address,
+            __('Billing Address') => $user->billing_address,
         ];
         $this->showDetails = true;
     }

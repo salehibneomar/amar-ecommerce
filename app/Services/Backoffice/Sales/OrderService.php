@@ -6,19 +6,18 @@ use App\Enums\Order\ContactModeEnum;
 use App\Enums\Order\OrderStatusEnum;
 use App\Enums\Order\PaymentMethodEnum;
 use App\Enums\Order\PaymentStatusEnum;
-use App\Mail\Order\OrderAcknowledgedMail;
 use App\Mail\Order\OrderCancelledMail;
 use App\Mail\Order\OrderCompletedMail;
+use App\Mail\Order\OrderProcessingMail;
+use App\Mail\Order\OrderShippedMail;
 use App\Models\Order;
-use App\Resolvers\Payment\PaymentGatewayResolver;
 use App\Services\Backoffice\Notification\NotificationService;
 use App\Services\Mail\MailService;
+use App\Services\Payment\PaymentService;
 use App\Traits\Catalog\StockTrait;
 use App\Traits\Query\TableQueryTrait;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 use Illuminate\Support\Facades\DB;
-use Illuminate\Validation\Rule;
-use Illuminate\Validation\Rules\Unique;
 use Illuminate\Validation\ValidationException;
 
 class OrderService
@@ -26,7 +25,7 @@ class OrderService
     use StockTrait, TableQueryTrait;
 
     public function __construct(
-        private readonly PaymentGatewayResolver $gatewayResolver,
+        private readonly PaymentService $paymentService,
         private readonly NotificationService $notificationService,
         private readonly MailService $mailService,
     ) {}
@@ -37,23 +36,6 @@ class OrderService
     public function sortableColumns(): array
     {
         return ['id', 'public_order_id', 'total', 'status', 'payment_status', 'created_at'];
-    }
-
-    /**
-     * @return list<Unique|string>
-     */
-    public function transactionIdRules(?PaymentMethodEnum $method = null, ?int $ignoreOrderId = null): array
-    {
-        return [
-            'required',
-            'string',
-            'alpha_num',
-            'min:6',
-            'max:64',
-            Rule::unique('orders', 'transaction_id')
-                ->where('payment_method', $method->value ?? paymentDefaultMethod())
-                ->ignore($ignoreOrderId),
-        ];
     }
 
     /**
@@ -70,7 +52,7 @@ class OrderService
         return $this->paginateTableQuery(
             query: Order::query()->withCount('items'),
             search: $search,
-            searchColumns: ['public_order_id', 'customer_email', 'phone', 'transaction_id'],
+            searchColumns: ['public_order_id', 'customer_email', 'phone'],
             filters: [
                 'status' => $status,
                 'payment_status' => $paymentStatus,
@@ -84,7 +66,7 @@ class OrderService
 
     public function getOrderById(int|string $id): Order
     {
-        return Order::query()->with(['items.product', 'completedBy:id,name', 'updatedBy:id,name'])->withCount('items')->withSum('items', 'quantity')->findOrFail($id);
+        return Order::query()->with(['items.product.media', 'payment', 'completedBy:id,name', 'updatedBy:id,name'])->withCount('items')->withSum('items', 'quantity')->findOrFail($id);
     }
 
     public function save(
@@ -115,7 +97,7 @@ class OrderService
         $previousStatus = null;
 
         $order = DB::transaction(function () use ($id, $status, $paymentStatus, $isPaid, $reviewerId, $contactMode, $paymentMethod, $transactionId, $note, $extraDiscountPercentage, &$previousStatus): Order {
-            $order = Order::query()->lockForUpdate()->findOrFail($id);
+            $order = Order::query()->with('payment')->lockForUpdate()->findOrFail($id);
             $previousStatus = $order->status;
 
             if ($order->status->isCancelled()) {
@@ -124,7 +106,7 @@ class OrderService
 
             if ($extraDiscountPercentage !== null && $extraDiscountPercentage !== $order->extra_discount_percentage) {
                 if (! $order->isExtraDiscountEditable()) {
-                    throw ValidationException::withMessages(['extraDiscountPercentage' => __('The extra discount can only be changed while the order is requested or acknowledged.')]);
+                    throw ValidationException::withMessages(['extraDiscountPercentage' => __('The extra discount can only be changed on unpaid orders without online payment.')]);
                 }
 
                 $extraDiscount = $this->extraDiscountAmount($order->total_before_extra_discount, $extraDiscountPercentage);
@@ -136,24 +118,19 @@ class OrderService
                 ]);
             }
 
-            $status = $isPaid ? OrderStatusEnum::Completed : $status;
+            $status = $isPaid && $status === OrderStatusEnum::Pending ? OrderStatusEnum::Processing : $status;
+            $isCompleted = $status === OrderStatusEnum::Completed;
 
             $order->forceFill([
                 'status' => $status,
-                'payment_status' => $paymentStatus,
-                'payment_method' => $paymentMethod,
-                'transaction_id' => filled($transactionId) ? strtoupper(trim($transactionId)) : null,
                 'contact_mode' => $contactMode,
                 'customer_contact_recorded_at' => $contactMode ? ($order->customer_contact_recorded_at ?? now()) : null,
                 'internal_note' => filled($note) ? $note : null,
-                'completed_at' => $isPaid ? ($order->completed_at ?? now()) : null,
-                'completed_by' => $isPaid ? ($order->completed_by ?? $reviewerId) : null,
+                'completed_at' => $isCompleted ? ($order->completed_at ?? now()) : null,
+                'completed_by' => $isCompleted ? ($order->completed_by ?? $reviewerId) : null,
             ]);
 
-            if ($isPaid && $paymentMethod && ! $this->gatewayResolver->resolve($paymentMethod)->confirm($order)) {
-                throw ValidationException::withMessages(['trxId' => __('The payment could not be confirmed.')]);
-            }
-
+            $this->paymentService->record($order, $paymentStatus, $paymentMethod, $transactionId);
             $order->save();
 
             return $order;
@@ -172,10 +149,18 @@ class OrderService
         return (int) round($amount * $percentage / 100);
     }
 
-    public function cancel(int|string $id): void
+    public function cancel(int|string $id, bool $pendingOnly = false): void
     {
-        $order = DB::transaction(function () use ($id): Order {
+        $order = DB::transaction(function () use ($id, $pendingOnly): Order {
             $order = Order::query()->with('items')->lockForUpdate()->findOrFail($id);
+
+            if ($order->payment_status->isPaid()) {
+                throw ValidationException::withMessages(['order' => __('Refund the payment before cancelling the order.')]);
+            }
+
+            if ($pendingOnly && ! $order->isCancellableByCustomer()) {
+                throw ValidationException::withMessages(['order' => __('Only pending orders can be cancelled.')]);
+            }
 
             if (! $order->isCancellable()) {
                 throw ValidationException::withMessages([
@@ -187,7 +172,13 @@ class OrderService
                 $this->restoreStock($item->product_id, $item->quantity);
             }
 
-            $order->forceFill(['status' => OrderStatusEnum::Cancelled, 'payment_status' => PaymentStatusEnum::NotPaid])->save();
+            $order->status = OrderStatusEnum::Cancelled;
+
+            if ($order->payment_status !== PaymentStatusEnum::Refunded) {
+                $this->paymentService->record($order, PaymentStatusEnum::Cancelled);
+            }
+
+            $order->save();
 
             return $order;
         });
@@ -199,7 +190,8 @@ class OrderService
     private function notifyCustomer(Order $order): void
     {
         $mail = match ($order->status) {
-            OrderStatusEnum::Acknowledged => new OrderAcknowledgedMail($order),
+            OrderStatusEnum::Processing => new OrderProcessingMail($order),
+            OrderStatusEnum::Shipped => new OrderShippedMail($order),
             OrderStatusEnum::Completed => new OrderCompletedMail($order),
             OrderStatusEnum::Cancelled => new OrderCancelledMail($order),
             default => null,

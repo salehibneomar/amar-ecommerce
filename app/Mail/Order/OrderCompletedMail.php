@@ -19,7 +19,7 @@ class OrderCompletedMail extends Mailable
     public function envelope(): Envelope
     {
         return new Envelope(
-            subject: __('Your books from order :order are unlocked', ['order' => $this->order->public_order_id]),
+            subject: __('Your order :order is complete', ['order' => $this->order->public_order_id]),
         );
     }
 

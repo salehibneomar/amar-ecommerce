@@ -1,44 +1,5 @@
 import 'trix';
 
-let pdfViewerObserver = null;
-let pdfViewerModule = null;
-
-const initializePdfViewers = () => {
-    if (!pdfViewerModule && !document.querySelector('[data-pdf-viewer]')) {
-        return Promise.resolve();
-    }
-
-    pdfViewerModule ??= import('./vendor/pdf-viewer.js');
-
-    return pdfViewerModule.then(({ initPdfViewers }) => initPdfViewers(document));
-};
-
-const watchPdfViewers = () => {
-    initializePdfViewers();
-
-    pdfViewerObserver?.disconnect();
-    pdfViewerObserver = new MutationObserver(() => {
-        initializePdfViewers();
-    });
-
-    pdfViewerObserver.observe(document.body, {
-        childList: true,
-        subtree: true,
-    });
-};
-
-document.addEventListener('DOMContentLoaded', watchPdfViewers);
-document.addEventListener('livewire:navigated', watchPdfViewers);
-
-document.addEventListener('pdf-viewer-open', () => {
-    requestAnimationFrame(async () => {
-        await initializePdfViewers();
-        document.querySelectorAll('[data-pdf-viewer]').forEach((element) => {
-            element.dispatchEvent(new CustomEvent('pdf-viewer-visible'));
-        });
-    });
-});
-
 document.addEventListener('trix-file-accept', (event) => {
     event.preventDefault();
 });
@@ -143,6 +104,162 @@ const keepDropdownInViewport = (menu, placement, edge = 8) => {
 };
 
 const timeLeftParts = (seconds) => [['d', Math.floor(seconds / 86400)], ['h', Math.floor((seconds % 86400) / 3600)], ['m', Math.floor((seconds % 3600) / 60)], ['s', seconds % 60]];
+
+const loadStripe = () => window.Stripe
+    ? Promise.resolve(window.Stripe)
+    : new Promise((resolve, reject) => {
+        const script = document.createElement('script');
+
+        script.src = 'https://js.stripe.com/v3/';
+        script.onload = () => resolve(window.Stripe);
+        script.onerror = reject;
+        document.head.appendChild(script);
+    });
+
+const themeColor = (value) => {
+    const probe = document.createElement('span');
+    const context = document.createElement('canvas').getContext('2d');
+
+    probe.style.color = value;
+    document.body.appendChild(probe);
+    context.fillStyle = window.getComputedStyle(probe).color;
+    probe.remove();
+    context.fillRect(0, 0, 1, 1);
+
+    return `#${[...context.getImageData(0, 0, 1, 1).data.slice(0, 3)].map((channel) => channel.toString(16).padStart(2, '0')).join('')}`;
+};
+
+const stripeAppearance = () => {
+    const body = window.getComputedStyle(document.body);
+    const primary = themeColor('var(--color-brand)');
+    const line = themeColor('var(--color-line)');
+
+    return {
+        theme: document.documentElement.classList.contains('dark') ? 'night' : 'stripe',
+        variables: {
+            colorPrimary: primary,
+            colorBackground: themeColor('var(--color-surface)'),
+            colorText: themeColor(body.color),
+            colorTextSecondary: themeColor('var(--color-zinc-500)'),
+            colorDanger: themeColor('var(--color-red-500)'),
+            fontFamily: body.fontFamily,
+            fontSizeBase: '16px',
+            borderRadius: '8px',
+            spacingUnit: '4px',
+        },
+        rules: {
+            '.Input': { borderColor: line, boxShadow: 'none' },
+            '.Input:focus': { borderColor: primary, boxShadow: `0 0 0 3px ${primary}40` },
+            '.Tab': { borderColor: line, boxShadow: 'none' },
+            '.Tab--selected, .Tab--selected:focus': { borderColor: primary, boxShadow: `0 0 0 1px ${primary}` },
+            '.Label': { fontWeight: '500' },
+        },
+    };
+};
+
+const stripeFonts = () => {
+    const family = window.getComputedStyle(document.body).fontFamily.split(',')[0].replaceAll(/['"]/g, '').trim();
+
+    return [{ cssSrc: `https://fonts.bunny.net/css?family=${family.toLowerCase().replaceAll(' ', '-')}:400,500,600` }];
+};
+
+document.addEventListener('alpine:init', () => {
+    window.Alpine.data('stripePayment', ({ publishableKey, clientSecret, returnUrl, email, amount, currency, placeUrl }) => ({
+        ready: false,
+        processing: false,
+        error: '',
+        clientSecret,
+        returnUrl,
+        orderUrl: '',
+
+        async init() {
+            try {
+                const Stripe = await loadStripe();
+
+                this.stripe = Stripe(publishableKey);
+                this.elements = this.stripe.elements({
+                    ...(clientSecret ? { clientSecret } : { mode: 'payment', amount, currency }),
+                    appearance: stripeAppearance(),
+                    fonts: stripeFonts(),
+                });
+
+                const element = this.elements.create('payment', {
+                    layout: 'tabs',
+                    defaultValues: { billingDetails: { email } },
+                });
+
+                element.on('ready', () => (this.ready = true));
+                element.on('loaderror', (event) => (this.error = event.error.message));
+                element.mount(this.$refs.element);
+            } catch {
+                this.error = this.$el.dataset.loadError;
+            }
+        },
+
+        async pay() {
+            if (! this.ready || this.processing) {
+                return;
+            }
+
+            this.processing = true;
+            this.error = '';
+
+            if (! this.clientSecret && ! (await this.placeOrder())) {
+                this.processing = false;
+
+                return;
+            }
+
+            const { error } = await this.stripe.confirmPayment({
+                elements: this.elements,
+                clientSecret: this.clientSecret,
+                confirmParams: { return_url: this.returnUrl },
+            });
+
+            this.error = error.message;
+            this.processing = false;
+        },
+
+        async placeOrder() {
+            const { error } = await this.elements.submit();
+
+            if (error) {
+                this.error = error.message;
+
+                return false;
+            }
+
+            try {
+                const response = await fetch(placeUrl, {
+                    method: 'POST',
+                    headers: { Accept: 'application/json' },
+                    body: new FormData(this.$el),
+                });
+                const data = await response.json();
+
+                if (data.redirect) {
+                    window.location.href = data.redirect;
+
+                    return false;
+                }
+
+                if (! response.ok) {
+                    this.error = data.message;
+
+                    return false;
+                }
+
+                Object.assign(this, { clientSecret: data.clientSecret, returnUrl: data.returnUrl, orderUrl: data.orderUrl });
+
+                return true;
+            } catch {
+                this.error = this.$el.dataset.placeError;
+
+                return false;
+            }
+        },
+    }));
+});
 
 document.addEventListener('alpine:init', () => {
     window.Alpine.data('countdown', ({ to, now, units, separator }) => ({

@@ -1,6 +1,7 @@
 <?php
 
 use App\Concerns\ProfileValidationRules;
+use App\Livewire\Concerns\InteractsWithAddresses;
 use App\Livewire\Concerns\InteractsWithAvatar;
 use Illuminate\Contracts\Auth\MustVerifyEmail;
 use Flux\Flux;
@@ -11,7 +12,7 @@ use Livewire\Attributes\Title;
 use Livewire\Component;
 
 new #[Title('Profile')] class extends Component {
-    use InteractsWithAvatar, ProfileValidationRules;
+    use InteractsWithAddresses, InteractsWithAvatar, ProfileValidationRules;
 
     public string $name = '';
     public string $email = '';
@@ -76,7 +77,7 @@ new #[Title('Profile')] class extends Component {
 <section class="w-full">
     <flux:heading level="2" class="sr-only">{{ __('Profile settings') }}</flux:heading>
 
-    <x-pages::settings.layout :heading="__('Profile')" :subheading="__('Update your name, email address and mobile number')">
+    <x-pages::settings.layout :heading="__('Profile')" :subheading="__('Update your name, email address, mobile number and addresses')">
         <form wire:submit="updateProfileInformation" class="w-full space-y-6">
             <x-media.avatar-upload :name="$name" :url="$this->avatarUrl" :accept="mediaAccept('user.media.avatar')" />
             <flux:input wire:model="name" :label="__('Name')" type="text" required autofocus autocomplete="name" />
@@ -105,15 +106,19 @@ new #[Title('Profile')] class extends Component {
 
             <flux:input wire:model="phone" :label="__('Mobile Number')" type="tel" inputmode="numeric" :maxlength="validPhoneLength()" placeholder="01XXXXXXXXX" autocomplete="tel" />
 
-            <div class="flex items-center gap-4">
-                <div class="flex items-center justify-end">
-                    <x-ui.button variant="primary" type="submit" class="w-full" data-test="update-profile-button">
-                        {{ __('Save') }}
-                    </x-ui.button>
-                </div>
-
-            </div>
+            <x-form.actions>
+                <x-ui.button variant="primary" type="submit" data-test="update-profile-button">{{ __('Save') }}</x-ui.button>
+            </x-form.actions>
         </form>
 
+        <flux:separator class="my-8" />
+
+        <div class="space-y-6">
+            <div>
+                <flux:heading size="lg">{{ __('Addresses') }}</flux:heading>
+                <flux:subheading>{{ __('Your shipping and billing addresses.') }}</flux:subheading>
+            </div>
+            <x-form.address-form />
+        </div>
     </x-pages::settings.layout>
 </section>

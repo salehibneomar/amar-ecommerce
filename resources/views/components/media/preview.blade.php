@@ -24,7 +24,7 @@
             @endif
 
             <span class="absolute inset-x-0 bottom-0 flex items-center justify-center gap-1.5 bg-zinc-950/60 py-2 text-xs font-medium text-white opacity-0 transition group-hover:opacity-100 group-focus-visible:opacity-100">
-                <flux:icon.arrows-pointing-out variant="micro" />
+                <flux:icon.arrows-pointing-out class="size-4" />
                 {{ $actionLabel ?? __('Open') }}
             </span>
         </button>

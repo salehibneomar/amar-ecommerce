@@ -4,16 +4,18 @@ namespace App\Enums\Order;
 
 enum OrderStatusEnum: string
 {
-    case Requested = 'requested';
-    case Acknowledged = 'acknowledged';
+    case Pending = 'pending';
+    case Processing = 'processing';
+    case Shipped = 'shipped';
     case Completed = 'completed';
     case Cancelled = 'cancelled';
 
     public function label(): string
     {
         return match ($this) {
-            self::Requested => __('Requested'),
-            self::Acknowledged => __('Acknowledged'),
+            self::Pending => __('Pending'),
+            self::Processing => __('Processing'),
+            self::Shipped => __('Shipped'),
             self::Completed => __('Completed'),
             self::Cancelled => __('Cancelled'),
         };
@@ -22,8 +24,9 @@ enum OrderStatusEnum: string
     public function color(): string
     {
         return match ($this) {
-            self::Requested => 'blue',
-            self::Acknowledged => 'amber',
+            self::Pending => 'blue',
+            self::Processing => 'amber',
+            self::Shipped => 'violet',
             self::Completed => 'green',
             self::Cancelled => 'red',
         };
@@ -34,6 +37,7 @@ enum OrderStatusEnum: string
         return match ($this->color()) {
             'blue' => 'bg-blue-500',
             'amber' => 'bg-amber-400',
+            'violet' => 'bg-violet-500',
             'green' => 'bg-green-500',
             'red' => 'bg-red-500',
             default => 'bg-zinc-400',
@@ -43,8 +47,9 @@ enum OrderStatusEnum: string
     public function icon(): string
     {
         return match ($this) {
-            self::Requested => 'clock',
-            self::Acknowledged => 'chat-bubble-left-right',
+            self::Pending => 'clock',
+            self::Processing => 'cog-6-tooth',
+            self::Shipped => 'truck',
             self::Completed => 'check-circle',
             self::Cancelled => 'x-circle',
         };
@@ -56,9 +61,10 @@ enum OrderStatusEnum: string
     public function notice(): array
     {
         return match ($this) {
-            self::Requested => ['heading' => __('We received your order.'), 'text' => __('We will contact you soon to confirm the payment.')],
-            self::Acknowledged => ['heading' => __('We are working on your order.'), 'text' => __('Your books unlock as soon as the payment is verified.')],
-            self::Completed => ['heading' => __('This order is complete.'), 'text' => __('Your books are ready in your library.')],
+            self::Pending => ['heading' => __('We received your order.'), 'text' => __('We will confirm it soon.')],
+            self::Processing => ['heading' => __('We are preparing your order.'), 'text' => __('We will let you know when it ships.')],
+            self::Shipped => ['heading' => __('Your order is on the way.'), 'text' => __('It will reach the delivery address soon.')],
+            self::Completed => ['heading' => __('This order is complete.'), 'text' => __('Thank you for shopping with us.')],
             self::Cancelled => ['heading' => __('This order was cancelled.'), 'text' => __('Contact us if you think this is a mistake.')],
         };
     }
@@ -78,7 +84,7 @@ enum OrderStatusEnum: string
      */
     public function steps(): array
     {
-        $flow = [self::Requested, self::Acknowledged, self::Completed];
+        $flow = self::flow();
         $position = array_search($this, $flow, true);
 
         return array_map(fn (self $step, int $index): array => [
@@ -91,8 +97,16 @@ enum OrderStatusEnum: string
     /**
      * @return list<self>
      */
+    public static function flow(): array
+    {
+        return [self::Pending, self::Processing, self::Shipped, self::Completed];
+    }
+
+    /**
+     * @return list<self>
+     */
     public static function unresolved(): array
     {
-        return [self::Requested, self::Acknowledged];
+        return [self::Pending, self::Processing];
     }
 }

@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "5f254c9090bc3f55b80dce583dcdd4ea",
+    "content-hash": "bc0dd9f0737b473446154486c0f9c910",
     "packages": [
         {
             "name": "bacon/bacon-qr-code",
@@ -8727,59 +8727,6 @@
                 "source": "https://github.com/tijsverkoyen/CssToInlineStyles/tree/v2.4.0"
             },
             "time": "2025-12-02T11:56:42+00:00"
-        },
-        {
-            "name": "trianity/laravel-pdf-viewer",
-            "version": "v0.1.4",
-            "source": {
-                "type": "git",
-                "url": "https://github.com/trianity/laravel-pdf-viewer.git",
-                "reference": "52c1c5885fba12a78dc4fb6ec66e3a8b9487f7f0"
-            },
-            "dist": {
-                "type": "zip",
-                "url": "https://api.github.com/repos/trianity/laravel-pdf-viewer/zipball/52c1c5885fba12a78dc4fb6ec66e3a8b9487f7f0",
-                "reference": "52c1c5885fba12a78dc4fb6ec66e3a8b9487f7f0",
-                "shasum": ""
-            },
-            "require": {
-                "illuminate/contracts": "^13.0",
-                "illuminate/filesystem": "^13.0",
-                "illuminate/routing": "^13.0",
-                "illuminate/support": "^13.0",
-                "livewire/livewire": "^4.0",
-                "php": "^8.3"
-            },
-            "require-dev": {
-                "larastan/larastan": "^3.10",
-                "laravel/pint": "^1.29",
-                "orchestra/testbench": "^11.0",
-                "pestphp/pest": "^4.7",
-                "pestphp/pest-plugin-laravel": "^4.0"
-            },
-            "type": "library",
-            "extra": {
-                "laravel": {
-                    "providers": [
-                        "Trianity\\LaravelPdfViewer\\PdfViewerServiceProvider"
-                    ]
-                }
-            },
-            "autoload": {
-                "psr-4": {
-                    "Trianity\\LaravelPdfViewer\\": "src/"
-                }
-            },
-            "notification-url": "https://packagist.org/downloads/",
-            "license": [
-                "MIT"
-            ],
-            "description": "A secure PDF.js based PDF viewer for Laravel, Livewire and Tailwind CSS.",
-            "support": {
-                "issues": "https://github.com/trianity/laravel-pdf-viewer/issues",
-                "source": "https://github.com/trianity/laravel-pdf-viewer/tree/v0.1.4"
-            },
-            "time": "2026-06-29T10:59:32+00:00"
         },
         {
             "name": "vlucas/phpdotenv",

@@ -17,7 +17,7 @@
 
         <div class="flex items-center gap-1.5 sm:gap-2">
             <livewire:frontend.search.index />
-            <x-ui.theme-toggle variant="bar" size="lg" class="max-lg:hidden!" />
+            <x-ui.theme-toggle size="lg" class="max-lg:hidden!" />
             <livewire:frontend.cart.counter />
             @role('user')
                 <livewire:frontend.notifications.dropdown />
@@ -32,9 +32,9 @@
                 </div>
             @endrole
 
-            <x-frontend.drawers.trigger name="menu">
+            <x-ui.drawer-trigger name="menu">
                 <x-ui.button variant="ghost" square bar class="shrink-0 max-sm:size-8! lg:hidden" icon="bars-3" :aria-label="__('Open menu')" data-test="mobile-menu-button" />
-            </x-frontend.drawers.trigger>
+            </x-ui.drawer-trigger>
         </div>
     </div>
 

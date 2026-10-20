@@ -1,10 +1,9 @@
 @props([
     'title',
     'subtitle' => null,
-    'width' => 'max-w-main',
 ])
 
-<div {{ $attributes->class(['mx-auto flex flex-col gap-6 px-4 pt-6 pb-10 sm:px-6', $width]) }}>
+<div {{ $attributes->class(['mx-auto flex max-w-main flex-col gap-6 px-4 pt-6 pb-10 sm:px-6']) }}>
     <div class="flex flex-col gap-3">
         <div class="flex flex-col justify-between gap-4 sm:flex-row sm:items-center">
             <div>

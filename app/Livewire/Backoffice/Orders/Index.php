@@ -9,6 +9,7 @@ use App\Enums\Order\PaymentStatusEnum;
 use App\Livewire\Concerns\InteractsWithTable;
 use App\Models\Order;
 use App\Services\Backoffice\Sales\OrderService;
+use App\Services\Payment\PaymentService;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 use Illuminate\Contracts\View\View;
 use Illuminate\Support\Facades\Auth;
@@ -20,6 +21,7 @@ use Livewire\WithPagination;
 
 /**
  * @property-read Order|null $selectedOrder
+ * @property-read bool $isManualPayment
  */
 class Index extends Component
 {
@@ -54,9 +56,12 @@ class Index extends Component
 
     protected OrderService $orderService;
 
-    public function boot(OrderService $orderService): void
+    protected PaymentService $paymentService;
+
+    public function boot(OrderService $orderService, PaymentService $paymentService): void
     {
         $this->orderService = $orderService;
+        $this->paymentService = $paymentService;
     }
 
     public function mount(): void
@@ -85,11 +90,12 @@ class Index extends Component
 
     public function updatedOrderPaymentStatus(): void
     {
-        if ($this->orderPaymentStatus === PaymentStatusEnum::Paid->value) {
-            $this->orderStatus = OrderStatusEnum::Completed->value;
-        } elseif ($this->orderStatus === OrderStatusEnum::Completed->value) {
-            $status = $this->selectedOrder?->status;
-            $this->orderStatus = $status?->isUnresolved() ? $status->value : OrderStatusEnum::Acknowledged->value;
+        $isPaid = $this->orderPaymentStatus === PaymentStatusEnum::Paid->value;
+
+        if ($isPaid && $this->orderStatus === OrderStatusEnum::Pending->value) {
+            $this->orderStatus = OrderStatusEnum::Processing->value;
+        } elseif (! $isPaid && $this->orderStatus === OrderStatusEnum::Completed->value) {
+            $this->orderStatus = OrderStatusEnum::Shipped->value;
         }
 
         unset($this->editableStatusOptions);
@@ -122,8 +128,8 @@ class Index extends Component
         $this->orderStatus = $order->status->value;
         $this->orderPaymentStatus = $order->payment_status->value;
         $this->contactMode = $order->contact_mode->value ?? '';
-        $this->paymentMethod = $order->payment_method->value ?? paymentDefaultMethod();
-        $this->trxId = (string) $order->transaction_id;
+        $this->paymentMethod = $order->payment?->method->value ?? paymentDefaultMethod();
+        $this->trxId = (string) $order->payment?->transaction_id;
         $this->internalNote = (string) $order->internal_note;
         $this->extraDiscountPercentage = $order->extra_discount_percentage > 0 ? (string) $order->extra_discount_percentage : '';
         unset($this->selectedOrder);
@@ -134,13 +140,15 @@ class Index extends Component
 
     public function save(): void
     {
+        $isManual = $this->isManualPayment;
+
         $validated = $this->validate([
             'orderStatus' => ['required', Rule::enum(OrderStatusEnum::class)],
             'orderPaymentStatus' => ['required', Rule::enum(PaymentStatusEnum::class)],
             'contactMode' => ['nullable', Rule::enum(ContactModeEnum::class)],
-            'paymentMethod' => ['required', Rule::enum(PaymentMethodEnum::class)],
-            'trxId' => filled($this->trxId) || $this->orderPaymentStatus === PaymentStatusEnum::Paid->value
-                ? $this->orderService->transactionIdRules(PaymentMethodEnum::tryFrom($this->paymentMethod), $this->selectedOrderId)
+            'paymentMethod' => [Rule::requiredIf($isManual), 'nullable', Rule::enum(PaymentMethodEnum::class)],
+            'trxId' => $isManual && (filled($this->trxId) || $this->orderPaymentStatus === PaymentStatusEnum::Paid->value)
+                ? $this->paymentService->transactionIdRules(PaymentMethodEnum::tryFrom($this->paymentMethod), $this->selectedOrderId)
                 : ['nullable'],
             'internalNote' => ['nullable', 'string', 'max:1000'],
             'extraDiscountPercentage' => ['nullable', 'integer', 'min:0', 'max:'.shopMaxExtraDiscount()],
@@ -151,9 +159,9 @@ class Index extends Component
             OrderStatusEnum::from($validated['orderStatus']),
             PaymentStatusEnum::from($validated['orderPaymentStatus']),
             (int) Auth::id(),
-            contactMode: ContactModeEnum::tryFrom((string) $validated['contactMode']),
-            paymentMethod: PaymentMethodEnum::from($validated['paymentMethod']),
-            transactionId: $validated['trxId'],
+            contactMode: $isManual ? ContactModeEnum::tryFrom((string) $validated['contactMode']) : null,
+            paymentMethod: $isManual ? PaymentMethodEnum::tryFrom((string) $validated['paymentMethod']) : null,
+            transactionId: $isManual ? $validated['trxId'] : null,
             note: $validated['internalNote'],
             extraDiscountPercentage: (int) $validated['extraDiscountPercentage'],
         );
@@ -228,10 +236,10 @@ class Index extends Component
     {
         $isPaid = $this->orderPaymentStatus === PaymentStatusEnum::Paid->value;
 
-        return collect([...OrderStatusEnum::unresolved(), OrderStatusEnum::Completed])
+        return collect(OrderStatusEnum::flow())
             ->mapWithKeys(fn (OrderStatusEnum $status): array => [$status->value => [
                 'label' => $status->label(),
-                'disabled' => $isPaid !== ($status === OrderStatusEnum::Completed),
+                'disabled' => $status === OrderStatusEnum::Completed && ! $isPaid,
             ]])
             ->all();
     }
@@ -261,6 +269,12 @@ class Index extends Component
     public function paymentMethodOptions(): array
     {
         return PaymentMethodEnum::options();
+    }
+
+    #[Computed]
+    public function isManualPayment(): bool
+    {
+        return $this->selectedOrder !== null && $this->paymentService->isManual($this->selectedOrder);
     }
 
     private function refreshOrders(string $message): void

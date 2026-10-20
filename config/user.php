@@ -15,7 +15,7 @@ return [
                 'medium' => ['width' => 256, 'height' => 256],
             ],
             'conversion_format' => 'webp',
-            'conversion_quality' => 85,
+            'conversion_quality' => 80,
         ],
     ],
 ];

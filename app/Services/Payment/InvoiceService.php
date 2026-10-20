@@ -20,11 +20,11 @@ class InvoiceService
 
     public function download(Order $order): Response
     {
-        $order->loadMissing(['user', 'items']);
+        $order->loadMissing(['user', 'items', 'payment']);
 
         return $this->downloadMpdf(view('pdf.invoice', [
             'order' => $order,
-            'currency' => appCurrency(),
+            'currency' => $order->currency,
             'invoiceNumber' => $this->invoiceNumber($order),
             'logo' => $this->logo(),
             'supportEmail' => shopSupportEmail(),

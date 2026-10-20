@@ -14,7 +14,6 @@ new #[Title('Settings')] class extends Component {
     public function items(): array
     {
         return array_values(array_filter([
-            ['route' => 'profile.edit', 'icon' => 'user-circle', 'title' => __('Profile'), 'description' => __('Update your name, email address and photo')],
             ['route' => 'security.edit', 'icon' => 'key', 'title' => __('Security'), 'description' => __('Change your password and two-factor authentication')],
             ['route' => 'appearance.edit', 'icon' => 'swatch', 'title' => __('Appearance'), 'description' => __('Choose a light, dark or system theme')],
             Gate::allows(PermissionEnum::ManageOffers->value) ? ['route' => 'manage.offers.index', 'icon' => 'receipt-percent', 'title' => __('Offers'), 'description' => __('Manage discount offers')] : null,

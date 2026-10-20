@@ -22,7 +22,8 @@ return new class extends Migration
             $table->string('google_id')->nullable()->unique();
             $table->string('facebook_id')->nullable()->unique();
             $table->string('phone', 20)->nullable()->unique();
-            $table->text('address')->nullable();
+            $table->text('shipping_address')->nullable();
+            $table->text('billing_address')->nullable();
             $table->rememberToken();
             $table->timestamps();
             $table->softDeletes();

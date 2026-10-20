@@ -3,8 +3,6 @@
 namespace App\Services\Frontend\AiAssistant;
 
 use App\Enums\AiAssistant\AiAssistantRoleEnum;
-use App\Enums\Catalog\BookTypeEnum;
-use App\Models\User;
 use App\Resolvers\AiAssistant\AiAssistantProviderResolver;
 use App\Traits\Security\ThrottleTrait;
 use Illuminate\Http\Client\ConnectionException;
@@ -25,12 +23,12 @@ class AiAssistantService
      * @param  list<array{role: string, text: string, suggestions?: list<array{id: int, reason: string}>}>  $history
      * @return array{reply: string, suggestions: list<array{id: int, reason: string}>, fallback: bool}
      */
-    public function reply(array $history, string $message, string $throttleKey, ?User $user): array
+    public function reply(array $history, string $message, string $throttleKey): array
     {
         $this->throttle("assistant:{$throttleKey}", throttleAttempts('assistant'), 'message', aiPrompt('assistant.messages.busy'));
 
         $message = $this->redact($message);
-        $candidates = $this->searchService->candidates($message, $user);
+        $candidates = $this->searchService->candidates($message);
 
         try {
             $result = $this->providerResolver->resolve()->generateJson($this->systemPrompt($candidates, $message), $this->messages($history, $message), $this->schema());
@@ -116,7 +114,7 @@ class AiAssistantService
     private function systemPrompt(array $candidates, string $message): string
     {
         return implode("\n", [
-            aiPrompt('assistant.system', ['shop' => config('app.name'), 'catalog' => aiPrompt('assistant.catalog.'.BookTypeEnum::current()->value), 'results' => aiAssistantResults(), 'currency' => appCurrencySymbol(), 'language' => $this->language($message)]),
+            aiPrompt('assistant.system', ['shop' => config('app.name'), 'results' => aiAssistantResults(), 'currency' => appCurrencySymbol(), 'language' => $this->language($message)]),
             ...array_map(fn (array $candidate): string => (string) json_encode(Arr::except($candidate, 'id'), JSON_UNESCAPED_UNICODE), $candidates),
         ]);
     }

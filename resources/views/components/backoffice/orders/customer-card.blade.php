@@ -26,15 +26,15 @@
         </div>
     </div>
 
-    <dl class="grid grid-cols-2 gap-4 break-words px-4 pb-4 sm:grid-cols-3 lg:grid-cols-5">
+    <dl class="grid grid-cols-2 gap-x-6 gap-y-5 border-t border-line p-4 sm:grid-cols-3">
         <x-backoffice.management.detail-item :label="__('Order Status')">
             <x-ui.badge :color="$order->status->color()">{{ $order->status->label() }}</x-ui.badge>
         </x-backoffice.management.detail-item>
         <x-backoffice.management.detail-item :label="__('Payment')">
             <x-ui.badge :color="$order->payment_status->color()">{{ $order->payment_status->label() }}</x-ui.badge>
         </x-backoffice.management.detail-item>
-        <x-backoffice.management.detail-item :label="__('Paid With')">{{ $order->payment_method?->label() ?? appEmptyValue() }}</x-backoffice.management.detail-item>
-        <x-backoffice.management.detail-item :label="__('Transaction ID')"><span class="font-mono">{{ $order->transaction_id ?? appEmptyValue() }}</span></x-backoffice.management.detail-item>
+        <x-backoffice.management.detail-item :label="__('Paid With')">{{ $order->payment?->methodLabel() ?? appEmptyValue() }}</x-backoffice.management.detail-item>
+        <x-backoffice.management.detail-item :label="__('Transaction ID')" class="min-w-0"><span class="block truncate font-mono text-xs" title="{{ $order->payment?->transaction_id }}">{{ $order->payment?->transaction_id ?? appEmptyValue() }}</span></x-backoffice.management.detail-item>
         <x-backoffice.management.detail-item :label="__('Placed')">{{ formatDateTime($order->created_at) }}</x-backoffice.management.detail-item>
     </dl>
 </div>

@@ -4,7 +4,6 @@ namespace App\Livewire\Frontend\Cart;
 
 use App\Services\Frontend\Shop\CartService;
 use Illuminate\Contracts\View\View;
-use Illuminate\Support\Facades\Auth;
 use Illuminate\Validation\ValidationException;
 use Livewire\Attributes\Computed;
 use Livewire\Attributes\On;
@@ -22,10 +21,8 @@ class Counter extends Component
     #[On('add-to-cart')]
     public function add(int $productId, bool $buyNow = false): void
     {
-        $user = Auth::user();
-
         try {
-            $this->cartService->add($user, $productId);
+            $this->cartService->add($productId);
         } catch (ValidationException $exception) {
             $this->toast($exception->validator->errors()->first(), 'danger');
 

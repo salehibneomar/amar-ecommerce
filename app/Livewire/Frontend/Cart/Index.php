@@ -2,8 +2,8 @@
 
 namespace App\Livewire\Frontend\Cart;
 
-use App\Models\Book;
 use App\Models\Offer;
+use App\Models\Product;
 use App\Services\Frontend\Shop\CartService;
 use Illuminate\Contracts\View\View;
 use Illuminate\Support\Collection;
@@ -13,7 +13,7 @@ use Livewire\Attributes\On;
 use Livewire\Component;
 
 /**
- * @property-read Collection<int, array{product: Book, quantity: int, line_total: int, original_total: int|null}> $items
+ * @property-read Collection<int, array{product: Product, quantity: int, line_total: int, original_total: int|null}> $items
  */
 class Index extends Component
 {
@@ -48,7 +48,7 @@ class Index extends Component
     }
 
     /**
-     * @return Collection<int, array{product: Book, quantity: int, line_total: int, original_total: int|null}>
+     * @return Collection<int, array{product: Product, quantity: int, line_total: int, original_total: int|null}>
      */
     #[Computed]
     public function items(): Collection
@@ -57,7 +57,7 @@ class Index extends Component
     }
 
     /**
-     * @return array{subtotal: int, discount: int, total: int, offers: list<array{name: string, percentage: int, categories: list<string>, amount: int}>, itemOffers: array<int, Offer>, requiresShipping: bool}
+     * @return array{subtotal: int, discount: int, total: int, offers: list<array{name: string, percentage: int, categories: list<string>, amount: int}>, itemOffers: array<int, Offer>}
      */
     #[Computed]
     public function summary(): array

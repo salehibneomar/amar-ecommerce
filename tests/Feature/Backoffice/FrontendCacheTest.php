@@ -1,9 +1,9 @@
 <?php
 
 use App\Enums\System\FrontendCacheKeyEnum;
-use App\Models\Book;
 use App\Models\Category;
 use App\Models\Faq;
+use App\Models\Product;
 use App\Services\Frontend\Shop\PageService;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\Cache;
@@ -36,10 +36,10 @@ test('turning the frontend cache off reads the database on every request', funct
 });
 
 test('saving or deleting a cached model clears its storefront cache keys', function () {
-    $book = Book::factory()->create();
+    $product = Product::factory()->create();
     cacheFrontendKeys(FrontendCacheKeyEnum::Products, FrontendCacheKeyEnum::Faqs);
 
-    $book->update(['name' => 'Renamed']);
+    $product->update(['name' => 'Renamed']);
 
     expect(frontendKeyIsCached(FrontendCacheKeyEnum::Products))->toBeFalse()
         ->and(frontendKeyIsCached(FrontendCacheKeyEnum::Faqs))->toBeTrue();
@@ -62,30 +62,30 @@ test('a category change clears categories, products and offers', function () {
 });
 
 test('stock-only changes keep the storefront cache', function () {
-    $book = Book::factory()->create(['quantity' => 5]);
+    $product = Product::factory()->create(['quantity' => 5]);
     cacheFrontendKeys(FrontendCacheKeyEnum::Products);
 
-    $book->decrement('quantity');
+    $product->decrement('quantity');
 
     expect(frontendKeyIsCached(FrontendCacheKeyEnum::Products))->toBeTrue();
 });
 
 test('uploading media clears the owner model cache', function () {
     Storage::fake('public');
-    $book = Book::factory()->create();
+    $product = Product::factory()->create();
     cacheFrontendKeys(FrontendCacheKeyEnum::Products);
 
-    $book->syncMedia('book.media.cover', UploadedFile::fake()->image('cover.jpg'));
+    $product->syncMedia('product.media.images', UploadedFile::fake()->image('photo.jpg'));
 
     expect(frontendKeyIsCached(FrontendCacheKeyEnum::Products))->toBeFalse();
 });
 
 test('inside a transaction the cache is cleared only after commit', function () {
-    $book = Book::factory()->create();
+    $product = Product::factory()->create();
     cacheFrontendKeys(FrontendCacheKeyEnum::Products);
 
-    DB::transaction(function () use ($book): void {
-        $book->update(['name' => 'In transaction']);
+    DB::transaction(function () use ($product): void {
+        $product->update(['name' => 'In transaction']);
 
         expect(frontendKeyIsCached(FrontendCacheKeyEnum::Products))->toBeTrue();
     });

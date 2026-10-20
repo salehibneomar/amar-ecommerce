@@ -2,7 +2,7 @@
 
 Every command this project needs, in one place. Each section says when to run it. For explanations and `.env` settings, see [SETUP.md](SETUP.md).
 
-> **Never run `composer serve:dev`, `php artisan app:fresh` or `php artisan migrate:fresh` on a live site.** They delete every user, order, uploaded book and banner.
+> **Never run `composer serve:dev`, `php artisan app:fresh` or `php artisan migrate:fresh` on a live site.** They delete every user, order, product, uploaded image and banner.
 
 ## Contents
 
@@ -48,7 +48,7 @@ php artisan down / up    # maintenance mode (same setting as Settings → System
 
 ```bash
 php artisan migrate               # apply new migrations (keeps data)
-composer serve:dev                # local only: wipe media + rebuild the database with demo data + embed books, then start the dev servers
+composer serve:dev                # local only: wipe media + rebuild the database with demo data + embed products, then start the dev servers
 php artisan migrate:status        # see which migrations ran
 ```
 
@@ -62,19 +62,19 @@ php -r "array_map('unlink', glob('storage/logs/*.log'));"
 php artisan app:fresh --seed       # media-library:clear, remove media folders, migrate:fresh --seed
 php artisan storage:link --force   # point public/storage at this project (fixes broken image previews after a folder move or rename)
 php artisan optimize
-php artisan ai-assistant:embed     # AI search vectors for the seeded books
+php artisan ai-assistant:embed     # AI search vectors for the seeded products
 composer run dev                   # start the dev servers (php artisan dev)
 ```
 
 ## AI assistant
 
 ```bash
-php artisan ai-assistant:embed             # embed new or changed books (skips unchanged ones)
-php artisan ai-assistant:embed --sleep=0   # no pause between calls (paid quota or few books)
+php artisan ai-assistant:embed             # embed new or changed products (skips unchanged ones)
+php artisan ai-assistant:embed --sleep=0   # no pause between calls (paid quota or few products)
 php artisan config:clear                   # after editing AI_ASSISTANT_* or GEMINI_* in .env
 ```
 
-Run `ai-assistant:embed` after the first install, after `composer serve:dev`, after changing `GEMINI_EMBEDDING_MODEL` or `GEMINI_EMBEDDING_DIMENSIONS`, and after bulk imports. Books saved in the backoffice are embedded automatically. Without `GEMINI_EMBEDDING_MODEL` the command only prints a notice, and search uses keywords. How it works: [OUR_RAG.md](OUR_RAG.md).
+Run `ai-assistant:embed` after the first install, after `composer serve:dev`, after changing `GEMINI_EMBEDDING_MODEL` or `GEMINI_EMBEDDING_DIMENSIONS`, and after bulk imports. Products saved in the backoffice are embedded automatically. Without `GEMINI_EMBEDDING_MODEL` the command only prints a notice, and search uses keywords. How it works: [OUR_RAG.md](OUR_RAG.md).
 
 ## Tests and code quality
 
@@ -141,7 +141,6 @@ Build locally, upload the project outside `public_html`, then in cPanel → Term
 
 ```bash
 php -v                                   # PHP 8.4 required
-php -i | grep disable_functions          # proc_open must not be listed (book previews)
 cd ~/amar-ecommerce-lite
 php artisan key:generate
 php artisan migrate --force --seed

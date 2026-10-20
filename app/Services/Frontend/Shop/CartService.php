@@ -3,12 +3,8 @@
 namespace App\Services\Frontend\Shop;
 
 use App\Enums\Catalog\ProductStatusEnum;
-use App\Enums\Catalog\StockTypeEnum;
-use App\Models\Book;
 use App\Models\Offer;
 use App\Models\Product;
-use App\Models\User;
-use App\Services\Frontend\Account\BookLibraryService;
 use Illuminate\Support\Collection;
 use Illuminate\Validation\ValidationException;
 
@@ -16,13 +12,10 @@ class CartService
 {
     private const SESSION_KEY = 'cart';
 
-    public function __construct(
-        private readonly PageService $pageService,
-        private readonly BookLibraryService $bookLibraryService,
-    ) {}
+    public function __construct(private readonly PageService $pageService) {}
 
     /**
-     * @return Collection<int, array{product: Book, quantity: int, line_total: int, original_total: int|null}>
+     * @return Collection<int, array{product: Product, quantity: int, line_total: int, original_total: int|null}>
      */
     public function getItems(): Collection
     {
@@ -32,11 +25,10 @@ class CartService
             return collect();
         }
 
-        $products = Book::query()
+        $products = Product::query()
             ->with('media')
             ->whereKey(array_keys($quantities))
             ->where('status', ProductStatusEnum::InStock)
-            ->where('is_free', false)
             ->get()
             ->keyBy('id');
 
@@ -45,9 +37,9 @@ class CartService
         }
 
         return collect(array_keys($quantities))
-            ->map(fn (int $productId): ?Book => $products->get($productId))
+            ->map(fn (int $productId): ?Product => $products->get($productId))
             ->filter()
-            ->map(fn (Book $product): array => [
+            ->map(fn (Product $product): array => [
                 'product' => $product,
                 'quantity' => $quantities[$product->id],
                 'line_total' => $product->final_price * $quantities[$product->id],
@@ -61,26 +53,16 @@ class CartService
         return array_sum($this->quantities());
     }
 
-    public function add(?User $user, int $productId): void
+    public function add(int $productId): void
     {
         $product = Product::query()->whereKey($productId)->where('status', ProductStatusEnum::InStock)->first();
 
         if ($product === null) {
-            throw ValidationException::withMessages(['cart' => __('This book is not available right now.')]);
-        }
-
-        if ($product->is_free) {
-            throw ValidationException::withMessages(['cart' => __('This book is free. Open it to read.')]);
-        }
-
-        $isDigital = $product->stock_type === StockTypeEnum::Digital;
-
-        if ($isDigital && $this->bookLibraryService->ownsProduct($user, $productId)) {
-            throw ValidationException::withMessages(['cart' => __('You already own this book.')]);
+            throw ValidationException::withMessages(['cart' => __('This product is not available right now.')]);
         }
 
         $quantities = $this->quantities();
-        $quantity = $isDigital ? 1 : ($quantities[$productId] ?? 0) + 1;
+        $quantity = ($quantities[$productId] ?? 0) + 1;
 
         $this->ensureStock($product, $quantity);
 
@@ -104,10 +86,6 @@ class CartService
 
         $product = Product::query()->findOrFail($productId);
 
-        if ($product->stock_type === StockTypeEnum::Digital) {
-            $quantity = 1;
-        }
-
         $this->ensureStock($product, $quantity);
 
         $quantities[$productId] = $quantity;
@@ -127,8 +105,8 @@ class CartService
     }
 
     /**
-     * @param  Collection<int, array{product: Book, quantity: int, line_total: int, original_total: int|null}>  $items
-     * @return array{subtotal: int, discount: int, total: int, offers: list<array{name: string, percentage: int, categories: list<string>, amount: int}>, itemOffers: array<int, Offer>, requiresShipping: bool}
+     * @param  Collection<int, array{product: Product, quantity: int, line_total: int, original_total: int|null}>  $items
+     * @return array{subtotal: int, discount: int, total: int, offers: list<array{name: string, percentage: int, categories: list<string>, amount: int}>, itemOffers: array<int, Offer>}
      */
     public function summary(Collection $items): array
     {
@@ -156,15 +134,14 @@ class CartService
             'total' => $subtotal - $discount,
             'offers' => $offers,
             'itemOffers' => $itemOffers,
-            'requiresShipping' => $items->contains(fn (array $item): bool => $item['product']->stock_type === StockTypeEnum::Physical),
         ];
     }
 
     public function ensureStock(Product $product, int $quantity): void
     {
-        if ($product->stock_type === StockTypeEnum::Physical && $product->quantity !== null && $quantity > $product->quantity) {
+        if ($quantity > $product->quantity) {
             throw ValidationException::withMessages([
-                'cart' => __('Only :count copies of :name are left.', ['count' => $product->quantity, 'name' => $product->name]),
+                'cart' => __('Only :count of :name are left.', ['count' => $product->quantity, 'name' => $product->name]),
             ]);
         }
     }

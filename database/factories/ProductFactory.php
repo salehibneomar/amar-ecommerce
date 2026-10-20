@@ -4,7 +4,6 @@ namespace Database\Factories;
 
 use App\Enums\Catalog\ProductBadgeEnum;
 use App\Enums\Catalog\ProductStatusEnum;
-use App\Enums\Catalog\StockTypeEnum;
 use App\Models\Product;
 use Illuminate\Database\Eloquent\Factories\Factory;
 
@@ -13,23 +12,24 @@ use Illuminate\Database\Eloquent\Factories\Factory;
  *
  * @extends Factory<TModel>
  */
-abstract class ProductFactory extends Factory
+class ProductFactory extends Factory
 {
+    protected $model = Product::class;
+
     /**
      * @return array<string, mixed>
      */
     public function definition(): array
     {
         return [
+            'sku' => strtoupper(fake()->unique()->bothify('???-#####')),
             'name' => fake()->unique()->sentence(3),
             'description' => fake()->paragraph(),
             'price' => fake()->numberBetween(100, 1200),
             'discount_percentage' => null,
-            'quantity' => null,
+            'quantity' => fake()->numberBetween(5, 50),
             'status' => ProductStatusEnum::InStock,
-            'stock_type' => StockTypeEnum::Digital,
             'badge' => fake()->optional()->randomElement(ProductBadgeEnum::cases()),
-            'is_free' => false,
             'is_featured' => false,
         ];
     }
@@ -39,14 +39,14 @@ abstract class ProductFactory extends Factory
         return $this->state(fn (array $attributes): array => ['is_featured' => true]);
     }
 
-    public function free(): static
+    public function stock(int $quantity): static
     {
-        return $this->state(fn (array $attributes): array => ['is_free' => true, 'price' => 0]);
+        return $this->state(fn (array $attributes): array => ['quantity' => $quantity]);
     }
 
-    public function physical(int $quantity = 20): static
+    public function outOfStock(): static
     {
-        return $this->state(fn (array $attributes): array => ['stock_type' => StockTypeEnum::Physical, 'quantity' => $quantity]);
+        return $this->state(fn (array $attributes): array => ['quantity' => 0, 'status' => ProductStatusEnum::OutOfStock]);
     }
 
     public function archived(): static

@@ -4,25 +4,31 @@ namespace App\Enums\Order;
 
 enum PaymentStatusEnum: string
 {
-    case Paid = 'paid';
-    case NotPaid = 'not_paid';
     case Pending = 'pending';
+    case Paid = 'paid';
+    case Failed = 'failed';
+    case Cancelled = 'cancelled';
+    case Refunded = 'refunded';
 
     public function label(): string
     {
         return match ($this) {
-            self::Paid => __('Paid'),
-            self::NotPaid => __('Not Paid'),
             self::Pending => __('Pending'),
+            self::Paid => __('Paid'),
+            self::Failed => __('Failed'),
+            self::Cancelled => __('Cancelled'),
+            self::Refunded => __('Refunded'),
         };
     }
 
     public function color(): string
     {
         return match ($this) {
-            self::Paid => 'green',
-            self::NotPaid => 'red',
             self::Pending => 'zinc',
+            self::Paid => 'green',
+            self::Failed => 'red',
+            self::Cancelled => 'orange',
+            self::Refunded => 'purple',
         };
     }
 
@@ -31,8 +37,13 @@ enum PaymentStatusEnum: string
         return $this === self::Pending;
     }
 
-    public function isNotPaid(): bool
+    public function isPaid(): bool
     {
-        return $this === self::NotPaid;
+        return $this === self::Paid;
+    }
+
+    public function isFailed(): bool
+    {
+        return $this === self::Failed;
     }
 }

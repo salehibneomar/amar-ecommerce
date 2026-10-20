@@ -2,51 +2,40 @@
 
 namespace App\Http\Controllers\Frontend;
 
-use App\Enums\Catalog\BookTypeEnum;
 use App\Http\Controllers\Controller;
-use App\Services\Frontend\Account\BookLibraryService;
 use App\Services\Frontend\Shop\PageService;
 use Illuminate\Contracts\View\View;
-use Illuminate\Http\Request;
 use Illuminate\Http\Response;
 
 class PageController extends Controller
 {
-    public function __construct(
-        private readonly PageService $pageService,
-        private readonly BookLibraryService $bookLibraryService,
-    ) {}
+    public function __construct(private readonly PageService $pageService) {}
 
-    public function landing(Request $request): View
+    public function landing(): View
     {
         $slides = $this->pageService->getBannerSlides();
         $categories = $this->pageService->getFeaturedCategories();
         $featuredProducts = $this->pageService->getFeaturedProducts();
         $newArrivals = $this->pageService->getNewArrivals();
         $offer = $this->pageService->getActiveOffers()->first();
-        $booksCount = $this->pageService->countProducts();
-        $ownedIds = $this->bookLibraryService->ownedProductIds($request->user());
-        $isPhysicalOnly = BookTypeEnum::current()->isPhysicalOnly();
+        $productsCount = $this->pageService->countProducts();
 
-        return view('frontend.landing.index', compact('slides', 'categories', 'featuredProducts', 'newArrivals', 'offer', 'booksCount', 'ownedIds', 'isPhysicalOnly'));
+        return view('frontend.landing.index', compact('slides', 'categories', 'featuredProducts', 'newArrivals', 'offer', 'productsCount'));
     }
 
     public function shop(): View
     {
-        $isPhysicalOnly = BookTypeEnum::current()->isPhysicalOnly();
-
-        return view('frontend.shop.index', compact('isPhysicalOnly'));
+        return view('frontend.shop.index');
     }
 
-    public function productDetail(Request $request, string $slug): View
+    public function productDetail(string $slug): View
     {
         $product = $this->pageService->getProductBySlug($slug);
         $relatedProducts = $this->pageService->getRelatedProducts($product);
-        $ownsProduct = $this->bookLibraryService->ownsProduct($request->user(), $product->id);
         $offer = $this->pageService->getOfferFor($product);
         $categoryTrail = $this->pageService->getCategoryTrail($product->category_id);
 
-        return view('frontend.shop.detail', compact('product', 'relatedProducts', 'ownsProduct', 'offer', 'categoryTrail'));
+        return view('frontend.shop.detail', compact('product', 'relatedProducts', 'offer', 'categoryTrail'));
     }
 
     public function sitemap(): Response

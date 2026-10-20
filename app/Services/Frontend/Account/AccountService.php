@@ -6,6 +6,7 @@ use App\Actions\Fortify\CreateNewUser;
 use App\Actions\Fortify\ResetUserPassword;
 use App\Models\User;
 use App\Services\Auth\EmailVerificationService;
+use App\Services\Frontend\Shop\OrderService;
 use App\Traits\Security\ThrottleTrait;
 use Illuminate\Auth\Events\Registered;
 use Illuminate\Http\UploadedFile;
@@ -21,6 +22,7 @@ class AccountService
         private readonly CreateNewUser $createNewUser,
         private readonly ResetUserPassword $resetUserPassword,
         private readonly EmailVerificationService $emailVerificationService,
+        private readonly OrderService $orderService,
     ) {}
 
     public function login(string $email, string $password, bool $remember, string $throttleKey): bool
@@ -48,6 +50,7 @@ class AccountService
         }
 
         Auth::login($user, $remember);
+        $this->orderService->claimGuestOrders($user);
 
         return true;
     }
@@ -88,6 +91,14 @@ class AccountService
      * @param  array{name: string, email: string}  $data
      */
     public function updateProfile(User $user, array $data): bool
+    {
+        return $user->update($data);
+    }
+
+    /**
+     * @param  array{shipping_address: string|null, billing_address: string|null}  $data
+     */
+    public function updateAddresses(User $user, array $data): bool
     {
         return $user->update($data);
     }

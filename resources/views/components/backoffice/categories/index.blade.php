@@ -1,5 +1,5 @@
 <div class="flex flex-col gap-6">
-    <x-backoffice.layout.main-content-container :title="__('Manage Categories')" :subtitle="__('Organise books into categories and sub-categories.')">
+    <x-backoffice.layout.main-content-container :title="__('Manage Categories')" :subtitle="__('Organise products into categories and sub-categories.')">
         <x-backoffice.management.table :sortable="$this->tableSortableColumns" :columns="[
             'id' => __('ID'),
             'name' => __('Name'),
@@ -90,7 +90,7 @@
         </x-backoffice.management.form-modal>
 
         <x-backoffice.management.form-modal wire:model="showDeleteConfirmation" size="md" :title="__('Delete category?')">
-            <flux:text>{{ __('Books in this category will become uncategorised.') }}</flux:text>
+            <flux:text>{{ __('Products in this category will become uncategorised.') }}</flux:text>
             <x-slot:footer>
                 <div class="flex justify-end gap-2">
                     <flux:modal.close>

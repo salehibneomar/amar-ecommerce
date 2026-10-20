@@ -22,14 +22,14 @@ return new class extends Migration
             $table->unsignedTinyInteger('extra_discount_percentage')->default(0);
             $table->unsignedInteger('extra_discount_amount')->default(0);
             $table->unsignedInteger('total');
-            $table->string('status')->default(OrderStatusEnum::Requested->value)->index();
+            $table->string('currency', 3);
+            $table->string('status')->default(OrderStatusEnum::Pending->value)->index();
             $table->string('payment_status')->default(PaymentStatusEnum::Pending->value)->index();
-            $table->string('payment_method')->nullable();
-            $table->string('transaction_id', 64)->nullable();
             $table->string('contact_mode')->nullable();
             $table->timestamp('customer_contact_recorded_at')->nullable();
             $table->string('phone', 20);
-            $table->text('shipping_address')->nullable();
+            $table->text('shipping_address');
+            $table->text('billing_address');
             $table->text('notes')->nullable();
             $table->text('internal_note')->nullable();
             $table->timestamp('completed_at')->nullable();
@@ -43,6 +43,7 @@ return new class extends Migration
             $table->foreignId('order_id')->constrained()->cascadeOnDelete();
             $table->foreignId('product_id')->nullable()->constrained()->nullOnDelete();
             $table->string('product_name_snapshot');
+            $table->string('sku_snapshot', 64)->nullable();
             $table->unsignedInteger('quantity');
             $table->unsignedInteger('unit_price');
             $table->unsignedTinyInteger('discount_percentage')->default(0);
@@ -51,10 +52,28 @@ return new class extends Migration
             $table->unsignedInteger('line_total');
             $table->timestamps();
         });
+
+        Schema::create('payments', function (Blueprint $table) {
+            $table->id();
+            $table->foreignId('order_id')->constrained()->cascadeOnDelete();
+            $table->string('gateway', 30)->index();
+            $table->string('method', 30)->nullable();
+            $table->string('status')->default(PaymentStatusEnum::Pending->value)->index();
+            $table->unsignedInteger('amount');
+            $table->string('currency', 3);
+            $table->string('reference', 64)->unique();
+            $table->string('transaction_id', 64)->nullable();
+            $table->json('payload')->nullable();
+            $table->timestamp('paid_at')->nullable();
+            $table->timestamps();
+
+            $table->unique(['gateway', 'method', 'transaction_id']);
+        });
     }
 
     public function down(): void
     {
+        Schema::dropIfExists('payments');
         Schema::dropIfExists('order_items');
         Schema::dropIfExists('orders');
     }

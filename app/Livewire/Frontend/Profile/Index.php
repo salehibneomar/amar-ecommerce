@@ -4,6 +4,7 @@ namespace App\Livewire\Frontend\Profile;
 
 use App\Concerns\ProfileValidationRules;
 use App\Enums\User\SocialProviderEnum;
+use App\Livewire\Concerns\InteractsWithAddresses;
 use App\Livewire\Concerns\InteractsWithAvatar;
 use App\Services\Frontend\Account\AccountService;
 use Illuminate\Contracts\View\View;
@@ -13,7 +14,7 @@ use Livewire\Component;
 
 class Index extends Component
 {
-    use InteractsWithAvatar, ProfileValidationRules;
+    use InteractsWithAddresses, InteractsWithAvatar, ProfileValidationRules;
 
     public string $name = '';
 

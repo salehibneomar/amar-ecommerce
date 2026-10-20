@@ -4,15 +4,18 @@ use App\Enums\Content\OfferTypeEnum;
 use App\Enums\Notification\NotificationTypeEnum;
 use App\Enums\Order\OrderStatusEnum;
 use App\Enums\Order\PaymentStatusEnum;
+use App\Enums\Payment\PaymentGatewayEnum;
+use App\Livewire\Frontend\Auth\Login;
 use App\Livewire\Frontend\Cart\Checkout;
 use App\Livewire\Frontend\Cart\Counter;
 use App\Livewire\Frontend\Cart\Index;
 use App\Livewire\Frontend\Orders\Track;
 use App\Mail\Order\OrderPlacedMail;
-use App\Models\Book;
 use App\Models\Category;
 use App\Models\Offer;
 use App\Models\Order;
+use App\Models\Payment;
+use App\Models\Product;
 use App\Models\User;
 use App\Services\Frontend\Shop\OrderService;
 use Illuminate\Http\UploadedFile;
@@ -21,8 +24,8 @@ use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\URL;
 use Livewire\Livewire;
 
-test('guests can add books to the cart and open checkout', function () {
-    $product = Book::factory()->create(['name' => 'Guest Cart Book']);
+test('guests can add products to the cart and open checkout', function () {
+    $product = Product::factory()->create(['name' => 'Guest Cart Product']);
 
     Livewire::test(Counter::class)
         ->call('add', $product->id)
@@ -32,37 +35,17 @@ test('guests can add books to the cart and open checkout', function () {
 
     expect(session('cart'))->toBe([$product->id => 1]);
 
-    Livewire::test(Index::class)->assertSee('Guest Cart Book');
+    Livewire::test(Index::class)->assertSee('Guest Cart Product');
     $this->get(route('checkout'))->assertOk();
 });
 
-test('a digital book stays at quantity one however often it is added', function () {
-    $product = Book::factory()->create();
+test('archived and out of stock products cannot be added to the cart', function () {
+    $archived = Product::factory()->archived()->create();
+    $soldOut = Product::factory()->outOfStock()->create();
 
     Livewire::test(Counter::class)
-        ->call('add', $product->id)
-        ->call('add', $product->id);
-
-    expect(session('cart'))->toBe([$product->id => 1]);
-});
-
-test('free, archived and already owned books cannot be added to the cart', function () {
-    $customer = User::factory()->create();
-    $free = Book::factory()->free()->create();
-    $archived = Book::factory()->archived()->create();
-    $owned = Book::factory()->create();
-    Order::factory()->for($customer)->paid()->create()->items()->create([
-        'product_id' => $owned->id,
-        'product_name_snapshot' => $owned->name,
-        'quantity' => 1,
-        'unit_price' => $owned->price,
-        'line_total' => $owned->price,
-    ]);
-
-    Livewire::actingAs($customer)->test(Counter::class)
-        ->call('add', $free->id)
         ->call('add', $archived->id)
-        ->call('add', $owned->id)
+        ->call('add', $soldOut->id)
         ->assertDispatched('toast-show');
 
     expect(session('cart', []))->toBe([]);
@@ -70,12 +53,13 @@ test('free, archived and already owned books cannot be added to the cart', funct
 
 test('staff accounts can add to the cart and place an order', function () {
     $staff = User::factory()->superAdmin()->create();
-    $product = Book::factory()->create();
+    $product = Product::factory()->create();
 
     Livewire::actingAs($staff)->test(Counter::class)->call('add', $product->id);
 
     Livewire::actingAs($staff)->test(Checkout::class)
         ->set('phone', '01712345678')
+        ->set('shippingAddress', 'Mirpur, Dhaka')
         ->call('placeOrder')
         ->assertHasNoErrors()
         ->assertRedirect();
@@ -84,8 +68,8 @@ test('staff accounts can add to the cart and place an order', function () {
         ->and($staff->notifications()->where('type', NotificationTypeEnum::OrderPlaced->value)->count())->toBe(1);
 });
 
-test('printed book quantities cannot exceed the stock', function () {
-    $product = Book::factory()->physical(2)->create();
+test('cart quantities cannot exceed the stock', function () {
+    $product = Product::factory()->stock(2)->create();
 
     Livewire::test(Counter::class)->call('add', $product->id);
 
@@ -97,10 +81,10 @@ test('printed book quantities cannot exceed the stock', function () {
     expect(session('cart'))->toBe([$product->id => 2]);
 });
 
-test('checkout places a requested order with the live offer applied and empties the cart', function () {
+test('checkout places a pending order with the live offer applied and empties the cart', function () {
     $customer = User::factory()->create();
-    $digital = Book::factory()->create(['price' => 400, 'discount_percentage' => 25]);
-    $printed = Book::factory()->physical(5)->create(['price' => 200]);
+    $digital = Product::factory()->stock(5)->create(['price' => 400, 'discount_percentage' => 25]);
+    $printed = Product::factory()->stock(5)->create(['price' => 200]);
     Offer::factory()->create(['name' => 'Test', 'discount_percentage' => 10]);
 
     Livewire::actingAs($customer)->test(Counter::class)
@@ -121,9 +105,12 @@ test('checkout places a requested order with the live offer applied and empties 
         ->and($order->subtotal)->toBe(700)
         ->and($order->discount_amount)->toBe(70)
         ->and($order->total)->toBe(630)
-        ->and($order->status)->toBe(OrderStatusEnum::Requested)
+        ->and($order->status)->toBe(OrderStatusEnum::Pending)
         ->and($order->payment_status)->toBe(PaymentStatusEnum::Pending)
-        ->and($order->transaction_id)->toBeNull()
+        ->and($order->currency)->toBe(appCurrency())
+        ->and($order->shipping_address)->toBe('Mirpur, Dhaka')
+        ->and($digital->refresh()->quantity)->toBe(4)
+        ->and(Payment::query()->count())->toBe(0)
         ->and($order->items)->toHaveCount(2)
         ->and($printed->refresh()->quantity)->toBe(3)
         ->and(session('cart', []))->toBe([])
@@ -139,21 +126,22 @@ test('completed order steps are all marked as reached', function () {
     $steps = OrderStatusEnum::Completed->steps();
 
     expect($steps)
-        ->toHaveCount(3)
-        ->and(array_column($steps, 'reached'))->toBe([true, true, true])
-        ->and(array_column($steps, 'current'))->toBe([false, false, false]);
+        ->toHaveCount(4)
+        ->and(array_column($steps, 'reached'))->toBe([true, true, true, true])
+        ->and(array_column($steps, 'current'))->toBe([false, false, false, false]);
 });
 
 test('order amounts are rounded to whole currency units', function () {
-    config(['app.currency_symbol' => 'Tk ', 'shop.support_email' => 'support@example.com']);
+    config(['app.currency_symbol' => 'Tk ', 'shop.support_email' => 'support@example.com', 'payment.enabled' => [PaymentGatewayEnum::Manual->value]]);
     $customer = User::factory()->create();
-    $product = Book::factory()->create(['price' => 605, 'discount_percentage' => 5]);
+    $product = Product::factory()->create(['price' => 605, 'discount_percentage' => 5]);
     Offer::factory()->create(['discount_percentage' => 10]);
 
     Livewire::actingAs($customer)->test(Counter::class)->call('add', $product->id);
 
     Livewire::actingAs($customer)->test(Checkout::class)
         ->set('phone', '01712345678')
+        ->set('shippingAddress', 'Mirpur, Dhaka')
         ->call('placeOrder')
         ->assertHasNoErrors();
 
@@ -161,34 +149,146 @@ test('order amounts are rounded to whole currency units', function () {
     $emailLink = collect(app(OrderService::class)->contactLinks($order))->firstWhere('icon', 'mail');
 
     expect($order->items->sole()->line_total)->toBe(575)
+        ->and($order->items->sole()->sku_snapshot)->toBe($product->sku)
         ->and($order->subtotal)->toBe(575)
         ->and($order->discount_amount)->toBe(58)
         ->and($order->total)->toBe(517)
         ->and(rawurldecode($emailLink['href']))->toContain('Total: Tk 517');
 });
 
-test('guests must create an account before placing an order', function () {
-    $product = Book::factory()->create();
+test('guests can place an order with their name and email', function () {
+    Mail::fake();
+    $this->withoutDefer();
+    $product = Product::factory()->stock(3)->create();
 
     Livewire::test(Counter::class)->call('add', $product->id);
 
     Livewire::test(Checkout::class)
+        ->assertSee('Place Order')
+        ->set('name', 'Guest Buyer')
+        ->set('email', 'Guest@Example.com')
+        ->set('phone', '01712345678')
+        ->set('shippingAddress', 'Mirpur, Dhaka')
+        ->set('billingSameAsShipping', false)
+        ->set('billingAddress', 'Gulshan, Dhaka')
         ->call('placeOrder')
-        ->assertRedirect(route('user.register'));
+        ->assertHasNoErrors()
+        ->assertRedirect();
 
-    expect(Order::count())->toBe(0)
-        ->and(session('cart'))->toBe([$product->id => 1]);
+    $order = Order::query()->sole();
 
-    Livewire::test(Checkout::class)
-        ->assertSee('Create a free account')
-        ->assertSee('Create Account')
-        ->assertSee('Log in')
-        ->assertDontSee('Place order');
+    expect($order->user_id)->toBeNull()
+        ->and($order->customer_name)->toBe('Guest Buyer')
+        ->and($order->customer_email)->toBe('guest@example.com')
+        ->and($order->shipping_address)->toBe('Mirpur, Dhaka')
+        ->and($order->billing_address)->toBe('Gulshan, Dhaka')
+        ->and($product->refresh()->quantity)->toBe(2)
+        ->and(session('cart', []))->toBe([]);
+
+    Mail::assertSent(OrderPlacedMail::class, fn (OrderPlacedMail $mail): bool => $mail->hasTo('guest@example.com'));
 });
 
-test('checkout requires an address only when the cart has printed books', function () {
+test('guests can create an account while placing an order', function () {
+    Livewire::test(Counter::class)->call('add', Product::factory()->create()->id);
+
+    Livewire::test(Checkout::class)
+        ->set('name', 'New Buyer')
+        ->set('email', 'new@example.com')
+        ->set('phone', '01712345678')
+        ->set('shippingAddress', 'Mirpur, Dhaka')
+        ->set('createAccount', true)
+        ->set('password', 'Secret-pass-123')
+        ->set('password_confirmation', 'Secret-pass-123')
+        ->call('placeOrder')
+        ->assertHasNoErrors();
+
+    $user = User::query()->where('email', 'new@example.com')->sole();
+
+    expect($user->hasVerifiedEmail())->toBeFalse()
+        ->and(Order::query()->sole()->customer_email)->toBe('new@example.com');
+});
+
+test('guests cannot create an account at checkout with an email that is taken', function () {
+    User::factory()->create(['email' => 'taken@example.com']);
+    Livewire::test(Counter::class)->call('add', Product::factory()->create()->id);
+
+    Livewire::test(Checkout::class)
+        ->set('name', 'New Buyer')
+        ->set('email', 'taken@example.com')
+        ->set('phone', '01712345678')
+        ->set('shippingAddress', 'Mirpur, Dhaka')
+        ->set('createAccount', true)
+        ->set('password', 'Secret-pass-123')
+        ->set('password_confirmation', 'Secret-pass-123')
+        ->call('placeOrder')
+        ->assertHasErrors('email');
+
+    expect(Order::count())->toBe(0);
+});
+
+test('no account is created when the order cannot be placed', function () {
+    $product = Product::factory()->stock(1)->create();
+    Livewire::test(Counter::class)->call('add', $product->id);
+    $product->update(['quantity' => 0]);
+
+    Livewire::test(Checkout::class)
+        ->set('name', 'New Buyer')
+        ->set('email', 'new@example.com')
+        ->set('phone', '01712345678')
+        ->set('shippingAddress', 'Mirpur, Dhaka')
+        ->set('createAccount', true)
+        ->set('password', 'Secret-pass-123')
+        ->set('password_confirmation', 'Secret-pass-123')
+        ->call('placeOrder')
+        ->assertHasErrors('cart');
+
+    expect(Order::count())->toBe(0)
+        ->and(User::query()->where('email', 'new@example.com')->exists())->toBeFalse();
+});
+
+test('guest orders join a verified account when that customer logs in', function () {
+    $user = User::factory()->create(['email' => 'buyer@example.com', 'password' => 'Secret-pass-123']);
+    $order = Order::factory()->create(['user_id' => null, 'customer_email' => 'buyer@example.com']);
+
+    Livewire::test(Login::class)
+        ->set('email', 'buyer@example.com')
+        ->set('password', 'Secret-pass-123')
+        ->call('login')
+        ->assertHasNoErrors();
+
+    expect($order->refresh()->user_id)->toBe($user->id);
+});
+
+test('guests must give a name and email to place an order', function () {
+    Livewire::test(Counter::class)->call('add', Product::factory()->create()->id);
+
+    Livewire::test(Checkout::class)
+        ->set('phone', '01712345678')
+        ->set('shippingAddress', 'Mirpur, Dhaka')
+        ->call('placeOrder')
+        ->assertHasErrors(['name' => 'required', 'email' => 'required']);
+
+    expect(Order::count())->toBe(0);
+});
+
+test('checkout prefills the saved addresses and uses the delivery address for billing when marked the same', function () {
+    $customer = User::factory()->create(['phone' => '01712345678', 'shipping_address' => 'Mirpur, Dhaka', 'billing_address' => 'Gulshan, Dhaka']);
+    Livewire::actingAs($customer)->test(Counter::class)->call('add', Product::factory()->create()->id);
+
+    Livewire::actingAs($customer)->test(Checkout::class)
+        ->assertSet('shippingAddress', 'Mirpur, Dhaka')
+        ->assertSet('billingAddress', 'Gulshan, Dhaka')
+        ->assertSet('billingSameAsShipping', false)
+        ->set('billingSameAsShipping', true)
+        ->call('placeOrder')
+        ->assertHasNoErrors();
+
+    expect(Order::query()->sole()->billing_address)->toBe('Mirpur, Dhaka');
+});
+
+test('checkout requires a delivery address', function () {
     $customer = User::factory()->create();
-    Livewire::actingAs($customer)->test(Counter::class)->call('add', Book::factory()->physical()->create()->id);
+    Livewire::actingAs($customer)->test(Counter::class)->call('add', Product::factory()->create()->id);
 
     Livewire::actingAs($customer)->test(Checkout::class)
         ->set('phone', '01712345678')
@@ -202,12 +302,13 @@ test('checkout requires an address only when the cart has printed books', functi
 test('checkout with a phone number another user owns places the order without copying it to the profile', function () {
     User::factory()->create(['phone' => '01712345678']);
     $customer = User::factory()->create();
-    $product = Book::factory()->create();
+    $product = Product::factory()->create();
 
     Livewire::actingAs($customer)->test(Counter::class)->call('add', $product->id);
 
     Livewire::actingAs($customer)->test(Checkout::class)
         ->set('phone', '01712345678')
+        ->set('shippingAddress', 'Mirpur, Dhaka')
         ->call('placeOrder')
         ->assertHasNoErrors();
 
@@ -217,7 +318,7 @@ test('checkout with a phone number another user owns places the order without co
 
 test('checkout rejects an invalid phone', function () {
     $customer = User::factory()->create();
-    $product = Book::factory()->create();
+    $product = Product::factory()->create();
 
     Livewire::actingAs($customer)->test(Counter::class)->call('add', $product->id);
 
@@ -246,7 +347,7 @@ test('customers can only view their own orders', function () {
 
 test('customers can download a compact invoice for a paid order', function () {
     $customer = User::factory()->create();
-    $order = Order::factory()->for($customer)->paid()->create(['customer_name' => 'নতুন কৃষক']);
+    $order = Order::factory()->for($customer)->paid()->create(['customer_name' => 'নতুন ক্রেতা']);
 
     $response = $this->actingAs($customer)->get(route('user.orders.invoice', $order->public_order_id))
         ->assertOk()
@@ -261,8 +362,8 @@ test('signed in customers get an order email without a password link', function 
     $this->withoutDefer();
     $customer = User::factory()->create();
 
-    Livewire::actingAs($customer)->test(Counter::class)->call('add', Book::factory()->create()->id);
-    Livewire::actingAs($customer)->test(Checkout::class)->set('phone', '01712345678')->call('placeOrder')->assertHasNoErrors();
+    Livewire::actingAs($customer)->test(Counter::class)->call('add', Product::factory()->create()->id);
+    Livewire::actingAs($customer)->test(Checkout::class)->set('phone', '01712345678')->set('shippingAddress', 'Mirpur, Dhaka')->call('placeOrder')->assertHasNoErrors();
 
     Mail::assertSent(OrderPlacedMail::class, fn (OrderPlacedMail $mail): bool => $mail->hasTo($customer->email));
 });
@@ -297,13 +398,13 @@ test('a guest order joins the account once that email is verified', function () 
     expect($order->refresh()->user_id)->toBe($user->id);
 });
 
-test('each book gets the best live offer that covers its category', function () {
+test('each product gets the best live offer that covers its category', function () {
     $customer = User::factory()->create();
     $parent = Category::factory()->create();
     $child = Category::factory()->create(['parent_id' => $parent->id]);
     $grandchild = Category::factory()->create(['parent_id' => $child->id]);
-    $inChild = Book::factory()->create(['price' => 300, 'discount_percentage' => null, 'category_id' => $grandchild->id]);
-    $elsewhere = Book::factory()->create(['price' => 200, 'discount_percentage' => null]);
+    $inChild = Product::factory()->create(['price' => 300, 'discount_percentage' => null, 'category_id' => $grandchild->id]);
+    $elsewhere = Product::factory()->create(['price' => 200, 'discount_percentage' => null]);
     Offer::factory()->create(['discount_percentage' => 5]);
     Offer::factory()->create(['type' => OfferTypeEnum::Specific, 'discount_percentage' => 20])->categories()->attach($parent);
 
@@ -313,6 +414,7 @@ test('each book gets the best live offer that covers its category', function () 
 
     Livewire::actingAs($customer)->test(Checkout::class)
         ->set('phone', '01712345678')
+        ->set('shippingAddress', 'Mirpur, Dhaka')
         ->call('placeOrder')
         ->assertHasNoErrors();
 
@@ -332,22 +434,64 @@ test('order detail shows an alert for every status', function (OrderStatusEnum $
         ->assertSee($status->notice()['heading']);
 })->with(OrderStatusEnum::cases());
 
-test('order detail shows the covers of the ordered books', function () {
+test('order detail shows the thumbnails of the ordered products', function () {
     Storage::fake('public');
     $customer = User::factory()->create();
     $order = Order::factory()->for($customer)->create();
 
     foreach (['first', 'second'] as $name) {
-        $book = Book::factory()->create();
-        $book->attachMedia('book.media.cover', UploadedFile::fake()->image("{$name}.jpg", 300, 450));
-        $order->items()->create(['product_id' => $book->id, 'product_name_snapshot' => $book->name, 'quantity' => 1, 'unit_price' => 1, 'line_total' => 1]);
+        $product = Product::factory()->create();
+        $product->attachMedia('product.media.images', UploadedFile::fake()->image("{$name}.jpg", 500, 500));
+        $order->items()->create(['product_id' => $product->id, 'product_name_snapshot' => $product->name, 'quantity' => 1, 'unit_price' => 1, 'line_total' => 1]);
     }
 
     $order = app(OrderService::class)->getOrderWithItems($order->fresh());
 
-    expect($order->items->every(fn ($item): bool => $item->product->relationLoaded('media') && filled($item->product->cover_thumbnail_url)))->toBeTrue();
+    expect($order->items->every(fn ($item): bool => $item->product->relationLoaded('media') && filled($item->product->thumbnail_url)))->toBeTrue();
 
     $this->actingAs($customer)->get(route('user.orders.detail', $order->public_order_id))
         ->assertOk()
-        ->assertSee($order->items->first()->product->cover_thumbnail_url, false);
+        ->assertSee($order->items->first()->product->thumbnail_url, false);
+});
+
+test('manual payment instructions only show for orders paid by bKash or Nagad', function () {
+    config(['shop.support_email' => 'support@example.com']);
+    $customer = User::factory()->create();
+    $order = Order::factory()->for($customer)->create();
+
+    expect(app(OrderService::class)->contactLinks($order))->toBe([]);
+
+    $this->actingAs($customer)->get(route('user.orders.detail', $order->public_order_id))
+        ->assertOk()
+        ->assertDontSee(__('Contact us with your order ID. We share the bKash or Nagad payment details and confirm the payment.'));
+
+    Payment::factory()->for($order)->create();
+    $order->refresh();
+
+    expect(app(OrderService::class)->contactLinks($order))->not->toBe([]);
+
+    $this->actingAs($customer)->get(route('user.orders.detail', $order->public_order_id))
+        ->assertOk()
+        ->assertSee(__('Contact us with your order ID. We share the bKash or Nagad payment details and confirm the payment.'));
+});
+
+test('with a payment process checkout opens a pending payment for the order total', function () {
+    config(['payment.enabled' => [PaymentGatewayEnum::Manual->value]]);
+    $customer = User::factory()->create();
+
+    Livewire::actingAs($customer)->test(Counter::class)->call('add', Product::factory()->create(['price' => 300, 'discount_percentage' => null])->id);
+    Livewire::actingAs($customer)->test(Checkout::class)
+        ->set('phone', '01712345678')
+        ->set('shippingAddress', 'Mirpur, Dhaka')
+        ->call('placeOrder')
+        ->assertHasNoErrors()
+        ->assertRedirect();
+
+    $payment = Payment::query()->sole();
+
+    expect($payment->order_id)->toBe(Order::query()->sole()->id)
+        ->and($payment->gateway)->toBe(PaymentGatewayEnum::Manual)
+        ->and($payment->status)->toBe(PaymentStatusEnum::Pending)
+        ->and($payment->amount)->toBe(300)
+        ->and($payment->reference)->not->toBeEmpty();
 });

@@ -1,6 +1,6 @@
 # Incomplete features and future improvements
 
-The core shop works end to end. Customers can browse, preview, register, check out, pay, track orders and read or download what they bought. Staff can run the catalogue, orders, offers, banners, staff, roles and reports. This file lists what is **not finished**, what is **left over**, and what would be **worth improving later**.
+The core shop works end to end. Customers can browse, check out as a guest or with an account, pay, track orders and download invoices. Staff can run the catalogue, orders, offers, banners, staff, roles and reports. This file lists what is **not finished**, what is **left over**, and what would be **worth improving later**.
 
 Status legend: 🔴 fix before launch · 🟠 should fix soon · 🟢 nice to have
 
@@ -25,9 +25,12 @@ Status legend: 🔴 fix before launch · 🟠 should fix soon · 🟢 nice to ha
 
 | | Item | Details |
 |---|---|---|
-| 🟢 | **SEO extras** | Meta description, OpenGraph/Twitter tags, canonical URLs, `noindex` on private pages and `/sitemap.xml` are in place. Still open: structured data (JSON-LD) for books and submitting the sitemap in Google Search Console |
-| 🟠 | **AI assistant v3** | The beta assistant chats and suggests books (RAG). Adding or removing cart items by chat is planned in OUR_RAG.md (section 14). Replies are not streamed, the chat resets on reload, and vector search runs in PHP over cached vectors (fine for a few thousand books) |
-| 🟢 | **Automatic payment verification** | Payments are checked by hand. The gateway interface is ready for a bKash/Nagad API |
+| 🟠 | **Product image size** | The `large` product image is cropped to 1000×1000 (`config/product.php`). Raising it to about 2000px and fitting instead of cropping would keep detail and shape |
+| 🟢 | **Saved addresses** | Each user has one shipping and one billing address as free text. Several saved addresses or split fields (city, area, postcode) are not built |
+| 🟢 | **SEO extras** | Meta description, OpenGraph/Twitter tags, canonical URLs, `noindex` on private pages and `/sitemap.xml` are in place. Still open: structured data (JSON-LD) for products and submitting the sitemap in Google Search Console |
+| 🟠 | **AI assistant v3** | The beta assistant chats and suggests products (RAG). Adding or removing cart items by chat is planned in OUR_RAG.md (section 14). Replies are not streamed, the chat resets on reload, and vector search runs in PHP over cached vectors (fine for a few thousand products) |
+| 🟢 | **Automatic payment verification** | Stripe is verified automatically. bKash and Nagad are still checked by hand, and the gateway interface is ready for their APIs |
+| 🟠 | **Online payment v2** | Unpaid Stripe orders keep their stock until staff cancel them (no auto cancel), refunds are not sent to Stripe (staff refund in the Stripe dashboard), and no email goes out when an online payment succeeds |
 | 🟢 | **Automatic reminders and cancellations** | Staff act by hand. Automating needs a scheduled command and cron |
 | 🟢 | **Self-service account deletion** | The privacy policy asks customers to contact the team |
 | 🟢 | **Activity log** | No record of who changed what in the backoffice |
@@ -38,7 +41,6 @@ Status legend: 🔴 fix before launch · 🟠 should fix soon · 🟢 nice to ha
 | | Item | Details |
 |---|---|---|
 | 🟢 | **PHPStan warnings** | Mostly in older Livewire components: missing paginator generics, `list` vs `array` shapes, unnecessary `?->`. None break anything. Fix gradually when touching those files |
-| 🟢 | **`GhostscriptTrait`** | Kept on purpose as a fallback PDF engine |
 | 🟢 | **`jobs` / `job_batches` tables** | Used only when `MAIL_QUEUE_ENABLED=true` (order emails). Otherwise empty |
 | 🟢 | **Order detail lists its lines inline** | `frontend/orders/detail.blade.php` repeats the order-line markup instead of using `x-frontend.orders.items` like tracking and confirmation |
 | 🟢 | **Seeded accounts share one password** | `123456`, local only. Keep `DB_SEEDING_ENABLED=false` live |

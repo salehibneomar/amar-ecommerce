@@ -4,9 +4,6 @@ use App\Enums\User\PermissionEnum;
 use App\Enums\User\UserRoleEnum;
 use App\Models\Role;
 use Illuminate\Foundation\Testing\RefreshDatabase;
-use Illuminate\Http\UploadedFile;
-use Mpdf\Mpdf;
-use Mpdf\Output\Destination;
 use Spatie\Permission\Models\Permission;
 use Tests\TestCase;
 
@@ -59,32 +56,3 @@ expect()->extend('toBeOne', function () {
 | global functions to help you to reduce the number of lines of code in your test files.
 |
 */
-
-function realPdf(int $pages = 4, string $name = 'book.pdf'): UploadedFile
-{
-    $html = implode('<div style="page-break-after: always;"></div>', array_map(fn (int $page): string => "<p>Page {$page}</p>", range(1, $pages)));
-
-    return UploadedFile::fake()->createWithContent($name, pdfFromHtml($html));
-}
-
-function pdfFromHtml(string $html): string
-{
-    $mpdf = new Mpdf(['tempDir' => storage_path('framework/cache/mpdf')]);
-    $mpdf->WriteHTML($html);
-
-    return $mpdf->Output('', Destination::STRING_RETURN);
-}
-
-function pdfPageCount(string $contents): int
-{
-    return preg_match_all('/\/Type\s*\/Page(?!s)\b/', $contents);
-}
-
-function skipWithoutPdfLib(): void
-{
-    $binary = (string) config('book.preview.node');
-
-    if (trim((string) shell_exec('command -v '.escapeshellarg($binary))) === '' || ! is_dir(base_path('node_modules/pdf-lib'))) {
-        test()->markTestSkipped('Node or pdf-lib is not installed.');
-    }
-}

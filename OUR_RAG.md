@@ -24,7 +24,7 @@ Commands live in [SETUP_COMMANDS.md](SETUP_COMMANDS.md). Settings live in [SETUP
 
 ## 1. RAG in plain words
 
-A language model (LLM) like Gemini knows a lot about the world, but **nothing about our shop**: not our books, our prices or what is in stock. If you ask it "which book should I buy for rice farming?", it will happily invent titles.
+A language model (LLM) like Gemini knows a lot about the world, but **nothing about our shop**: not our products, our prices or what is in stock. If you ask it "which running shoes should I buy?", it will happily invent products.
 
 **RAG (Retrieval-Augmented Generation)** fixes that in three moves:
 
@@ -38,13 +38,13 @@ The model becomes a good writer and recommender on top of our real data, instead
 
 | Version | What the customer gets | Status |
 |---|---|---|
-| v1: chat | An **Ask AI** page with a Beta badge. The customer chats about books and shopping | Done |
-| v2: suggestions (RAG) | The reply comes with real books (out-of-stock ones are named as such) as clickable list items, each with a one-line reason | Done |
-| v3: cart actions | "Add the first one", "remove the novel from my cart" | Planned (see [section 14](#14-limits-and-what-can-be-done-next)) |
+| v1: chat | An **Ask AI** page with a Beta badge. The customer chats about products and shopping | Done |
+| v2: suggestions (RAG) | The reply comes with real products (out-of-stock ones are named as such) as clickable list items, each with a one-line reason | Done |
+| v3: cart actions | "Add the first one", "remove the shoes from my cart" | Planned (see [section 14](#14-limits-and-what-can-be-done-next)) |
 
 Built-in safety and cost features:
 
-- Suggestions can only be books we actually sent to the model. Names, covers and prices on the cards always come from our database.
+- Suggestions can only be products we actually sent to the model. Names, images and prices on the cards always come from our database.
 - The model never sees database ids or customer details. Emails and phone numbers in messages are masked.
 - Identical requests are answered from a cache, and every message is rate-limited.
 - If the AI is down or out of quota, keyword search still returns close matches.
@@ -52,12 +52,12 @@ Built-in safety and cost features:
 
 ## 3. The big picture
 
-There are two flows: **embedding** (offline, when books change) and **answering** (online, per message).
+There are two flows: **embedding** (offline, when products change) and **answering** (online, per message).
 
 ```mermaid
 flowchart LR
-    subgraph Embedding["Embedding (when a book is saved, or ai-assistant:embed)"]
-        B[Book record] --> T[aiAssistantEmbeddingText]
+    subgraph Embedding["Embedding (when a product is saved, or ai-assistant:embed)"]
+        B[Product record] --> T[aiAssistantEmbeddingText]
         T --> E1[Gemini embedContent]
         E1 --> V[(ai_assistant_embeddings<br/>unit vector + hash)]
     end
@@ -72,7 +72,7 @@ flowchart LR
         C --> P[Prompt: rules + candidates + history]
         P --> G[Gemini generateContent JSON]
         G --> GU[Guards: refs to ids, cap, trim]
-        GU --> UI[Reply + book cards]
+        GU --> UI[Reply + product cards]
     end
 
     V -. cached vectors .-> S
@@ -85,9 +85,9 @@ flowchart LR
 An **embedding** is a list of numbers (a **vector**) that represents the *meaning* of a text. Texts with similar meaning get vectors that point in similar directions.
 
 ```
-"Rice farming guide"        → [0.12, -0.40, 0.88, …]   (768 numbers)
-"How to grow paddy"         → [0.10, -0.37, 0.90, …]   (very similar direction)
-"Fish culture handbook"     → [-0.55, 0.20, 0.10, …]   (different direction)
+"Lightweight running shoes" → [0.12, -0.40, 0.88, …]   (768 numbers)
+"Trainers for jogging"      → [0.10, -0.37, 0.90, …]   (very similar direction)
+"Ceramic coffee mug"        → [-0.55, 0.20, 0.10, …]   (different direction)
 ```
 
 An embedding model (`gemini-embedding-001`) produces these vectors. We ask for 768 numbers per text (`GEMINI_EMBEDDING_DIMENSIONS`): enough for good search, small enough to keep in memory.
@@ -102,38 +102,38 @@ a · b        = a1×b1 + a2×b2 + … + an×bn      (the dot product)
 |a|          = sqrt(a1² + a2² + … + an²)       (the length)
 ```
 
-**Our shortcut:** we store every book vector **normalized** (divided by its length, so its length is 1). Then the cosine is just the dot product, and since we only need the *ranking*, we don't even need to normalize the question vector. One multiplication loop per book is all the search costs.
+**Our shortcut:** we store every product vector **normalized** (divided by its length, so its length is 1). Then the cosine is just the dot product, and since we only need the *ranking*, we don't even need to normalize the question vector. One multiplication loop per product is all the search costs.
 
 Worked example with 2 numbers instead of 768:
 
 ```
 question   q = [0.9, 0.1]
-"Near book" v = [1.0, 0.0]   → q·v = 0.9
-"Far book"  w = [0.0, 1.0]   → q·w = 0.1      → "Near book" ranks first
+"Near product" v = [1.0, 0.0]   → q·v = 0.9
+"Far product"  w = [0.0, 1.0]   → q·w = 0.1      → "Near product" ranks first
 ```
 
 This exact example is a test in `tests/Feature/Frontend/AiAssistantTest.php`.
 
 ### 4.3 Keyword search (the fallback)
 
-When there are no vectors (no embedding model configured) or the embedding call fails, we score books by words instead:
+When there are no vectors (no embedding model configured) or the embedding call fails, we score products by words instead:
 
-- Split the message into words of 3+ letters (Unicode-aware, so Bangla works), and drop filler words like "the", "book", "suggest".
-- For each book: a word found in the **name** scores 3, in the **author or category** 2, in the **description** 1.
+- Split the message into words of 3+ letters (Unicode-aware, so Bangla works), and drop filler words like "the", "product", "suggest" (`assistant.stop_words`).
+- For each product: a word found in the **name** scores 3, in the type's extra fields (`aiAssistantColumns()`) **or category** 2, in the **description** 1.
 - Highest scores first.
 
-Keyword search is cheap and predictable, but it misses synonyms ("paddy" vs "rice"). Semantic search catches those. Having both makes the assistant robust.
+Keyword search is cheap and predictable, but it misses synonyms ("trainers" vs "sneakers"). Semantic search catches those. Having both makes the assistant robust.
 
 ### 4.4 Candidates, not the whole catalogue
 
-We never send the whole catalogue to the model. Retrieval picks the **top 20 candidates** (`AI_ASSISTANT_CANDIDATES`), and the model chooses **up to 5** (`AI_ASSISTANT_RESULTS`). If retrieval finds fewer than 20, we top up with the newest listed books, so general questions ("what's popular?") still get real options.
+We never send the whole catalogue to the model. Retrieval picks the **top 20 candidates** (`AI_ASSISTANT_CANDIDATES`), and the model chooses **up to 5** (`AI_ASSISTANT_RESULTS`). If retrieval finds fewer than 20, we top up with the newest listed products, so general questions ("what's popular?") still get real options.
 
 ### 4.5 Grounding and structured output
 
-The system prompt tells the model to suggest **only** candidates, by their `ref` number, and never to invent books, prices or stock. We also force a **JSON response** that matches a schema:
+The system prompt tells the model to suggest **only** candidates, by their `ref` number, and never to invent products, prices or stock. We also force a **JSON response** that matches a schema:
 
 ```json
-{ "reply": "Here are good picks for rice farming:", "suggestions": [ { "ref": 1, "reason": "A complete guide to modern rice cultivation." } ] }
+{ "reply": "Here are good picks for running:", "suggestions": [ { "ref": 1, "reason": "Light, cushioned shoes made for daily runs." } ] }
 ```
 
 JSON mode means we never parse free text. The schema means the shape is always the same.
@@ -158,7 +158,7 @@ Read them in this order. Each layer depends only on the ones above it.
 | File | Role |
 |---|---|
 | `app/Traits/AiAssistant/AiAssistantTrait.php` | Gives a model the `aiAssistantEmbedding()` morph relation and a default `aiAssistantEmbeddingQuery()` |
-| `app/Traits/AiAssistant/ProductAiAssistantTrait.php` | Builds the document and embedding text for any product type: name, the type's `aiAssistantColumns()` (author for books), format, price or free, category path and description. `app/Models/Book.php` implements `AiAssistantInterface`, uses this trait and is listed in `ai-assistant.models`. Its document is name, author, format, price and a 200-character description. Its embedding text adds the category path and up to 500 characters of description |
+| `app/Traits/AiAssistant/ProductAiAssistantTrait.php` | Builds the document and embedding text for any product type: name, the type's `aiAssistantColumns()` (empty for plain products, e.g. `size` for a `Shirt` type), price, stock note, category path and description. `app/Models/Product.php` implements `AiAssistantInterface`, uses this trait and is listed in `ai-assistant.models`. Its document is name, author, format, price and a 200-character description. Its embedding text adds the category path and up to 500 characters of description |
 | `app/Models/AiAssistantEmbedding.php` | One stored vector per record (polymorphic, so any model can have one) |
 | `database/migrations/2026_10_16_000001_create_ai_assistant_embeddings_table.php` | `embeddable_type`, `embeddable_id` (unique pair), `model`, `content_hash`, `vector` (json) |
 
@@ -177,14 +177,14 @@ Read them in this order. Each layer depends only on the ones above it.
 |---|---|
 | `app/Services/Frontend/AiAssistant/AiAssistantSearchService.php` | **The "R" in RAG.** `candidates()` (semantic, else keyword, then fill), `matches()` (keyword only, for the fallback), `products()` (models for the cards) |
 | `app/Services/Frontend/AiAssistant/AiAssistantService.php` | **The "A" and "G".** `reply()`: throttle, mask, retrieve, build the prompt, call the provider, apply the guards, fall back on errors |
-| `app/Services/Frontend/Shop/PageService.php` | `getListedProducts()` (in-stock and out-of-stock books): cached catalogue data that retrieval reads, so a chat message adds no catalogue query |
+| `app/Services/Frontend/Shop/PageService.php` | `getListedProducts()` (in-stock and out-of-stock products): cached catalogue data that retrieval reads, so a chat message adds no catalogue query |
 
 ### Keeping embeddings in sync
 
 | File | Role |
 |---|---|
 | `app/Traits/AiAssistant/AiAssistantEmbeddingTrait.php` | For services and commands: `syncAiAssistantEmbeddingLater($model)` (after the response) and `syncAiAssistantEmbedding($model)` (now). Re-embeds only when the text hash changed |
-| `app/Services/Backoffice/Catalog/BookService.php` | Uses the trait: calls `syncAiAssistantEmbeddingLater($book)` after create and update |
+| `app/Services/Backoffice/Catalog/ProductService.php` | Uses the trait: calls `syncAiAssistantEmbeddingLater($product)` after create and update |
 | `app/Console/Commands/AiAssistant/AiAssistantEmbedCommand.php` | `php artisan ai-assistant:embed`: walks every class in `ai-assistant.models` and embeds what changed |
 
 ### UI and config
@@ -192,16 +192,16 @@ Read them in this order. Each layer depends only on the ones above it.
 | File | Role |
 |---|---|
 | `app/Livewire/Frontend/AiAssistant/Index.php` | Chat state (`messages` with `role`, `text`, `suggestions`), `send()`, `clear()`, computed `products` for the cards |
-| `resources/views/components/frontend/ai-assistant/index.blade.php` | Chat page: example prompts, bubbles, suggestion cards (`x-frontend.cards.book-list-item`), composer |
+| `resources/views/components/frontend/ai-assistant/index.blade.php` | Chat page: example prompts, bubbles, suggestion cards (`x-frontend.cards.product-list-item`), composer |
 | `config/ai-assistant.php` + `app/Helpers/config_helpers.php` | Every setting, read through plain helpers (`isAiAssistantEnabled()`, `aiAssistantCandidates()` …) |
 | `config/ai-prompts.php` | **Every AI text in one place:** the system prompt rules, reply and error messages, history note, masking tokens, keyword stop words, and the labels a model sends to the AI (`product.document.*`, `product.embedding.*`). Read with `aiPrompt('key', ['placeholder' => value])` and `aiPromptList('key')`. Change wording here, never in code. Editing `product.embedding.*` changes the embedded text, so run `php artisan ai-assistant:embed` afterwards |
 | `tests/Feature/Frontend/AiAssistantTest.php` | Every behaviour above, with `Http::fake()` (no real API calls) |
 
 ## 6. One message, step by step
 
-The customer types *"a book about rice farming under 300"* and presses Enter.
+The customer types *"running shoes under 3000"* and presses Enter.
 
-1. **Livewire** (`AiAssistant\Index::send()`) validates the message (required, max 500 characters) and calls `AiAssistantService::reply($history, $message, $throttleKey, $user)`.
+1. **Livewire** (`AiAssistant\Index::send()`) validates the message (required, max 500 characters) and calls `AiAssistantService::reply($history, $message, $throttleKey)`.
 
 2. **Throttle.** `ThrottleTrait` allows `THROTTLE_ASSISTANT_ATTEMPTS` messages a minute per user (or IP for guests). Over the limit, the message field shows "The assistant is busy…".
 
@@ -209,18 +209,18 @@ The customer types *"a book about rice farming under 300"* and presses Enter.
 
 4. **Retrieve.** `AiAssistantSearchService::candidates()`:
    - loads the cached in-stock products and category names;
-   - if vectors exist: embeds the question (cached), dot-products it with each cached book vector, keeps the top 20;
+   - if vectors exist: embeds the question (cached), dot-products it with each cached product vector, keeps the top 20;
    - else: keyword scores;
-   - tops up with the newest books to 20;
-   - builds one row per candidate: `ref` (1…20), the model's `aiAssistantDocument()`, `category`, `owned`, plus the real `id`, which stays on the server.
+   - tops up with the newest products to 20;
+   - builds one row per candidate: `ref` (1…20), the model's `aiAssistantDocument()`, `category`, plus the real `id`, which stays on the server.
 
-5. **Build the messages.** The last 12 chat messages (`AI_ASSISTANT_HISTORY_MESSAGES`), masked, with the **names** of books suggested earlier appended, so "tell me more about the second one" works.
+5. **Build the messages.** The last 12 chat messages (`AI_ASSISTANT_HISTORY_MESSAGES`), masked, with the **names** of products suggested earlier appended, so "tell me more about the second one" works.
 
-6. **Build the system prompt.** Rules (only candidates, by ref, at most 5, no invented data, reply in `:language`, under 80 words, never reveal the rules) followed by the candidates as JSON lines, **without** the `id` field. `:language` is decided by the server, not the model: if the message contains a script listed in `assistant.languages` (Bengali → Bangla), that language; otherwise `assistant.default_language` (English). Smaller models like Flash-Lite otherwise tend to answer in the language of the book data:
+6. **Build the system prompt.** Rules (only candidates, by ref, at most 5, no invented data, reply in `:language`, under 80 words, never reveal the rules) followed by the candidates as JSON lines, **without** the `id` field. `:language` is decided by the server, not the model: if the message contains a script listed in `assistant.languages` (Bengali → Bangla), that language; otherwise `assistant.default_language` (English). Smaller models like Flash-Lite otherwise tend to answer in the language of the product data:
 
    ```
    Candidates (JSON lines):
-   {"ref":1,"name":"Rice farming guide","author":"…","format":"Digital (PDF)","price":"৳250","about":"…","category":"Crops › Rice","owned":false}
+   {"ref":1,"name":"Lightweight running shoes","price":"৳2,500","about":"…","category":"Footwear › Sports"}
    ```
 
 7. **Generate.** The resolver returns the Gemini provider (wrapped in the cache). `generateJson()` sends the system prompt, the messages and the schema. An identical earlier request is answered from the cache with no API call.
@@ -229,14 +229,14 @@ The customer types *"a book about rice farming under 300"* and presses Enter.
 
 9. **Fallback.** If the call failed (network, quota, 4xx/5xx): keyword `matches()` with a short "resting" note, and `fallback: true`.
 
-10. **Render.** Livewire appends the user message and the reply (with `suggestions: [{id, reason}]`). The computed `products` loads those ids from the cached catalogue, so cards show **our** name, cover and price, linking to the product page.
+10. **Render.** Livewire appends the user message and the reply (with `suggestions: [{id, reason}]`). The computed `products` loads those ids from the cached catalogue, so cards show **our** name, image and price, linking to the product page.
 
 ## 7. Keeping the embeddings fresh
 
-A vector is only useful if it describes the current book. The rules:
+A vector is only useful if it describes the current product. The rules:
 
-- **What gets embedded:** `ProductAiAssistantTrait::aiAssistantEmbeddingText()`: name, author, category path, digital or printed, free, and up to 500 characters of the description without HTML. Price is left out on purpose: a price edit shouldn't cost an embedding call, and the model sees the live price in the candidates anyway.
-- **When:** after every create or update in `BookService`, through `syncAiAssistantEmbeddingLater()`, which uses `defer()` so the admin doesn't wait. In bulk, run `php artisan ai-assistant:embed`.
+- **What gets embedded:** `ProductAiAssistantTrait::aiAssistantEmbeddingText()`: name, the type's extra fields, category path, and up to 500 characters of the description without HTML. Price is left out on purpose: a price edit shouldn't cost an embedding call, and the model sees the live price in the candidates anyway.
+- **When:** after every create or update in `ProductService`, through `syncAiAssistantEmbeddingLater()`, which uses `defer()` so the admin doesn't wait. In bulk, run `php artisan ai-assistant:embed`.
 - **Only when needed:** we store `content_hash = sha256(embedding model + text)`. If the hash and model match the stored row, nothing is sent. Re-running the command on an unchanged catalogue makes zero API calls.
 - **Normalized on save:** vectors are stored with length 1 (see [4.2](#42-cosine-similarity)).
 - **Cache:** all vectors for the current embedding model are cached under `frontend.ai-assistant-vectors` and cleared whenever a vector is written.
@@ -246,7 +246,7 @@ A vector is only useful if it describes the current book. The rules:
 
 | Risk | What we do |
 |---|---|
-| Leaking database data | The model sees only `aiAssistantDocument()` fields (public catalogue data), the category, an owned flag and a per-request `ref`. Never ids, emails, orders or anything else. A new field reaches the AI only if someone adds it to that method on purpose |
+| Leaking database data | The model sees only `aiAssistantDocument()` fields (public catalogue data), the category and a per-request `ref`. Never ids, emails, orders or anything else. A new field reaches the AI only if someone adds it to that method on purpose |
 | Leaking customer details | Emails and phone numbers in messages and history are masked before sending. No user id, name or email is ever in the prompt |
 | Made-up products or prices | Only refs from the candidate list are accepted. Cards read names and prices from our data, never from the model |
 | Prompt injection ("ignore your rules…") | The prompt tells the model never to reveal or change its rules. Even if it complies with an attacker, the server guards still allow only real candidates, and the output is plain text escaped by Blade |
@@ -256,12 +256,12 @@ A vector is only useful if it describes the current book. The rules:
 ## 9. Saving tokens and money
 
 - **Response cache** (`AiAssistantCacheService`, `AI_ASSISTANT_CACHE_MINUTES`, default 60): the key is a sha256 of provider, models, system prompt (with candidates), messages and schema. The same question with the same catalogue costs nothing the second time. When stock or prices change, the candidates change, so the key changes and the answer is fresh. Question embeddings are cached too. Embeddings made by `ai-assistant:embed` are not, because they are stored in the database anyway.
-- **No hidden thinking tokens:** newer Gemini Flash models "think" before answering, and those tokens are billed. In a live test, one short answer cost 491 thinking tokens for 13 output tokens. Picking books from a list doesn't need it, so we use **Flash-Lite** (`gemini-flash-lite-latest`), which doesn't think by default and has its own, larger free quota. The free tier allowed only 20 Flash requests a day. Leave `GEMINI_THINKING_BUDGET` empty for Flash-Lite, because it rejects `0`. If you switch to a thinking model like `gemini-flash-latest`, set `GEMINI_THINKING_BUDGET=0`.
+- **No hidden thinking tokens:** newer Gemini Flash models "think" before answering, and those tokens are billed. In a live test, one short answer cost 491 thinking tokens for 13 output tokens. Picking products from a list doesn't need it, so we use **Flash-Lite** (`gemini-flash-lite-latest`), which doesn't think by default and has its own, larger free quota. The free tier allowed only 20 Flash requests a day. Leave `GEMINI_THINKING_BUDGET` empty for Flash-Lite, because it rejects `0`. If you switch to a thinking model like `gemini-flash-latest`, set `GEMINI_THINKING_BUDGET=0`.
 - **Hard output cap:** `AI_ASSISTANT_MAX_OUTPUT_TOKENS` (default 1024) limits what one reply can cost, on top of the "under 80 words" instruction.
 - **Small prompts:** 20 candidates with 200-character descriptions, 12 history messages, replies under 80 words.
 - **One catalogue pass per request:** `AiAssistantSearchService` is bound as `scoped` in `AppServiceProvider`, and it builds the in-stock catalogue, lower-cased search text and vectors once per request. Retrieval, history names and the cards all reuse them.
 - **At most 2 calls per message:** 1 embedding (only when vectors exist) and 1 generation.
-- **No re-embedding** of unchanged books (content hash), and price changes don't count.
+- **No re-embedding** of unchanged products (content hash), and price changes don't count.
 - **Free-tier friendly:** `ai-assistant:embed --sleep=1` pauses between calls to respect requests-per-minute limits.
 
 ## 10. Configuration
@@ -269,7 +269,7 @@ A vector is only useful if it describes the current book. The rules:
 ```dotenv
 AI_ASSISTANT_ENABLED=true
 AI_ASSISTANT_PROVIDER=gemini
-AI_ASSISTANT_EXAMPLE_PROMPTS_UI="Suggest a book on rice farming|Which books help with fish farming?|Do you sell printed books or only PDFs?"
+AI_ASSISTANT_EXAMPLE_PROMPTS_UI="Suggest a gift under 1000|What is new this week?|Which products are on sale?"
 AI_ASSISTANT_HISTORY_MESSAGES=12        # chat messages sent as context
 AI_ASSISTANT_MESSAGE_MAX_LENGTH=500
 AI_ASSISTANT_TIMEOUT_SECONDS=20
@@ -320,20 +320,20 @@ Here is the whole technique in its smallest working form, so you can rebuild it 
 Pick the records and the **public** fields. This is your privacy boundary.
 
 ```php
-$document = ['name' => $book->name, 'author' => $book->author, 'price' => $book->price];
+$document = ['name' => $product->name, 'category' => $product->category?->name, 'price' => $product->price];
 ```
 
 ### Step 2: write the text that captures meaning
 
 ```php
-$text = "{$book->name}\nAuthor: {$book->author}\nCategory: {$book->category}\n".Str::limit(strip_tags($book->description), 500);
+$text = "{$product->name}\nCategory: {$product->category?->name}\n".Str::limit(strip_tags($product->description), 500);
 ```
 
 ### Step 3: embed it
 
 ```bash
 curl -s -H "x-goog-api-key: $KEY" -H 'Content-Type: application/json' \
-  -d '{"content":{"parts":[{"text":"Rice farming guide"}]},"outputDimensionality":768}' \
+  -d '{"content":{"parts":[{"text":"Lightweight running shoes"}]},"outputDimensionality":768}' \
   https://generativelanguage.googleapis.com/v1beta/models/gemini-embedding-001:embedContent
 # → {"embedding":{"values":[0.0123, -0.0456, …]}}
 ```
@@ -352,7 +352,7 @@ $values = Http::withHeaders(['x-goog-api-key' => $key])
 $length = sqrt(array_sum(array_map(fn ($v) => $v * $v, $values)));
 $unit = array_map(fn ($v) => $v / $length, $values);
 
-DB::table('embeddings')->updateOrInsert(['book_id' => $book->id], [
+DB::table('embeddings')->updateOrInsert(['product_id' => $product->id], [
     'hash' => hash('sha256', $text),      // skip next time if unchanged
     'vector' => json_encode($unit),
 ]);
@@ -363,8 +363,8 @@ DB::table('embeddings')->updateOrInsert(['book_id' => $book->id], [
 ```php
 $q = embed($question);                                   // same call as step 3
 $scores = [];
-foreach ($vectors as $bookId => $v) {                     // load once, cache it
-    $scores[$bookId] = array_sum(array_map(fn ($a, $b) => $a * $b, $q, $v));
+foreach ($vectors as $productId => $v) {                     // load once, cache it
+    $scores[$productId] = array_sum(array_map(fn ($a, $b) => $a * $b, $q, $v));
 }
 arsort($scores);
 $top = array_slice(array_keys($scores), 0, 20);
@@ -377,7 +377,7 @@ $lines = [];
 foreach ($top as $i => $id) {
     $lines[] = json_encode(['ref' => $i + 1] + $documents[$id], JSON_UNESCAPED_UNICODE);
 }
-$system = "You are a bookshop assistant. Suggest only books from this list, by ref. Never invent books or prices.\n".implode("\n", $lines);
+$system = "You are a shop assistant. Suggest only products from this list, by ref. Never invent products or prices.\n".implode("\n", $lines);
 ```
 
 ### Step 7: generate structured output
@@ -413,7 +413,7 @@ $picked = collect($answer['suggestions'] ?? [])
     ->filter(fn ($s) => isset($idsByRef[$s['ref'] ?? 0]))
     ->map(fn ($s) => ['id' => $idsByRef[$s['ref']], 'reason' => Str::limit($s['reason'] ?? '', 160)])
     ->unique('id')->take(5);
-// Render cards from Book::find($picked ids), never from the model's text.
+// Render cards from Product::find($picked ids), never from the model's text.
 ```
 
 ### Step 9: add the production touches
@@ -437,7 +437,7 @@ Never call the real API in tests. `Http::fake()` returns canned responses, and `
 - refs outside the candidates are dropped, and cards show database prices;
 - a provider error falls back to keyword matches;
 - semantic ranking orders by vector similarity;
-- `ai-assistant:embed` embeds once, skips unchanged books, and re-embeds after an edit;
+- `ai-assistant:embed` embeds once, skips unchanged products, and re-embeds after an edit;
 - identical requests hit the cache (one API call for two messages);
 - emails and phone numbers are masked;
 - models without `AiAssistantInterface` never get embeddings;
@@ -453,7 +453,7 @@ php artisan optimize:clear && env $(grep -oE '^[A-Z_][A-Z0-9_]*' .env | sed 's/^
 
 **Current limits**
 
-- Vector search runs in PHP over cached vectors. That's fine for a few thousand books (raise `memory_limit` or lower `GEMINI_EMBEDDING_DIMENSIONS` as the catalogue grows).
+- Vector search runs in PHP over cached vectors. That's fine for a few thousand products (raise `memory_limit` or lower `GEMINI_EMBEDDING_DIMENSIONS` as the catalogue grows).
 - Replies are not streamed, and the chat resets on page reload.
 - Retrieval and cards cover products only, although embeddings already support any model.
 
@@ -464,10 +464,10 @@ php artisan optimize:clear && env $(grep -oE '^[A-Z_][A-Z0-9_]*' .env | sed 's/^
 | **v3: cart actions** | Extend the schema with `add_to_cart: [refs]` and `remove_from_cart: [refs]`, filled only on a clear request. Map refs to ids, call `CartService::add()` / `remove()` (same ownership and stock rules as the buttons), dispatch `cart-updated`, and add an **Add to cart** button on each suggestion |
 | Bigger catalogues | Move vectors to a vector store: MySQL 9 `VECTOR`, PostgreSQL `pgvector`, Qdrant, Meilisearch. Only `semanticIds()` changes |
 | Better ranking | **Hybrid search:** combine the semantic and keyword scores instead of either/or. Then **rerank** the top 20 with a second, cheap model call |
-| Filters from the question | Let the model extract `max_price`, `format` or `category` first, and filter candidates in SQL before ranking |
+| Filters from the question | Let the model extract `max_price` or `category` first, and filter candidates in SQL before ranking |
 | Streaming replies | Livewire `wire:stream` with the provider's streaming endpoint |
 | Saved chats | A `conversations` table per user, if customers want to come back to a chat |
-| Quality checks | A small set of test questions with expected books, run against the real API before releases |
+| Quality checks | A small set of test questions with expected products, run against the real API before releases |
 | Analytics | Count questions, suggestions clicked and fallbacks, to tune prompts and the catalogue |
 | More providers | OpenAI or Grok behind the same interface, with a failover wrapper |
 

@@ -1,5 +1,5 @@
 <x-layouts::frontend :title="__('Checkout')">
-    <x-frontend.layout.page :title="__('Checkout')" width="max-w-5xl">
+    <x-frontend.layout.page :title="__('Checkout')">
         <x-slot:actions>
             <x-ui.button variant="ghost" icon="arrow-left" :href="route('shop')" wire:navigate>{{ __('Continue Shopping') }}</x-ui.button>
         </x-slot:actions>

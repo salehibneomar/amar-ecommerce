@@ -50,8 +50,7 @@ trait ProductAiAssistantTrait
         return [
             'name' => $this->name,
             ...$this->aiAssistantAttributes(),
-            'format' => aiPrompt($this->is_digital ? 'product.document.digital' : 'product.document.printed'),
-            'price' => $this->is_free ? aiPrompt('product.document.free') : formatMoney($this->final_price),
+            'price' => formatMoney($this->final_price),
             'about' => Str::limit(plainText($this->description), 200),
             ...($this->status->isInStock() ? [] : ['stock' => aiPrompt('product.document.out_of_stock')]),
         ];
@@ -72,8 +71,6 @@ trait ProductAiAssistantTrait
             $this->name,
             ...array_map(fn (string $column, mixed $value): string => aiPrompt("product.embedding.{$column}", [$column => $value]), array_keys($attributes), $attributes),
             $category ? aiPrompt('product.embedding.category', ['category' => $category]) : null,
-            aiPrompt($this->is_digital ? 'product.embedding.digital' : 'product.embedding.printed'),
-            $this->is_free ? aiPrompt('product.embedding.free') : null,
             Str::limit(plainText($this->description), 500),
         ]));
     }

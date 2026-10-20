@@ -2,27 +2,29 @@
 
 **AmarEcommerce Lite** is a Laravel ecommerce boilerplate for client shop projects. Each new store starts from it and adds its own branding, product types and content, instead of building catalogue, cart, checkout, orders, staff roles and the backoffice from scratch.
 
-Out of the box it runs as an online bookshop for Bangladesh, the first product type it ships with. It sells digital books (PDF, read in the browser) and printed books (shipped). Payment is manual through bKash or Nagad, and every price is in whole currency units (for example ৳550, never ৳550.50). New product types extend the shared `Product` model (see [TECHNICAL.md](TECHNICAL.md#product-types)), and payment gateways plug in through `PaymentGatewayInterface`.
+Out of the box it runs as a simple generic shop: products with up to five images (the first is the thumbnail), stock that is tracked on every order, and orders that follow the Stripe and SSLCommerz shape (an order status, a payment status, and one payment record per attempt). Every price is in whole currency units (for example ৳550, never ৳550.50). New product types extend the base `Product` model, and payment gateways plug in through `PaymentGatewayInterface`.
+
+How customers pay is set by `PAYMENT_GATEWAYS`, a comma separated list the customer picks from at checkout: `cod` (cash on delivery), `manual` (bKash or Nagad verified by staff) and `stripe` (card payment on a branded page). Blank means no payment step. A new gateway is an enum case, a `PaymentGatewayInterface` class and one line in `config/payment.php`.
 
 ## How it works for customers
 
-1. **Browse the shop.** Search, filter by category and open a book's page. Free books can be read by anyone. Paid digital books have a free preview of their first pages.
+1. **Browse the shop.** Search, filter by category and price, and open a product page with its image gallery.
 2. **Create an account.** Register with email and open the verification link (valid for 15 minutes; it can be resent every 5 minutes), or sign in with Google or Facebook.
-3. **Check out.** Add books to the cart and place the order with a phone number, plus a shipping address for printed books. Any running site-wide offer is applied automatically. The customer gets an order ID and contact buttons (WhatsApp, Messenger, email) with the order details already filled in.
-4. **Pay.** The customer pays with bKash or Nagad and sends the transaction ID (TrxID).
-5. **Read.** A staff member verifies the payment. The order completes, the customer gets an email, the invoice becomes available, and the digital books unlock in the customer's library to read and download.
+3. **Check out.** Add products to the cart and place the order with a phone number and a delivery address. Stock is held for the order. Any running offer is applied automatically and the customer gets an order ID.
+4. **Pay.** The customer picks a payment option at checkout. Cash on delivery needs nothing more. bKash or Nagad shows contact buttons (WhatsApp, Messenger, email) to send the transaction ID (TrxID). Card opens a payment page in the shop's own style, powered by Stripe, and the order is marked paid once Stripe confirms it.
+5. **Receive.** Staff move the order from pending to processing, shipped and completed. The customer gets an email at each step, and the invoice becomes available once the payment is paid. While an unpaid order is still pending, the customer can cancel it from the order page.
 
 Orders can be tracked at `/track-order` with the order ID and email.
 
 ## How it works for staff
 
-The backoffice is at `/backoffice/login` (change `backoffice` with `ADMIN_ROUTE_PREFIX`). Each staff member has a role, and each role has default permissions: **Super Admin** (one) does everything, **Admin** gets every permission by default but each admin can be narrowed, **Moderator** manages orders, books and categories, **Editor** manages FAQs. Admins can create more roles and grant a person extra permissions:
+The backoffice is at `/backoffice/login` (change `backoffice` with `ADMIN_ROUTE_PREFIX`). Each staff member has a role, and each role has default permissions: **Super Admin** (one) does everything, **Admin** gets every permission by default but each admin can be narrowed, **Moderator** manages orders, products and categories, **Editor** manages FAQs. Admins can create more roles and grant a person extra permissions:
 
 | Area | Who |
 |---|---|
 | Dashboard | All staff |
-| Orders: contact, payment verification, cancel, invoice | `manage_orders` |
-| Books: PDFs, previews, covers, stock, featured | `manage_products` |
+| Orders: status, payment, refund, cancel, invoice | `manage_orders` |
+| Products: images, stock, price, featured | `manage_products` |
 | Categories | `manage_categories` |
 | Sales reports | `view_reports` |
 | Banners / FAQs / Offers (Settings → Offers) | `manage_banners` / `manage_faqs` / `manage_offers` |
@@ -36,14 +38,14 @@ Each staff member is paid either a fixed monthly salary or a percentage of the m
 
 | Page | Who can see it |
 |---|---|
-| Home, Shop, Book page, FAQ, About, Contact, Track order | Everyone |
+| Home, Shop, Product page, FAQ, About, Contact, Track order | Everyone |
 | Terms, Privacy, Refund policy | Everyone (footer) |
-| Dashboard, Library, Orders, Profile, Settings | Customers with a verified email |
+| Dashboard, Orders, Profile, Settings | Customers with a verified email |
 | Backoffice | Staff (any role except customer) |
 
 ## Built with
 
-Laravel 13 (PHP 8.4), Livewire 4, Flux UI, Tailwind CSS 4 and MySQL. Book previews are cut with pdf-lib (Node.js). No queue worker or cron is needed, so the app runs on cPanel shared hosting as well as on a VPS.
+Laravel 13 (PHP 8.4), Livewire 4, Flux UI, Tailwind CSS 4 and MySQL. No queue worker or cron is needed, so the app runs on cPanel shared hosting as well as on a VPS.
 
 ## Quick start (for developers)
 
@@ -78,8 +80,8 @@ The **Ask AI** assistant is built so this project can serve as a boilerplate. Th
 | `assistant.redact.*` | What masked emails and phone numbers become | Usually unchanged |
 | `assistant.languages`, `assistant.default_language` | Reply language: a message written in a listed Unicode script (`Bengali` → `Bangla`) gets that language, anything else gets the default | Your users' scripts and languages, e.g. `'Arabic' => 'Arabic'`, `'Devanagari' => 'Hindi'` |
 | `assistant.stop_words` | Filler words ignored by keyword search | Words common in your users' questions ("item", "product", "course"…), in their language |
-| `product.document.*` | Labels sent to the AI for each item ("Digital (PDF)", "Free") | Rename the `product` group after your model and use your labels |
-| `product.embedding.*` | Labels inside the text that gets embedded ("Author: :author") | Your fields. **Run `php artisan ai-assistant:embed` after editing**, because the embedded text changes |
+| `product.document.*` | Labels sent to the AI for each item ("Out of stock") | Rename the `product` group after your model and use your labels |
+| `product.embedding.*` | Labels inside the text that gets embedded ("Category: :category") | Your fields. **Run `php artisan ai-assistant:embed` after editing**, because the embedded text changes |
 
 **Placeholders filled in by the code** (write them with a colon):
 
@@ -91,7 +93,7 @@ The **Ask AI** assistant is built so this project can serve as a boilerplate. Th
 | `:language` | `assistant.system` | Detected from the customer's message using `assistant.languages` |
 | `:seconds` | `assistant.messages.busy` | Seconds until the rate limit resets |
 | `:names` | `assistant.history_suggested` | Names of earlier suggestions |
-| `:author`, `:category` | `product.embedding.*` | Supplied by `Product::aiAssistantEmbeddingText()`. Your model passes its own |
+| `:category` | `product.embedding.*` | Supplied by `Product::aiAssistantEmbeddingText()`. Your model passes its own |
 
 **Keep these rules in `assistant.system`**, reworded if you like. The server-side safety depends on them:
 

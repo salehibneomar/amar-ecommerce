@@ -59,7 +59,7 @@ class Track extends Component
     #[Computed]
     public function contactLinks(): array
     {
-        return $this->order && $this->order->status->isUnresolved() ? $this->orderService->contactLinks($this->order) : [];
+        return $this->order ? $this->orderService->contactLinks($this->order) : [];
     }
 
     public function render(): View

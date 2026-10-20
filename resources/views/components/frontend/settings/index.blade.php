@@ -15,9 +15,9 @@
             <flux:input wire:model="password_confirmation" :label="__('Confirm Password')" type="password" required
                 autocomplete="new-password" viewable />
 
-            <div class="flex justify-end">
+            <x-form.actions>
                 <x-ui.button variant="primary" type="submit" data-test="update-password-button">{{ __('Save') }}</x-ui.button>
-            </div>
+            </x-form.actions>
         </form>
     </x-frontend.cards.card>
 

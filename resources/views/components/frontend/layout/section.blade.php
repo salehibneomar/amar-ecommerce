@@ -2,11 +2,10 @@
     'title' => null,
     'description' => null,
     'muted' => false,
-    'width' => 'max-w-main',
 ])
 
 <section {{ $attributes->class(['scroll-mt-20', 'bg-subtle' => $muted]) }}>
-    <div @class(['mx-auto px-4 py-20 sm:px-6', $width])>
+    <div class="mx-auto max-w-main px-4 py-20 sm:px-6">
         @if ($title)
             <div @class([
                 'flex flex-wrap items-end justify-between gap-4' => isset($actions),

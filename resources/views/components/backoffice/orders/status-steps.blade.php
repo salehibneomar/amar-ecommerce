@@ -10,7 +10,7 @@
                 'bg-zinc-200 text-zinc-500 dark:bg-zinc-700 dark:text-zinc-400' => ! $step['reached'],
             ])>
                 @if ($step['reached'] && ! $step['current'])
-                    <flux:icon.check variant="micro" />
+                    <flux:icon.check class="size-4" />
                 @else
                     {{ $loop->iteration }}
                 @endif

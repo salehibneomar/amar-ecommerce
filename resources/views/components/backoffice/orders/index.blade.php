@@ -1,4 +1,4 @@
-<x-backoffice.layout.main-content-container :title="__('Orders')" :subtitle="__('Contact customers, verify bKash and Nagad payments and unlock their books.')">
+<x-backoffice.layout.main-content-container :title="__('Orders')" :subtitle="__('Confirm, ship and complete customer orders.')">
     @unless ($showOrder)
         <flux:error name="order" />
     @endunless
@@ -9,7 +9,6 @@
             'customer' => __('Customer'),
             'total' => __('Total'),
             'payment_status' => __('Payment'),
-            'transaction_id' => __('TrxID'),
             'created_at' => __('Placed'),
             'status' => __('Status'),
             'actions' => __('Action'),
@@ -24,7 +23,7 @@
                 <x-backoffice.management.filter model="paymentStatus" :label="__('Payment')" :options="$this->paymentStatusOptions" />
             </div>
             <div class="ms-auto">
-                <x-backoffice.management.search model="search" :placeholder="__('Order ID, email, phone or TrxID...')" :label="__('Search Orders')" class="max-w-xs" />
+                <x-backoffice.management.search model="search" :placeholder="__('Order ID, email or phone...')" :label="__('Search Orders')" class="max-w-xs" />
             </div>
         </x-slot:toolbar>
 
@@ -42,10 +41,6 @@
                     </flux:table.cell>
                     <flux:table.cell>
                         <x-ui.badge :color="$order->payment_status->color()">{{ $order->payment_status->label() }}</x-ui.badge>
-                    </flux:table.cell>
-                    <flux:table.cell>
-                        <div class="font-mono text-xs">{{ $order->transaction_id ?? appEmptyValue() }}</div>
-                        <div class="text-xs text-zinc-500">{{ $order->payment_method?->label() }}</div>
                     </flux:table.cell>
                     <flux:table.cell>
                         <span title="{{ formatDateTime($order->created_at) }}">{{ $order->created_at->diffForHumans() }}</span>
@@ -67,7 +62,7 @@
                 </flux:table.row>
             @empty
                 <flux:table.row>
-                    <flux:table.cell colspan="8">{{ __('No orders found.') }}</flux:table.cell>
+                    <flux:table.cell colspan="7">{{ __('No orders found.') }}</flux:table.cell>
                 </flux:table.row>
             @endforelse
         </x-slot:rows>
@@ -87,12 +82,13 @@
                     @endunless
 
                     <dl class="grid gap-4 sm:grid-cols-2">
-                        <x-backoffice.management.detail-item :label="__('Contact Mode')">{{ $order->customer_contact_label }}</x-backoffice.management.detail-item>
+                        @if ($this->isManualPayment)
+                            <x-backoffice.management.detail-item :label="__('Contact Mode')">{{ $order->customer_contact_label }}</x-backoffice.management.detail-item>
+                        @endif
                         <x-backoffice.management.detail-item :label="__('Completed')">{{ formatDateTime($order->completed_at) ?: appEmptyValue() }} {{ $order->completedBy?->name }}</x-backoffice.management.detail-item>
                         <x-backoffice.management.detail-item :label="__('Last Updated by')">{{ $order->lastUpdateLabel() }}</x-backoffice.management.detail-item>
-                        @if ($order->shipping_address)
-                            <x-backoffice.management.detail-item :label="__('Delivery Address')">{{ $order->shipping_address }}</x-backoffice.management.detail-item>
-                        @endif
+                        <x-backoffice.management.detail-item :label="__('Delivery Address')">{{ $order->shipping_address }}</x-backoffice.management.detail-item>
+                        <x-backoffice.management.detail-item :label="__('Billing Address')">{{ $order->billing_address }}</x-backoffice.management.detail-item>
                         @if ($order->notes)
                             <x-backoffice.management.detail-item :label="__('Customer Note')">{{ $order->notes }}</x-backoffice.management.detail-item>
                         @endif
@@ -133,28 +129,25 @@
 
                     <x-backoffice.orders.customer-card :order="$order" :extra-discount="$this->extraDiscountPreview" />
 
-                    <div class="grid gap-4 sm:grid-cols-[1fr_9rem_1.5fr]">
+                    <div class="grid gap-4 sm:grid-cols-3">
                         <flux:select wire:model.live="orderPaymentStatus" :label="__('Payment Status')">
                             @foreach ($this->paymentStatusOptions as $value => $label)
                                 <flux:select.option :value="$value">{{ $label }}</flux:select.option>
                             @endforeach
                         </flux:select>
-                        <flux:select wire:model="paymentMethod" :label="__('Payment Mode')">
-                            @foreach ($this->paymentMethodOptions as $value => $label)
-                                <flux:select.option :value="$value">{{ $label }}</flux:select.option>
-                            @endforeach
-                        </flux:select>
-                        <flux:input wire:model="trxId" :label="__('TrxID')" :placeholder="__('Transaction ID from the customer')" />
-                    </div>
-
-                    <flux:text class="text-xs">{{ __('Marking the payment as paid completes the order and unlocks the books in the customer\'s library.') }}</flux:text>
-
-                    <div class="grid gap-4 sm:grid-cols-3">
-                        <flux:select wire:model="contactMode" :label="__('Contact Mode')" :placeholder="__('Not yet')">
-                            @foreach ($this->contactModeOptions as $value => $label)
-                                <flux:select.option :value="$value">{{ $label }}</flux:select.option>
-                            @endforeach
-                        </flux:select>
+                        @if ($this->isManualPayment)
+                            <flux:select wire:model="paymentMethod" :label="__('Payment Mode')">
+                                @foreach ($this->paymentMethodOptions as $value => $label)
+                                    <flux:select.option :value="$value">{{ $label }}</flux:select.option>
+                                @endforeach
+                            </flux:select>
+                            <flux:input wire:model="trxId" :label="__('TrxID')" :placeholder="__('Transaction ID from the customer')" />
+                            <flux:select wire:model="contactMode" :label="__('Contact Mode')" :placeholder="__('Not yet')">
+                                @foreach ($this->contactModeOptions as $value => $label)
+                                    <flux:select.option :value="$value">{{ $label }}</flux:select.option>
+                                @endforeach
+                            </flux:select>
+                        @endif
                         <flux:select wire:model="orderStatus" :label="__('Order Status')">
                             @foreach ($this->editableStatusOptions as $value => $option)
                                 <flux:select.option :value="$value" :disabled="$option['disabled']">{{ $option['label'] }}</flux:select.option>

@@ -3,7 +3,7 @@
 ])
 
 <x-ui.banner tone="brand" size="none" {{ $attributes->class('flex flex-col gap-5 rounded-2xl p-5 sm:flex-row sm:items-center sm:gap-6 sm:p-6') }}>
-    <div class="flex size-20 shrink-0 flex-col items-center justify-center rounded-xl bg-brand-600 text-white shadow-card dark:bg-brand-500">
+    <div class="flex size-20 shrink-0 flex-col items-center justify-center rounded-xl border border-gold-300 bg-gold-200 text-gold-800 shadow-card dark:border-gold-500 dark:bg-gold-400 dark:text-gold-900">
         <span class="text-2xl leading-none font-bold">{{ $offer->discount_percentage }}%</span>
         <span class="mt-1 text-xs font-semibold tracking-wider uppercase">{{ __('Off') }}</span>
     </div>

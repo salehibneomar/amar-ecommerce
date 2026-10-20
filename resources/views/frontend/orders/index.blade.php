@@ -1,10 +1,9 @@
 <x-layouts::frontend :title="__('My orders')">
     <x-frontend.layout.page :title="__('My orders')">
         @if ($orders->isEmpty())
-            <div class="flex flex-col items-center gap-4 rounded-xl border border-dashed border-zinc-300 px-6 py-16 text-center dark:border-zinc-700">
-                <p class="text-lg font-semibold text-zinc-900 dark:text-white">{{ __('No orders yet') }}</p>
-                <x-ui.button variant="primary" :href="route('shop')" wire:navigate>{{ __('Shop') }}</x-ui.button>
-            </div>
+            <x-frontend.content.empty-state icon="receipt_long" :title="__('No orders yet')">
+                <x-ui.button variant="primary" icon="building-storefront" :href="route('shop')" wire:navigate>{{ __('Shop') }}</x-ui.button>
+            </x-frontend.content.empty-state>
         @else
             <x-ui.card class="divide-y divide-line overflow-hidden">
                 @foreach ($orders as $order)

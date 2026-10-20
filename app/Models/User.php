@@ -15,7 +15,6 @@ use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Casts\Attribute;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
-use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\HasOne;
 use Illuminate\Database\Eloquent\SoftDeletes;
@@ -36,7 +35,8 @@ use Spatie\Permission\Traits\HasRoles;
  * @property string|null $google_id
  * @property string|null $facebook_id
  * @property string|null $phone
- * @property string|null $address
+ * @property string|null $shipping_address
+ * @property string|null $billing_address
  * @property string|null $two_factor_secret
  * @property string|null $two_factor_recovery_codes
  * @property CarbonImmutable|null $two_factor_confirmed_at
@@ -47,7 +47,7 @@ use Spatie\Permission\Traits\HasRoles;
  * @property-read string|null $avatar_url
  * @property-read int|null $orders_count
  */
-#[Fillable(['name', 'email', 'password', 'status', 'google_id', 'facebook_id', 'phone', 'address'])]
+#[Fillable(['name', 'email', 'password', 'status', 'google_id', 'facebook_id', 'phone', 'shipping_address', 'billing_address'])]
 #[
     Hidden([
         'password',
@@ -145,14 +145,6 @@ class User extends Authenticatable implements HasMedia, MustVerifyEmail
     public function orders(): HasMany
     {
         return $this->hasMany(Order::class);
-    }
-
-    /**
-     * @return BelongsToMany<Book, $this>
-     */
-    public function openedBooks(): BelongsToMany
-    {
-        return $this->belongsToMany(Book::class, 'book_reads', 'user_id', 'product_id')->withPivot('opened_at');
     }
 
     /**

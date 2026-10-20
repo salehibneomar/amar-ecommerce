@@ -6,8 +6,8 @@ use App\Enums\Catalog\ProductStatusEnum;
 use App\Enums\Order\OrderStatusEnum;
 use App\Enums\Order\PaymentStatusEnum;
 use App\Enums\User\PermissionEnum;
-use App\Models\Book;
 use App\Models\Order;
+use App\Models\Product;
 use App\Models\User;
 use Illuminate\Database\Eloquent\Builder;
 
@@ -26,12 +26,12 @@ class DashboardService
             [PermissionEnum::ManageCustomers, fn (): array => $this->customerStat()],
             [PermissionEnum::ManageOrders, fn (): array => $this->orderStat()],
             [PermissionEnum::ViewReports, fn (): array => $this->revenueStat()],
-            [PermissionEnum::ManageProducts, fn (): array => $this->bookStat()],
+            [PermissionEnum::ManageProducts, fn (): array => $this->productStat()],
         ];
         $panels = [
             'orders' => [PermissionEnum::ManageOrders, fn (): array => ['pipeline' => $this->getOrderPipeline(), 'recent' => $this->getRecentOrders()]],
             'registrations' => [PermissionEnum::ManageCustomers, fn (): array => $this->getRecentUsers()],
-            'inventory' => [PermissionEnum::ManageProducts, fn (): array => $this->getBookInventory()],
+            'inventory' => [PermissionEnum::ManageProducts, fn (): array => $this->getProductInventory()],
         ];
         $dashboard = ['stats' => [], 'panels' => []];
 
@@ -106,15 +106,15 @@ class DashboardService
     /**
      * @return array{icon: string, label: string, value: string, trend: string|null, trendUp: bool}
      */
-    private function bookStat(): array
+    private function productStat(): array
     {
-        $products = Book::query()
+        $products = Product::query()
             ->selectRaw('count(*) as total')
             ->selectRaw('sum(case when created_at >= ? then 1 else 0 end) as added_this_month', [now()->startOfMonth()])
             ->toBase()
             ->first();
 
-        return $this->stat('book-open', __('Books'), (int) $products->total, (int) $products->added_this_month);
+        return $this->stat('cube', __('Products'), (int) $products->total, (int) $products->added_this_month);
     }
 
     /**
@@ -185,9 +185,9 @@ class DashboardService
     /**
      * @return array<int, array{label: string, value: int, percent: int}>
      */
-    public function getBookInventory(): array
+    public function getProductInventory(): array
     {
-        $counts = Book::query()
+        $counts = Product::query()
             ->selectRaw('status, count(*) as total')
             ->groupBy('status')
             ->pluck('total', 'status');

@@ -10,10 +10,10 @@ class CategorySeeder extends Seeder
     public function run(): void
     {
         $tree = [
-            'কৃষি ও চাষাবাদ' => ['ধান ও শস্য', 'সবজি চাষ', 'ফল চাষ'],
-            'প্রাণিসম্পদ' => ['গবাদি পশু', 'হাঁস-মুরগি', 'মৎস্য চাষ'],
-            'উপন্যাস ও গল্প' => ['উপন্যাস', 'ছোটগল্প'],
-            'শিশু-কিশোর' => ['ছড়া ও কবিতা', 'রূপকথা'],
+            'Electronics' => ['Phones', 'Laptops', 'Accessories'],
+            'Fashion' => ['Men', 'Women', 'Kids'],
+            'Home and Living' => ['Kitchen', 'Decor'],
+            'Health and Beauty' => ['Skin Care', 'Personal Care'],
         ];
 
         $order = 1;

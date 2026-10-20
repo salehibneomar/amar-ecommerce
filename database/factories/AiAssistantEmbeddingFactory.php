@@ -3,7 +3,7 @@
 namespace Database\Factories;
 
 use App\Models\AiAssistantEmbedding;
-use App\Models\Book;
+use App\Models\Product;
 use Illuminate\Database\Eloquent\Factories\Factory;
 
 /**
@@ -17,8 +17,8 @@ class AiAssistantEmbeddingFactory extends Factory
     public function definition(): array
     {
         return [
-            'embeddable_type' => (new Book)->getMorphClass(),
-            'embeddable_id' => Book::factory(),
+            'embeddable_type' => (new Product)->getMorphClass(),
+            'embeddable_id' => Product::factory(),
             'model' => 'test-embedding-model',
             'content_hash' => fake()->sha256(),
             'vector' => [1.0, 0.0, 0.0],
