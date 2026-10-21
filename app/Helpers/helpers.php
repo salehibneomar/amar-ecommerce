@@ -123,12 +123,19 @@ function formatDateTime(?CarbonInterface $date): string
     return $date?->format(config('app.datetime_format')) ?? '';
 }
 
-function formatTimeLeft(CarbonInterface $date, string $separator = ':'): string
+/**
+ * @return array{d: int, h: int, m: int, s: int}
+ */
+function timeLeftParts(CarbonInterface $date): array
 {
     $seconds = max(0, (int) now()->diffInSeconds($date));
-    $parts = ['d' => intdiv($seconds, 86400), 'h' => intdiv($seconds % 86400, 3600), 'm' => intdiv($seconds % 3600, 60), 's' => $seconds % 60];
 
-    return collect($parts)
+    return ['d' => intdiv($seconds, 86400), 'h' => intdiv($seconds % 86400, 3600), 'm' => intdiv($seconds % 3600, 60), 's' => $seconds % 60];
+}
+
+function formatTimeLeft(CarbonInterface $date, string $separator = ':'): string
+{
+    return collect(timeLeftParts($date))
         ->reject(fn (int $count, string $unit): bool => $unit === 'd' && $count === 0)
         ->map(fn (int $count, string $unit): string => sprintf('%02d%s', $count, __($unit)))
         ->join(" {$separator} ");

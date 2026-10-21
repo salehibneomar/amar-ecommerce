@@ -314,6 +314,15 @@ php artisan ai-assistant:embed
 php artisan up
 ```
 
+### Free hosting without Terminal (InfinityFree)
+
+InfinityFree serves only the `htdocs` folder and has no Terminal, symlinks or document root setting.
+
+1. **Build locally**, with production values in `.env` (`APP_ENV=production`, `APP_DEBUG=false`, the host's database, `MEDIA_DISK=assets`), then run `composer install --no-dev --optimize-autoloader` and `npm run build`.
+2. **Prepare the database locally:** run `php artisan migrate --seed` against a local copy, export it to a `.sql` file and import it in the host's phpMyAdmin.
+3. **Upload the whole project** into `htdocs`, including `vendor`, `public/build` and the root `.htaccess` (`node_modules` is not needed). The root `.htaccess` sends every request to `public/` and blocks the other folders, so `.env` stays private.
+4. **Check** that `https://your-domain/.env` and `https://your-domain/vendor` return an error page, and that an uploaded product image shows.
+
 ### cPanel (shared hosting)
 
 The app runs on cPanel if the host provides PHP 8.4, Terminal (SSH) access and Cron Jobs.
@@ -356,6 +365,8 @@ The app runs on cPanel if the host provides PHP 8.4, Terminal (SSH) access and C
    ```
 
    Then create your admin account as shown in production step 3.
+
+   **Images:** `MEDIA_DISK=assets` saves images straight into `public/assets/uploads`, so `storage:link` is not needed. `MEDIA_DISK=r2` saves them to a Cloudflare R2 bucket (fill every `R2_*` key, the site refuses to load while one is empty). Set `R2_ROOT` to share one bucket between projects. Switching an existing shop moves no files, so choose before the first upload, and run `php artisan optimize:clear` after a switch.
 
 6. **No Cron Jobs are needed** while `MAIL_QUEUE_ENABLED=false`; keep `QUEUE_CONVERSIONS_BY_DEFAULT=false` so images are resized during the upload. To retry emails when the mail server is down, set `MAIL_QUEUE_ENABLED=true` and add one cron job (cPanel → Cron Jobs, every minute) that runs the worker briefly:
 

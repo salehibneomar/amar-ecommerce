@@ -15,7 +15,7 @@ paths:
 - Shop contact channels and the order prefix: `config/shop.php`.
 - Enabled payment gateways, the gateway class map, manual payment numbers and gateway keys: `config/payment.php` (read keys with `paymentGatewaySetting('<gateway>', '<key>')`).
 - Rate limits: `config/throttle.php`.
-- Media rules: `config/product.php`, `config/category.php` and `config/banner.php`.
+- Media rules: `config/product.php`, `config/category.php`, `config/banner.php`, `config/user.php` and `config/system.php`. Leave out `disk` so files follow `MEDIA_DISK` (`config('filesystems.media')`: `public`, `assets` or `r2`). Add `disk` only to send one media type somewhere else. Never hard-code `Storage::disk('public')` or `/storage/` URLs for media; go through `MediaTrait` and `mediaDisk()`.
 
 Universal helpers such as `formatMoney()`, `formatDateTime()` and `sanitizeRichText()` live in `app/Helpers/helpers.php` and never mention a specific page.
 

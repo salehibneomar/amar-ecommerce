@@ -13,6 +13,8 @@
         @include('partials.head', ['seo' => true])
     </head>
     <body data-panel="frontend" @class(['flex flex-col text-zinc-800 antialiased dark:text-zinc-100', 'h-svh' => $fill, 'min-h-svh' => ! $fill])>
+        <x-ui.page-loader />
+
         <x-frontend.layout.navbar :landing="$landing" />
 
         <main @class(['flex-1', 'flex min-h-112 flex-col' => $fill])>

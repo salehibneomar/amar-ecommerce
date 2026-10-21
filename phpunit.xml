@@ -28,6 +28,7 @@
         <env name="DB_URL" value=""/>
         <env name="PAYMENT_GATEWAYS" value=""/>
         <env name="MAIL_MAILER" value="array"/>
+        <env name="MEDIA_DISK" value="public"/>
         <env name="OFFER_GLOBAL_ONLY" value="false"/>
         <env name="QUEUE_CONNECTION" value="sync"/>
         <env name="SESSION_DRIVER" value="array"/>

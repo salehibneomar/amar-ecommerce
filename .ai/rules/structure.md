@@ -7,9 +7,19 @@ paths:
 
 ## The folder sets the suffix
 The name before the suffix says the purpose, not the storage.
-- `Services/**` → `*Service` (resolver-picked implementations too: `AiAssistantGeminiService`, `ManualPaymentGatewayService`, `MaintenanceModeService`), `Traits` → `*Trait`, `Enums` → `*Enum`, `Resolvers` → `*Resolver`, `Interfaces` → `*Interface`, `Http/Controllers` → `*Controller`, `Http/Middleware` → `*Middleware` (named after its route alias), `Mail` → `*Mail`, `Console/Commands` → `*Command`, `Policies` → `*Policy`, `Providers` → `*ServiceProvider`.
+- `Services/**` → `*Service` (resolver-picked implementations too: `AiAssistantGeminiService`, `ManualPaymentGatewayService`, `MaintenanceModeService`), `Traits` → `*Trait`, `Enums` → `*Enum`, `Resolvers` → `*Resolver`, `Interfaces` → `*Interface`, `Http/Controllers` → `*Controller`, `Http/Middleware` → `*Middleware` (named after its route alias), `Mail` → `*Mail`, `Console/Commands` → `*Command`, `Policies` → `*Policy`, `Providers` → `*Provider` (Laravel and package defaults keep their names: `AppServiceProvider`, `FortifyServiceProvider`).
 - Exempt: models, Livewire components (`Index`), Livewire concerns (`InteractsWith*`), `app/Actions/Fortify`, `app/Concerns`.
 - A kind with no folder: ask first. Config keys name the purpose (`APP_MAINTENANCE_DRIVER=system`). Enum cases are TitleCase.
+
+## Self-explanatory names
+- A file or class name says plainly what it does, so a reader understands it without opening it (`DevServerProvider`, not `SystemProvider`).
+- One suffix only, never two (`MediaProvider`, not `MediaServiceProvider`).
+- Code backed by system settings uses the `SystemSetting` prefix (`SystemSettingProvider`, `SystemSettingService`).
+
+## Providers
+- `AppServiceProvider` keeps only Laravel defaults (`configureDefaults()`) and app-wide `scoped()` bindings. Never add hooks to it.
+- Startup hooks (gates, auth providers, URL builders, view composers, model listeners, driver extensions) go in the provider of their domain: `AccessProvider`, `AuthMailProvider`, `MediaProvider`, `SystemSettingProvider`, `DevServerProvider`. A new domain gets a new `<Domain>Provider` listed in `bootstrap/providers.php`.
+- Providers only register things. Work done during a request stays in services, and a provider never queries the database at boot.
 
 ## Domain sub-folders
 - Never put a class at the root of `Services/Backoffice`, `Services/Frontend`, `Enums`, `Traits`, `Resolvers`, `Http/Middleware`, `Mail` or `Console/Commands`.

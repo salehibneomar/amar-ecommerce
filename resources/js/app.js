@@ -264,6 +264,7 @@ document.addEventListener('alpine:init', () => {
 document.addEventListener('alpine:init', () => {
     window.Alpine.data('countdown', ({ to, now, units, separator }) => ({
         left: '',
+        parts: {},
         done: false,
         timer: null,
 
@@ -281,7 +282,10 @@ document.addEventListener('alpine:init', () => {
                     return;
                 }
 
-                this.left = timeLeftParts(Math.floor((end - current) / 1000))
+                const parts = timeLeftParts(Math.floor((end - current) / 1000));
+
+                this.parts = Object.fromEntries(parts.map(([unit, count]) => [unit, String(count).padStart(2, '0')]));
+                this.left = parts
                     .filter(([unit, count]) => unit !== 'd' || count > 0)
                     .map(([unit, count]) => `${String(count).padStart(2, '0')}${units[unit]}`)
                     .join(` ${separator} `);

@@ -10,7 +10,6 @@ return [
             'extensions' => ['png', 'jpg', 'jpeg', 'webp'],
             'mime_types' => ['image/png', 'image/jpeg', 'image/webp'],
             'max_size' => 1024,
-            'disk' => 'public',
         ],
         'icon' => [
             'type' => 'image',
@@ -20,7 +19,6 @@ return [
             'extensions' => ['png', 'jpg', 'jpeg', 'webp'],
             'mime_types' => ['image/png', 'image/jpeg', 'image/webp'],
             'max_size' => 512,
-            'disk' => 'public',
         ],
         'favicon' => [
             'type' => 'icon',
@@ -30,7 +28,6 @@ return [
             'extensions' => ['ico', 'png'],
             'mime_types' => ['image/x-icon', 'image/vnd.microsoft.icon', 'image/png'],
             'max_size' => 256,
-            'disk' => 'public',
         ],
     ],
 ];

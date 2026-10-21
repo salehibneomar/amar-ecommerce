@@ -9,7 +9,6 @@ return [
             'mime_types' => ['image/jpeg', 'image/png', 'image/webp'],
             'max_size' => (int) env('PRODUCT_IMAGE_MAX_SIZE_MB', 3) * 1024,
             'max_files' => (int) env('PRODUCT_IMAGE_MAX_FILES', 5),
-            'disk' => 'public',
             'conversions' => [
                 'small' => ['width' => 96, 'height' => 96],
                 'regular' => ['width' => 500, 'height' => 500],

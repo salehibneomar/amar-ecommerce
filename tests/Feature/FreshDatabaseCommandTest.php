@@ -9,6 +9,7 @@ use Spatie\MediaLibrary\MediaCollections\Models\Media;
 test('the fresh command removes stored media directories before running migrate fresh', function () {
     Storage::fake('local');
     Storage::fake('public');
+    Storage::fake('assets');
     Storage::disk('local')->put('1/file.pdf', 'pdf');
     Storage::disk('public')->put('25/cover.jpg', 'image');
     Storage::disk('local')->put('livewire-tmp/upload.tmp', 'temporary');
@@ -33,6 +34,7 @@ test('the fresh command removes stored media directories before running migrate 
 test('the fresh command clears media library items before rebuilding the database', function () {
     Storage::fake('local');
     Storage::fake('public');
+    Storage::fake('assets');
     Artisan::command('migrate:fresh {--seed} {--force}', fn (): int => 0);
     $product = Product::factory()->create();
     $product->attachMedia('product.media.images', UploadedFile::fake()->image('photo.jpg'));

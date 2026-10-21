@@ -32,7 +32,7 @@ Components live in purpose folders under `resources/views/components`, never at 
 **Storefront**
 - `frontend/layout/`: `page`, `section`, navbar, footer.
 - `frontend/cards/`: `card` is the parent of every storefront card (`framed`, `padded`, `interactive` hover with no lift, `as`). `product-card`/`product-tile` (grid), `product-list-item` (row), `category-card` (same shape as `product-card`: square image frame with an icon fallback, name below), `feature-card`, `contact-card`.
-- `frontend/content/`: `offer-banner`, `notice`, `empty-state` (every "nothing here" box: `title`, `icon`, actions in the slot), FAQ, legal, `countdown` (`31d : 05h : 51m : 42s`, zero days hidden, props `to`, `color` red/brand/muted, `icon`, `live` default true, `separator`, plus label and `expired` slots).
+- `frontend/content/`: `offer-banner`, `notice`, `empty-state` (every "nothing here" box: `title`, `icon`, actions in the slot), FAQ, legal, `countdown` (`31d : 05h : 51m : 42s`, zero days hidden, props `to`, `color` red/brand/muted, `icon`, `live` default true, `separator`, `variant` inline or `boxes` (label left of compact unit cards, used by the offer banner), plus label and `expired` slots).
 - `frontend/orders/`: `items`, `row`, `status`.
 - `frontend/drawers/`: `navigation-drawer`, `filter-drawer`. Every drawer in both panels (these, the cart, the admin mobile menu) is built on `x-ui.drawer` (`name`, `label`, `side`, `static`, `mobile`, `header`/body/`footer` slots, one soft brand glass tone like the header, with the backdrop). Open with `<x-ui.drawer-trigger name="…">` or `$this->dispatch('drawer-open', name: '…')`. `open = false` closes it.
 

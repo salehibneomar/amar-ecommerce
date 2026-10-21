@@ -43,7 +43,9 @@ test('the countdown shows the time left to the second, ticks unless static and s
         ->and(Blade::render('<x-frontend.content.countdown :to="$to">Sale ends<x-slot:expired>Ended</x-slot:expired></x-frontend.content.countdown>', ['to' => now()->subMinute()]))
         ->toContain('Ended')->not->toContain('Sale ends')
         ->and(Blade::render('<x-frontend.content.countdown :to="$to">Sale ends</x-frontend.content.countdown>', ['to' => now()->addHour()]))
-        ->toContain('Sale ends')->toContain('01h : 00m : 00s')->not->toContain('00d')->not->toContain(__('Ends in'));
+        ->toContain('Sale ends')->toContain('01h : 00m : 00s')->not->toContain('00d')->not->toContain(__('Ends in'))
+        ->and(Blade::render('<x-frontend.content.countdown :to="$to" variant="boxes" />', ['to' => now()->addHours(2)->addSeconds(7)]))
+        ->toContain(__('Hrs'))->toContain(__('Sec'))->toContain('x-text="parts.s"')->toContain('>07<')->not->toContain(__('Day'));
 });
 
 test('the shop filters by parent category including its sub-categories and hides archived products', function () {
@@ -245,7 +247,7 @@ test('shop category batches and product pages are cached until an admin changes 
     $products = $service->searchProducts(categoryIds: [$root->id], page: 1);
     expect(DB::getQueryLog())->toBe([])
         ->and($categories['items'][0]['name'])->toBe('Crops')
-        ->and($products->pluck('name')->all())->toBe(['Cached Product'])
+        ->and(collect($products->items())->pluck('name')->all())->toBe(['Cached Product'])
         ->and($products->total())->toBe(1);
 
     Product::factory()->create(['name' => 'New Product', 'category_id' => $root->id]);

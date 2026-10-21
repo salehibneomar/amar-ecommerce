@@ -27,7 +27,7 @@ function mediaFilePrefix(string $configPath): ?string
 
 function mediaDisk(string $configPath): string
 {
-    return (string) mediaConfig($configPath, 'disk', config('filesystems.default'));
+    return (string) mediaConfig($configPath, 'disk', config('filesystems.media'));
 }
 
 /**

@@ -8,7 +8,6 @@ return [
             'extensions' => ['jpg', 'jpeg', 'png', 'webp'],
             'mime_types' => ['image/jpeg', 'image/png', 'image/webp'],
             'max_size' => (int) env('CATEGORY_IMAGE_MAX_SIZE_MB', 3) * 1024,
-            'disk' => 'public',
             'conversions' => [
                 'small' => ['width' => 64, 'height' => 64],
                 'regular' => ['width' => 400, 'height' => 400],

@@ -47,6 +47,15 @@ return [
             'report' => false,
         ],
 
+        'assets' => [
+            'driver' => 'local',
+            'root' => public_path('assets/uploads'),
+            'url' => rtrim((string) env('APP_URL', 'http://localhost'), '/').'/assets/uploads',
+            'visibility' => 'public',
+            'throw' => false,
+            'report' => false,
+        ],
+
         's3' => [
             'driver' => 's3',
             'key' => env('AWS_ACCESS_KEY_ID'),
@@ -56,6 +65,20 @@ return [
             'url' => env('AWS_URL'),
             'endpoint' => env('AWS_ENDPOINT'),
             'use_path_style_endpoint' => env('AWS_USE_PATH_STYLE_ENDPOINT', false),
+            'throw' => false,
+            'report' => false,
+        ],
+
+        'r2' => [
+            'driver' => 's3',
+            'key' => env('R2_ACCESS_KEY_ID'),
+            'secret' => env('R2_SECRET_ACCESS_KEY'),
+            'region' => 'auto',
+            'bucket' => env('R2_BUCKET'),
+            'url' => env('R2_URL'),
+            'endpoint' => env('R2_ENDPOINT'),
+            'root' => env('R2_ROOT', ''),
+            'use_path_style_endpoint' => true,
             'throw' => false,
             'report' => false,
         ],
@@ -72,6 +95,8 @@ return [
     | the locations of the links and the values should be their targets.
     |
     */
+
+    'media' => env('MEDIA_DISK', 'public'),
 
     'links' => [
         public_path('storage') => storage_path('app/public'),

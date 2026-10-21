@@ -109,7 +109,7 @@ resources/views/
 |---|---|
 | `TableQueryTrait` | Search, filter, sort and paginate a query for admin tables |
 | `FrontendCacheTrait` | Remember and forget public data; store models as plain arrays |
-| `MediaTrait` | Config-driven media collections, conversions, uploads and URLs |
+| `MediaTrait` | Config-driven media collections, conversions, uploads and URLs. Files go to the `MEDIA_DISK` disk (`public`, `assets` for `public/assets/uploads`, or `r2`), and a media type can override it with its own `disk` key |
 | `ThrottleTrait` | Rate-limit an action and raise a validation error |
 | `MailQueueTrait` | Retry settings for every Mailable when the mail queue is on: `backoff()` and `retryUntil()` from `MAIL_QUEUE_*` |
 | `CategoryTreeTrait` | Ancestor path and root of categories at any depth (one query per level). Used by offer search and offer matching |
@@ -160,7 +160,7 @@ The full entity relationship diagram is in [DIAGRAM.md](DIAGRAM.md#1-entity-rela
 | `staff_payments` | One payment per staff member per month, with snapshots of sales and compensation |
 | `faqs` | `title`, `description`, `status` |
 | `notifications` | Laravel database notifications, one row per recipient. `type` is a `NotificationTypeEnum` value and `data` holds a translation key, its params, a route name and route params, so any feature can send one. `Backoffice\NotificationService` sends (order events to staff with `manage_orders` and to the order's customer, new active offers to active customers). `Auth\InboxService` reads, opens and marks read/unread for the signed-in user in both panels. Shown on page load, not real time |
-| `system_settings` | One row: `maintenance_enabled`, `maintenance_starts_at`, `maintenance_ends_at` (empty start means now, empty end means until turned off), `maintenance_secret` (bypass link). Logo, icon and favicon are single-file media collections (`config/system.php`) that fall back to the default files in `public/assets` |
+| `system_settings` | One row: `maintenance_enabled`, `maintenance_starts_at`, `maintenance_ends_at` (empty start means now, empty end means until turned off), `maintenance_secret` (bypass link). Logo, icon and favicon are single-file media collections (`config/system.php`) that fall back to the default files in `public/assets/uploads` |
 | `cache`, `sessions`, `jobs` | Laravel infrastructure |
 
 **Design decisions**
@@ -210,7 +210,7 @@ See the RAG sequence in [DIAGRAM.md](DIAGRAM.md#ai-assistant-suggestions-rag) an
 
 Settings → System (`manage_system`, password confirmation) holds branding, maintenance mode and the cache tools. Nothing needs cron, a scheduler or a queue:
 
-- `APP_MAINTENANCE_DRIVER=system` selects `MaintenanceModeService`, registered on `MaintenanceModeManager` in `AppServiceProvider`. Laravel's `PreventRequestsDuringMaintenance` asks it `active()` on every request, which is `enabled` and inside the window. So a scheduled window starts and ends with the next visitor, and `php artisan down`/`up` write the same row.
+- `APP_MAINTENANCE_DRIVER=system` selects `MaintenanceModeService`, registered on `MaintenanceModeManager` in `SystemSettingProvider`. Laravel's `PreventRequestsDuringMaintenance` asks it `active()` on every request, which is `enabled` and inside the window. So a scheduled window starts and ends with the next visitor, and `php artisan down`/`up` write the same row.
 - Visitors get a 503 (`errors/503.blade.php`: logo, message, "Expected back by", no buttons) with `Retry-After` when an end is set. The bypass link `/<secret>` sets Laravel's bypass cookie for that browser.
 - Admin paths skip the check through the `except` list in `bootstrap/app.php` (`admin/*`, `dashboard`, `manage/*`, `settings*`, `logout`, password confirmation, `email/*`, `livewire-*`, `flux/*`). They still run their normal auth and permission middleware, so admins sign in as usual from any device.
 - `SystemSettingService` is scoped (one instance per request) and keeps the whole row as one plain array in `frontend.system-settings`. A view composer passes `brandUrls()` only to `partials.head` and the `brand` logo components.
@@ -248,7 +248,7 @@ Only **public, shared** data is cached. Admin screens and per-user data always r
 | `frontend.ai-assistant-vectors` | `morph type → id → vector` for the current embedding model | `AiAssistantEmbeddingTrait` |
 | `ai-assistant.json.*`, `ai-assistant.embed.*` | Provider replies and query embeddings, keyed by a hash of provider, models and request, for `AI_ASSISTANT_CACHE_MINUTES` | Expire only |
 
-- Clearing is central: `ClearsFrontendCacheTrait` clears a model's `frontendCacheKeys()` after the transaction commits, and `AppServiceProvider` does the same when a media file of that model is saved or deleted. `FrontendCacheKeyEnum::forget()` removes a key and its version token.
+- Clearing is central: `ClearsFrontendCacheTrait` clears a model's `frontendCacheKeys()` after the transaction commits, and `MediaProvider` does the same when a media file of that model is saved or deleted. `FrontendCacheKeyEnum::forget()` removes a key and its version token.
 - Filtered results use `rememberFrontendCacheVariant()`: the key holds a version token plus a hash of the filters, and `forgetFrontendCache()` drops the version, so every variant of that key is invalidated at once (old ones expire by TTL). A future API reuses the same service methods and cache.
 - Every entry uses `Cache::flexible()`: fresh for the TTL, then served stale for one more TTL while a single background request (behind a cache lock) refreshes it, so an expiring entry never makes many visitors rebuild it at once. Writes still clear entries immediately, so stale data is only ever served after plain expiry, never after an admin change. The cache store must support locks (`database`, `redis`, `file`).
 - `FRONTEND_CACHE_ENABLED=false` (default `true`) skips the cache entirely: `FrontendCacheTrait` runs the query on every request. The TTL is `FRONTEND_CACHE_TTL_MINUTES` (180). The store is `FRONTEND_CACHE_STORE`, falling back to `CACHE_STORE`.
