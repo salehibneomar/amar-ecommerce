@@ -69,7 +69,7 @@
             "@php artisan debugbar:clear",
             "@php artisan blaze:trace:clear",
             "@php -r \"array_map('unlink', glob('storage/logs/*.log'));\"",
-            "@php artisan app:fresh --seed",
+            "@php artisan migrate --no-interaction",
             "@php artisan storage:link --force",
             "@php artisan optimize",
             "@php artisan ai-assistant:embed",

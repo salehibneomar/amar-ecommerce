@@ -20,7 +20,7 @@
             </div>
             <div class="flex items-end gap-2">
                 <x-backoffice.management.search model="search" :placeholder="__('Search notes...')" :label="__('Search Payments')" class="max-w-xs" />
-                <x-ui.button variant="primary" wire:click="createPayment">{{ __('Record') }}</x-ui.button>
+                <x-ui.button variant="primary" wire:click="createPayment">{{ __('Add New') }}</x-ui.button>
             </div>
         </x-slot:toolbar>
 

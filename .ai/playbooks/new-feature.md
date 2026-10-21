@@ -20,7 +20,7 @@ Write three lines, and ask only if one is unclear:
 
 ## 2. Build bottom-up (read each layer's rule file from `.ai/rules/index.md`)
 1. **Enum:** `app/Enums/<Domain>/<Name>Enum.php`, TitleCase cases, `label()`, `color()`.
-2. **Schema:** new `create_<table>` migration (or edit per `APP_IS_LIVE`). Money `unsignedInteger`, index filter and sort columns.
+2. **Schema:** new `create_<table>` migration (or edit per `DEV_CAN_MIGRATE_FRESH`). Money `unsignedInteger`, index filter and sort columns.
 3. **Model + factory:** `php artisan make:model <Name> -f --no-interaction`, casts, relations, `@property` PHPDoc, factory states. Seeder only if demo data helps.
 4. **Service:** `app/Services/{Backoffice|Frontend}/<Domain>/<Name>Service.php` holds every query and write. Public reads cached, cache cleared through the model.
 5. **Access:** named route in its `routes/web.php` group with `can:` and a new `PermissionEnum` case, plus a `config/backoffice.php` nav item.

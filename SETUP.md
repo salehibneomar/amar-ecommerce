@@ -93,10 +93,12 @@ All seeded accounts use the password `123456`.
 ### Resetting the database
 
 ```bash
-composer serve:dev
+php artisan app:fresh --seed
 ```
 
-This clears Laravel's caches, deletes every media library item with `media-library:clear`, removes leftover media files (product, category, banner and avatar images), runs `migrate:fresh --seed`, rebuilds the caches with `php artisan optimize`, then embeds the products for the AI assistant with `php artisan ai-assistant:embed` (it only prints a notice when no embedding model is set), and finally starts the dev servers with `composer run dev`. Use it instead of `php artisan migrate:fresh`, which leaves orphaned files in `storage/`.
+This deletes every media library item with `media-library:clear`, removes leftover media files (product, category, banner and avatar images), then runs `migrate:fresh --seed`. Use it instead of `php artisan migrate:fresh`, which leaves orphaned files in `storage/`.
+
+`composer serve:dev` keeps your data. It clears Laravel's caches, runs `php artisan migrate` (no seeding), rebuilds the caches with `php artisan optimize`, embeds the products for the AI assistant with `php artisan ai-assistant:embed` (it only prints a notice when no embedding model is set), and finally starts the dev servers with `composer run dev`.
 
 ### Running tests
 
@@ -142,7 +144,8 @@ Set at least the following in `.env`:
 APP_ENV=production
 APP_DEBUG=false
 APP_URL=https://your-domain.com
-APP_IS_LIVE=true
+APP_IS_IN_PRODUCTION=true
+DEV_CAN_MIGRATE_FRESH=false
 SESSION_SECURE_COOKIE=true
 
 DB_CONNECTION=mysql
@@ -175,8 +178,9 @@ Review the app-specific settings as well:
 | `SESSION_SECURE_COOKIE` | `true` on a live HTTPS site, so the login cookie is never sent over plain http. Keep `false` locally |
 | `SEO_INDEXING_ENABLED`, `SEO_DESCRIPTION`, `SEO_IMAGE` | Search and link previews: `false` hides every page from search engines (staging), the default description, and the default share image (empty uses the logo). Product pages use their own description and first image |
 | `ADMIN_ROUTE_PREFIX` | URL prefix of the whole admin area: `/{prefix}/login`, `/{prefix}/dashboard`, `/{prefix}/manage/…`, `/{prefix}/settings/…`. Default `backoffice`. Use a hard-to-guess value on a live site, then run `php artisan optimize`. Staff must use the new login URL |
-| `APP_IS_LIVE` | `true` once the site holds real data. From then on schema changes go in new migrations, never edits to existing ones, and `composer serve:dev` must not be run. Default `false` (pre-launch) |
+| `APP_IS_IN_PRODUCTION` | `true` when the app runs in production. A plain flag, read with `config('app.is_in_production')`. Default `false` |
 | `DEV_AI_AGENT` | Development only, for AI coding agents. The app never reads it. `free` = lean mode (core rules, fewest tool calls and reads), `paid` = full `AGENTS.md` workflow. Default `free` |
+| `DEV_CAN_MIGRATE_FRESH` | Development only, for AI coding agents. The app never reads it. `true` = agents may edit existing migrations and you rebuild with `php artisan app:fresh --seed`. `false` = the database holds real data, schema changes go in new migrations only and `app:fresh` must not be run. Default `false` |
 | `DEV_SKIP_OPTIONAL_DOCS` | Development only, for AI coding agents. `true` = agents skip updating project docs (TECHNICAL, DIAGRAM, HOW_TO, SETUP, SETUP_COMMANDS, OUR_RAG, INCOMPLETE) and only update `AGENTS.md`, `CLAUDE.md`, `.ai/**` and `README.md`. Default `false` |
 | `APP_MAINTENANCE_DRIVER` | `system` (default): maintenance mode is stored in the `system_settings` table and managed from Settings → System, and `php artisan down`/`up` change the same setting. Needs no cron or queue |
 | `MAIL_QUEUE_ENABLED`, `MAIL_QUEUE_BACKOFF_SECONDS`, `MAIL_QUEUE_RETRY_HOURS` | `false` (default) sends order emails right after the response, with no worker; if SMTP is down the email goes to the log. `true` queues them and retries every 300 seconds for 24 hours until the mail server answers; needs a queue worker (step 6, or the cPanel cron below). Verification and password reset emails are always sent at once, because their links expire in minutes |
@@ -218,7 +222,7 @@ sudo chmod -R 775 storage bootstrap/cache
 
 With `DB_SEEDING_ENABLED=false`, `--seed` only creates the roles, the permissions and the super admin from `DB_SEED_ADMIN_EMAIL` / `DB_SEED_ADMIN_PASSWORD`. Sign in, change the password, then clear `DB_SEED_ADMIN_PASSWORD` in `.env`.
 
-> **Never run `composer serve:dev`, `php artisan app:fresh` or `php artisan migrate:fresh` on a live site.** They delete all users, orders, products, uploaded images and banners.
+> **Never run `php artisan app:fresh` or `php artisan migrate:fresh` on a live site.** They delete all users, orders, products, uploaded images and banners.
 
 ### 4. Nginx
 

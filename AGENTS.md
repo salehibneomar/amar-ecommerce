@@ -8,7 +8,7 @@ Laravel 13 / PHP 8.4 ecommerce boilerplate that client shops start from, so shar
 
 ## Agent mode (DEV_AI_AGENT)
 
-Read both once per session: `grep -E '^DEV_(AI_AGENT|SKIP_OPTIONAL_DOCS)=' .env` (missing means `free` and `false`).
+Read once per session: `grep -E '^DEV_(AI_AGENT|SKIP_OPTIONAL_DOCS|CAN_MIGRATE_FRESH)=' .env` (missing means `free`, `false` and `false`).
 
 - **DEV_SKIP_OPTIONAL_DOCS=true:** never update `TECHNICAL.md`, `DIAGRAM.md`, `HOW_TO.md`, `SETUP.md`, `SETUP_COMMANDS.md`, `OUR_RAG.md` or `INCOMPLETE.md`, even where a rule or playbook says to. Only `AGENTS.md`, `CLAUDE.md`, `.ai/**` and `README.md` may change. Mention skipped doc updates in one line of the report.
 
@@ -38,7 +38,7 @@ Read both once per session: `grep -E '^DEV_(AI_AGENT|SKIP_OPTIONAL_DOCS)=' .env`
 6. **Public cache clears centrally** through `ClearsFrontendCacheTrait` and `frontendCacheKeys()`. Call `FrontendCacheKeyEnum::…->forget()` only for writes with no model event (`sync()`, bulk `update()`).
 7. **Validate** in the Livewire component or a Form Request. **Authorize with permissions**, never role names (`can:<PermissionEnum>`, `@can`, policies). A new backoffice area adds a `PermissionEnum` case and a `config/backoffice.php` nav item.
 8. **Naming and folders:** the folder sets the class suffix, and classes sit in a domain sub-folder (`.ai/rules/structure.md`).
-9. **Migrations follow `APP_IS_LIVE`** (`.ai/rules/models-database.md`). `false`: edit the existing migration. `true`: only add new migrations.
+9. **Migrations follow `DEV_CAN_MIGRATE_FRESH`** (`.ai/rules/models-database.md`). `true`: edit the existing migration. `false` or missing: only add new migrations.
 10. **No new dependencies or base folders** without asking.
 11. **Code to installed versions.** Check `composer.lock` / `package.json`, use Boost `search-docs`, no APIs from a newer major, no deprecated approaches.
 12. **Traits are complete reusable features** (`.ai/rules/structure.md`).

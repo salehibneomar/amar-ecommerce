@@ -324,7 +324,7 @@ composer types:check
 - **Shared code is universal:** traits, helpers and components never mention a specific page.
 - **Enums** use TitleCase cases with `label()` and `color()`.
 - **No prose comments:** only the PHPDoc types PHPStan needs.
-- **Migrations:** pre-launch, edit the existing migration and rebuild with `composer serve:dev`.
+- **Migrations:** pre-launch, edit the existing migration and rebuild with `php artisan app:fresh --seed`.
 - **Keep it simple:** no repositories, DTOs or abstractions until a second real use appears.
 - **New features:** follow [.ai/playbooks/new-feature.md](.ai/playbooks/new-feature.md).
 

@@ -2,7 +2,7 @@
 
 Every command this project needs, in one place. Each section says when to run it. For explanations and `.env` settings, see [SETUP.md](SETUP.md).
 
-> **Never run `composer serve:dev`, `php artisan app:fresh` or `php artisan migrate:fresh` on a live site.** They delete every user, order, product, uploaded image and banner.
+> **Never run `php artisan app:fresh` or `php artisan migrate:fresh` on a live site.** They delete every user, order, product, uploaded image and banner.
 
 ## Contents
 
@@ -48,7 +48,8 @@ php artisan down / up    # maintenance mode (same setting as Settings → System
 
 ```bash
 php artisan migrate               # apply new migrations (keeps data)
-composer serve:dev                # local only: wipe media + rebuild the database with demo data + embed products, then start the dev servers
+php artisan app:fresh --seed      # local only: wipe media + rebuild the database with demo data
+composer serve:dev                # local only: clear caches + apply new migrations (keeps data) + embed products, then start the dev servers
 php artisan migrate:status        # see which migrations ran
 ```
 
@@ -59,10 +60,10 @@ php artisan optimize:clear
 php artisan debugbar:clear
 php artisan blaze:trace:clear
 php -r "array_map('unlink', glob('storage/logs/*.log'));"
-php artisan app:fresh --seed       # media-library:clear, remove media folders, migrate:fresh --seed
+php artisan migrate --no-interaction  # apply new migrations, keeps data, no seeding
 php artisan storage:link --force   # point public/storage at this project (fixes broken image previews after a folder move or rename)
 php artisan optimize
-php artisan ai-assistant:embed     # AI search vectors for the seeded products
+php artisan ai-assistant:embed     # AI search vectors for the products
 composer run dev                   # start the dev servers (php artisan dev)
 ```
 
@@ -74,7 +75,7 @@ php artisan ai-assistant:embed --sleep=0   # no pause between calls (paid quota 
 php artisan config:clear                   # after editing AI_ASSISTANT_* or GEMINI_* in .env
 ```
 
-Run `ai-assistant:embed` after the first install, after `composer serve:dev`, after changing `GEMINI_EMBEDDING_MODEL` or `GEMINI_EMBEDDING_DIMENSIONS`, and after bulk imports. Products saved in the backoffice are embedded automatically. Without `GEMINI_EMBEDDING_MODEL` the command only prints a notice, and search uses keywords. How it works: [OUR_RAG.md](OUR_RAG.md).
+Run `ai-assistant:embed` after the first install, after `php artisan app:fresh --seed`, after changing `GEMINI_EMBEDDING_MODEL` or `GEMINI_EMBEDDING_DIMENSIONS`, and after bulk imports. Products saved in the backoffice are embedded automatically. Without `GEMINI_EMBEDDING_MODEL` the command only prints a notice, and search uses keywords. How it works: [OUR_RAG.md](OUR_RAG.md).
 
 ## Tests and code quality
 
@@ -168,7 +169,7 @@ rm -rf ~/public_html && ln -s ~/amar-ecommerce-lite/public ~/public_html
 |---|---|
 | `composer setup` | install, `.env`, key, migrate, `npm install`, build |
 | `composer dev` | `php artisan dev` (server, logs, Vite) |
-| `composer serve:dev` | local database rebuild with demo data and AI embeddings, then starts the dev servers (see [Database](#database)) |
+| `composer serve:dev` | clears caches, applies new migrations without seeding, embeds products, then starts the dev servers (see [Database](#database)) |
 | `composer lint` / `composer lint:check` | Pint fix / check |
 | `composer types:check` | PHPStan |
 | `composer test` | config clear, lint check, PHPStan, tests. Unset the exported `.env` first, as in [Tests](#tests-and-code-quality) |

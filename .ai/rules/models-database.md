@@ -18,7 +18,7 @@ Orders snapshot names and prices (`*_snapshot`, `unit_price`, `line_total`) so l
 ## Factories and seeders
 Every model has a factory with meaningful states (`superAdmin()`, `admin()`, `moderator()`, `editor()`, `paid()`, `stock()`, `outOfStock()`, …). Demo seeding is gated by `DB_SEEDING_ENABLED`.
 
-## Live apps get new migrations only (APP_IS_LIVE)
-Before any schema change, check `APP_IS_LIVE` in `.env` (`grep '^APP_IS_LIVE=' .env`; missing means `false`).
-- `false` (pre-launch): edit the existing `create_*` migration; the user rebuilds with `composer serve:dev`.
-- `true` (live data): never edit or delete an existing migration and never suggest `composer serve:dev`/`migrate:fresh`. Always add a new migration (`php artisan make:migration --no-interaction`) that alters the table and migrates existing rows, with a working `down()`.
+## Fresh migrations only when allowed (DEV_CAN_MIGRATE_FRESH)
+Before any schema change, check `DEV_CAN_MIGRATE_FRESH` in `.env` (`grep '^DEV_CAN_MIGRATE_FRESH=' .env`; missing means `false`).
+- `true` (pre-launch): edit the existing `create_*` migration; the user rebuilds with `php artisan app:fresh --seed`.
+- `false` (real data): never edit or delete an existing migration and never suggest `app:fresh`/`migrate:fresh`. Always add a new migration (`php artisan make:migration --no-interaction`) that alters the table and migrates existing rows, with a working `down()`.
