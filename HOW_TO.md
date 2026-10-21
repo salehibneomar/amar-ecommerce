@@ -433,6 +433,8 @@ Format PHP before committing: `vendor/bin/pint --dirty`
 | Wait after typing before any search runs (whole app) | `.env`: `APP_SEARCH_DEBOUNCE_MS` (default `300`) |
 | Results shown in the navbar search | `app/Livewire/Frontend/Search/Index.php`: `LIMIT` (5) and `MIN_LENGTH` (2) |
 | A new live search box | Use `<x-ui.search-input model="…" clearable />`, never your own `wire:model.live.debounce` |
+| Admin table search width (full width on phones, fixed from tablet up) | `resources/views/components/backoffice/management/search.blade.php`. Don't pass a width class from a page, since Flux puts it on the outer wrapper where the phone full-width rule can't override it |
+| Admin table toolbar layout (filters left, search and buttons right, wraps to a new line when they don't fit) | `resources/views/components/backoffice/management/table.blade.php`. Keep the toolbar slot to two `div` groups: filters, then actions |
 
 ---
 

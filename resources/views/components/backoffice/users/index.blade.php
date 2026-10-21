@@ -40,7 +40,6 @@
                         model="search"
                         :placeholder="__('Search users...')"
                         :label="__('Search Users')"
-                        class="max-w-xs"
                     />
                 </div>
             </x-slot:toolbar>

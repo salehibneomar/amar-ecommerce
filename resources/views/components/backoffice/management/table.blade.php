@@ -7,7 +7,7 @@
 
 <flux:card {{ $attributes->class(['min-w-0']) }}>
     @isset($toolbar)
-        <div class="flex flex-col justify-between gap-3 border-b border-line py-3 md:flex-row md:items-end md:[&>div]:items-end max-md:[&>div]:w-full max-md:[&>div]:flex-col max-md:[&>div]:items-stretch max-md:[&_[data-flux-field]]:w-full max-md:[&_input]:max-w-none">
+        <div class="flex flex-col justify-between gap-3 border-b border-line py-3 md:flex-row md:flex-wrap md:items-end md:[&>div]:items-end md:[&>div:last-child]:ml-auto max-md:[&>div]:w-full max-md:[&>div]:flex-col max-md:[&>div]:items-stretch max-md:[&_[data-flux-field]]:w-full max-md:[&_input]:max-w-none">
             {{ $toolbar }}
         </div>
     @endisset

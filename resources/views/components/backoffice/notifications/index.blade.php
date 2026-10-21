@@ -12,7 +12,7 @@
                     <x-backoffice.management.filter model="status" :label="__('Filter by Status')" :options="$this->statusOptions" />
                 </div>
                 <div class="flex items-end gap-2">
-                    <x-backoffice.management.search model="search" :placeholder="__('Search notifications...')" :label="__('Search Notifications')" class="max-w-xs" />
+                    <x-backoffice.management.search model="search" :placeholder="__('Search notifications...')" :label="__('Search Notifications')" />
                 </div>
             </x-slot:toolbar>
 

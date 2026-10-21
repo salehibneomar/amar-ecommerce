@@ -34,6 +34,7 @@ class CategoryService
         ?CategoryStatusEnum $status = null,
         ?int $parentId = null,
         bool $rootOnly = false,
+        bool $featuredOnly = false,
         string $sortBy = 'created_at',
         string $sortDirection = 'desc',
     ): LengthAwarePaginator {
@@ -43,6 +44,10 @@ class CategoryService
             $query->whereNull('parent_id');
         } elseif ($parentId !== null) {
             $query->where('parent_id', $parentId);
+        }
+
+        if ($featuredOnly) {
+            $query->where('is_featured', true);
         }
 
         return $this->paginateTableQuery(

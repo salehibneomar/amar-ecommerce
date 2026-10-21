@@ -12,7 +12,7 @@
                     <x-backoffice.management.per-page :placeholder="__('Select')" />
                 </div>
                 <div class="flex items-end gap-2">
-                    <x-backoffice.management.search model="search" :placeholder="__('Search roles...')" :label="__('Search Roles')" class="max-w-xs" />
+                    <x-backoffice.management.search model="search" :placeholder="__('Search roles...')" :label="__('Search Roles')" />
                     <x-ui.button variant="primary" wire:click="createRole">{{ __('Add Role') }}</x-ui.button>
                 </div>
             </x-slot:toolbar>

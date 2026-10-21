@@ -15,7 +15,7 @@
                     <x-backoffice.management.filter model="status" :label="__('Filter by Status')" :options="$this->statusOptions" />
                 </div>
                 <div class="flex items-end gap-2">
-                    <x-backoffice.management.search model="search" :placeholder="__('Search banners...')" :label="__('Search Banners')" class="max-w-xs" />
+                    <x-backoffice.management.search model="search" :placeholder="__('Search banners...')" :label="__('Search Banners')" />
                     <x-ui.button variant="primary" wire:click="createBanner">{{ __('Add New') }}</x-ui.button>
                 </div>
             </x-slot:toolbar>

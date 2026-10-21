@@ -20,7 +20,7 @@
                     <x-backoffice.management.per-page :placeholder="__('Select')" />
                 </div>
                 <div class="flex items-end gap-2">
-                    <x-backoffice.management.search model="search" :placeholder="__('Search offers...')" :label="__('Search Offers')" class="max-w-xs" />
+                    <x-backoffice.management.search model="search" :placeholder="__('Search offers...')" :label="__('Search Offers')" />
                     <x-ui.button variant="primary" wire:click="createOffer">{{ __('Add New') }}</x-ui.button>
                 </div>
             </x-slot:toolbar>

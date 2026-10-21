@@ -19,8 +19,7 @@
                     <x-backoffice.management.category-level-select model="categoryFilter" :levels="$this->categoryFilterOptions" :labels="[__('Filter by category'), __('Sub-category'), __('Sub-sub-category')]" filter />
                 </div>
                 <div class="flex items-end gap-2">
-                    <x-backoffice.management.search model="search" :placeholder="__('Search products...')" :label="__('Search Products')"
-                        class="max-w-xs" />
+                    <x-backoffice.management.search model="search" :placeholder="__('Search products...')" :label="__('Search Products')" />
                     <x-ui.button variant="primary" wire:click="createProduct">
                         {{ __('Add New') }}
                     </x-ui.button>

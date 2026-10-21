@@ -10,17 +10,17 @@
             'actions' => __('Actions'),
         ]" :sort-by="$sortBy" :sort-direction="$sortDirection">
             <x-slot:toolbar>
-                <div class="flex items-center gap-2">
+                <div class="flex min-w-0 flex-wrap items-center gap-2">
                     <x-backoffice.management.per-page :placeholder="__('Select')" />
                     <x-backoffice.management.filter model="status" :label="__('Filter by Status')" :options="$this->statusOptions" />
                     <x-backoffice.management.category-level-select model="categoryFilter" :levels="$this->categoryFilterOptions" :labels="[__('Sub-categories of'), __('Sub-category')]" filter />
-                    <div class="flex shrink-0 items-center md:h-10">
+                    <div class="flex flex-wrap items-center gap-x-5 gap-y-2 md:h-10">
                         <flux:switch wire:model.live="rootOnly" :label="__('Root Categories')" align="left" />
+                        <flux:switch wire:model.live="featuredOnly" :label="__('Featured Only')" align="left" />
                     </div>
                 </div>
                 <div class="flex items-end gap-2">
-                    <x-backoffice.management.search model="search" :placeholder="__('Search categories...')" :label="__('Search Categories')"
-                        class="max-w-xs" />
+                    <x-backoffice.management.search model="search" :placeholder="__('Search categories...')" :label="__('Search Categories')" />
                     <x-ui.button variant="primary" wire:click="createCategory">{{ __('Add New') }}</x-ui.button>
                 </div>
             </x-slot:toolbar>

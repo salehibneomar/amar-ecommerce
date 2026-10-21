@@ -23,7 +23,7 @@
                 <x-backoffice.management.filter model="paymentStatus" :label="__('Payment')" :options="$this->paymentStatusOptions" />
             </div>
             <div class="ms-auto">
-                <x-backoffice.management.search model="search" :placeholder="__('Order ID, email or phone...')" :label="__('Search Orders')" class="max-w-xs" />
+                <x-backoffice.management.search model="search" :placeholder="__('Order ID, email or phone...')" :label="__('Search Orders')" />
             </div>
         </x-slot:toolbar>
 

@@ -208,6 +208,19 @@ test('categories can be filtered to root categories only', function () {
         ->assertSee($child->name);
 });
 
+test('categories can be filtered to featured categories only', function () {
+    $featured = Category::factory()->featured()->create(['name' => 'Featured Category']);
+    $regular = Category::factory()->create(['name' => 'Regular Category']);
+
+    $component = Livewire::actingAs(User::factory()->superAdmin()->create())->test(Index::class);
+
+    expect($component->instance()->categories->pluck('id')->sort()->values()->all())->toBe([$featured->id, $regular->id]);
+
+    $component->set('featuredOnly', true);
+
+    expect($component->instance()->categories->pluck('id')->all())->toBe([$featured->id]);
+});
+
 test('square crops are never enlarged past the uploaded image', function () {
     Storage::fake('public');
     $category = Category::factory()->create();

@@ -29,6 +29,8 @@ class Index extends Component
 
     public bool $rootOnly = false;
 
+    public bool $featuredOnly = false;
+
     public bool $showForm = false;
 
     public bool $showDeleteConfirmation = false;
@@ -108,6 +110,11 @@ class Index extends Component
             $this->reset(['categoryFilter', 'categoryFilterLimits']);
         }
 
+        $this->resetTableFilters();
+    }
+
+    public function updatedFeaturedOnly(): void
+    {
         $this->resetTableFilters();
     }
 
@@ -292,6 +299,7 @@ class Index extends Component
             status: CategoryStatusEnum::tryFrom($this->status),
             parentId: $this->selectedCategoryLevelId('categoryFilter'),
             rootOnly: $this->rootOnly,
+            featuredOnly: $this->featuredOnly,
             sortBy: $this->sortBy,
             sortDirection: $this->sortDirection,
         );

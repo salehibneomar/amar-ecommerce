@@ -13,7 +13,7 @@
                     <x-backoffice.management.filter model="status" :label="__('Filter by Status')" :options="$this->statusOptions" />
                 </div>
                 <div class="flex items-end gap-2">
-                    <x-backoffice.management.search model="search" :placeholder="__('Search FAQs...')" :label="__('Search FAQs')" class="max-w-xs" />
+                    <x-backoffice.management.search model="search" :placeholder="__('Search FAQs...')" :label="__('Search FAQs')" />
                     <x-ui.button variant="primary" wire:click="createFaq">{{ __('Add New') }}</x-ui.button>
                 </div>
             </x-slot:toolbar>

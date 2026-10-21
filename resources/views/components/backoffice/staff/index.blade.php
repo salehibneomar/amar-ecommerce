@@ -15,7 +15,7 @@
                     <x-backoffice.management.per-page :placeholder="__('Select')" />
                 </div>
                 <div class="flex items-end gap-2">
-                    <x-backoffice.management.search model="search" :placeholder="__('Search staff...')" :label="__('Search Staff')" class="max-w-xs" />
+                    <x-backoffice.management.search model="search" :placeholder="__('Search staff...')" :label="__('Search Staff')" />
                     <x-ui.button variant="primary" wire:click="createStaff">{{ __('Add Staff') }}</x-ui.button>
                 </div>
             </x-slot:toolbar>
