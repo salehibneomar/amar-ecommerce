@@ -53,14 +53,14 @@ h2 + p { color: var(--muted); margin: 0 0 16px; }
     <h2 id="pitch">30 Second Pitch</h2>
     <p>Say this first.</p>
     <div class="pitch">
-        <p>I built a reusable ecommerce boilerplate in Laravel 13. Every new client shop starts from it, so the shop, checkout, payments, staff panel, reports and an AI shopping assistant are ready on day one. I kept all business logic in services, made every setting configurable, and covered it with over 360 automated tests. It runs on cheap shared hosting and can grow to a VPS without code changes.</p>
+        <p>I built a reusable ecommerce boilerplate in Laravel 13. Every new client shop starts from it, so the shop, checkout, payments, staff panel, reports and an AI shopping assistant are ready on day one. I kept all business logic in services, made every setting configurable, and covered it with over 380 automated tests. It runs on cheap shared hosting and can grow to a VPS without code changes.</p>
     </div>
 
     <h2 id="unique">Why It Is Unique</h2>
     <p>The points that set it apart.</p>
     <div class="list">
         <div class="item"><h3>A Boilerplate, Not One Shop</h3><p>The code stays generic. A new client changes config, brand colors and texts, not the core code.</p></div>
-        <div class="item"><h3>AI Assistant Built From Scratch</h3><p>A RAG assistant with no AI package. It only suggests real products and falls back to keyword search if the AI is down.</p></div>
+        <div class="item"><h3>AI Assistant Built From Scratch</h3><p>A RAG assistant with no AI package. It only suggests real products, answers sale, new arrival and price range questions from shop data, and falls back to keyword search if the AI is down.</p></div>
         <div class="item"><h3>Local and Global Payments</h3><p>Cash on delivery, bKash or Nagad verified by staff, and Stripe cards. A new gateway is one class.</p></div>
         <div class="item"><h3>Runs Anywhere</h3><p>No queue worker or cron is required, so it works on cPanel. Queues and Redis can be turned on later.</p></div>
         <div class="item"><h3>Fine Grained Access</h3><p>Roles plus per person permissions. Code checks permissions, never role names.</p></div>
@@ -73,11 +73,11 @@ h2 + p { color: var(--muted); margin: 0 0 16px; }
         <div class="item"><h3>Designed the Architecture</h3><p>Services own all logic. Controllers and Livewire stay thin. Blade only shows data.</p></div>
         <div class="item"><h3>Built the Order Flow</h3><p>Pending, processing, shipped and completed, with emails at each step, stock locking and PDF invoices.</p></div>
         <div class="item"><h3>Built the Payment Layer</h3><p>One interface for every gateway, a payment row per attempt, and verified Stripe webhooks.</p></div>
-        <div class="item"><h3>Built the RAG Pipeline</h3><p>Product embeddings, vector search, safe prompts, data masking, caching and rate limits.</p></div>
+        <div class="item"><h3>Built the RAG Pipeline</h3><p>Product embeddings, vector search, sale, new arrival and price filters, safe prompts, data masking, caching and rate limits.</p></div>
         <div class="item"><h3>Central Caching</h3><p>Public pages are cached, and the cache clears itself when the data behind it changes.</p></div>
         <div class="item"><h3>One Design System</h3><p>Shared UI parts for drawers, menus, modals and tables. One change updates both the shop and the admin panel.</p></div>
         <div class="item"><h3>Staff Tools</h3><p>Reports, dashboard, staff pay tracking, offers, banners, FAQs and live notifications.</p></div>
-        <div class="item"><h3>Tests and Static Checks</h3><p>Over 360 Pest tests, Larastan for types and Pint for code style.</p></div>
+        <div class="item"><h3>Tests and Static Checks</h3><p>Over 380 Pest tests, Larastan for types and Pint for code style.</p></div>
     </div>
 
     <h2 id="tech">Tech Stack</h2>
@@ -96,7 +96,7 @@ h2 + p { color: var(--muted); margin: 0 0 16px; }
     <p>Outside services and packages, and how they connect.</p>
     <div class="list">
         <div class="item"><h3>Stripe</h3><p>Called with Laravel's HTTP client, no SDK. Webhooks are checked with an HMAC signature before an order is marked paid.</p></div>
-        <div class="item"><h3>Gemini AI</h3><p>Used for embeddings and chat through the HTTP client. The provider is swappable in config.</p></div>
+        <div class="item"><h3>AI Providers</h3><p>Called through the HTTP client, no SDK. Chat and embeddings are set separately in .env (free Groq for chat and Gemini for embeddings by default). Any OpenAI compatible API works without code changes.</p></div>
         <div class="item"><h3>Fortify</h3><p>Login, registration, password reset and email verification, with rate limits.</p></div>
         <div class="item"><h3>Socialite</h3><p>Google and Facebook login.</p></div>
         <div class="item"><h3>Spatie Permission</h3><p>Roles and permissions, backed by a PHP enum of every permission.</p></div>

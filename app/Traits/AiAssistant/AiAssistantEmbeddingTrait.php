@@ -44,7 +44,7 @@ trait AiAssistantEmbeddingTrait
             return false;
         }
 
-        $vector = app(AiAssistantProviderResolver::class)->resolve(cached: false)->embed($text);
+        $vector = app(AiAssistantProviderResolver::class)->embedding(cached: false)->embed($text);
 
         if (! $vector) {
             return false;

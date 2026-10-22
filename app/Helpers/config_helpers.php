@@ -252,21 +252,29 @@ function aiAssistantConfig(string $key, mixed $default = null): mixed
     return config("ai-assistant.{$key}", $default);
 }
 
-function aiAssistantProvider(): string
+function aiAssistantChatConfig(string $key): mixed
 {
-    return (string) aiAssistantConfig('provider', 'gemini');
+    return aiAssistantConfig("chat.{$key}");
 }
 
-function aiAssistantProviderConfig(string $provider, string $key): mixed
+function aiAssistantEmbeddingConfig(string $key): mixed
 {
-    return aiAssistantConfig("providers.{$provider}.{$key}");
+    return aiAssistantConfig("embedding.{$key}");
+}
+
+function aiAssistantDriverClass(string $driver): ?string
+{
+    $class = aiAssistantConfig("drivers.{$driver}");
+
+    return is_string($class) && $class !== '' ? $class : null;
 }
 
 function isAiAssistantEnabled(): bool
 {
     return (bool) aiAssistantConfig('enabled', false)
-        && filled(aiAssistantProviderConfig(aiAssistantProvider(), 'api_key'))
-        && filled(aiAssistantProviderConfig(aiAssistantProvider(), 'model'));
+        && filled(aiAssistantChatConfig('url'))
+        && filled(aiAssistantChatConfig('api_key'))
+        && filled(aiAssistantChatConfig('model'));
 }
 
 function aiAssistantHistoryMessages(): int
@@ -279,9 +287,9 @@ function aiAssistantMessageMaxLength(): int
     return max(1, (int) aiAssistantConfig('message_max_length', 500));
 }
 
-function aiAssistantCandidates(): int
+function aiAssistantTopMatches(): int
 {
-    return max(1, (int) aiAssistantConfig('candidates', 20));
+    return max(1, (int) aiAssistantConfig('top_matches', 5));
 }
 
 function aiAssistantResults(): int
@@ -323,6 +331,30 @@ function aiPromptMap(string $key): array
 /**
  * @return list<string>
  */
+function aiPromptKeys(string $key): array
+{
+    return array_values(array_filter(array_keys((array) config("ai-prompts.{$key}", [])), is_string(...)));
+}
+
+/**
+ * @return array<string, list<string>>
+ */
+function aiPromptGroups(string $key): array
+{
+    $groups = [];
+
+    foreach ((array) config("ai-prompts.{$key}", []) as $name => $values) {
+        if (is_string($name) && is_array($values)) {
+            $groups[$name] = array_values(array_filter($values, is_string(...)));
+        }
+    }
+
+    return $groups;
+}
+
+/**
+ * @return list<string>
+ */
 function aiPromptList(string $key): array
 {
     return array_values(array_filter((array) config("ai-prompts.{$key}", []), is_string(...)));
@@ -348,7 +380,7 @@ function aiAssistantModels(): array
 
 function aiAssistantEmbeddingModel(): ?string
 {
-    return aiAssistantProviderConfig(aiAssistantProvider(), 'embedding_model') ?: null;
+    return aiAssistantEmbeddingConfig('model') ?: null;
 }
 
 function aiAssistantTimeoutSeconds(): int

@@ -49,14 +49,17 @@ class PageService
     {
         $payloads = $this->rememberFrontendCache(
             FrontendCacheKeyEnum::Banners,
-            fn (): array => Banner::query()
-                ->with('media')
-                ->where('status', BannerStatusEnum::Active)
-                ->orderBy('sort_order')
-                ->orderByDesc('id')
-                ->get()
-                ->map(fn (Banner $banner): array => $this->toFrontendCachePayload($banner, 'media'))
-                ->all(),
+            function (): array {
+                /** @var Collection<int, Banner> $banners */
+                $banners = Banner::query()
+                    ->with('media')
+                    ->where('status', BannerStatusEnum::Active)
+                    ->orderBy('sort_order')
+                    ->orderByDesc('id')
+                    ->get();
+
+                return $banners->map(fn (Banner $banner): array => $this->toFrontendCachePayload($banner, 'media'))->all();
+            },
         );
 
         return $this->collectFromFrontendCachePayloads(Banner::class, $payloads)
@@ -201,12 +204,15 @@ class PageService
      */
     public function getSitemapProducts(): array
     {
-        return $this->rememberFrontendCacheVariant(FrontendCacheKeyEnum::Products, ['sitemap'], fn (): array => array_values(Product::query()
-            ->whereIn('status', self::LISTED_STATUSES)
-            ->orderByDesc('id')
-            ->get(['id', 'slug', 'updated_at', 'type'])
-            ->map(fn (Product $product): array => ['slug' => $product->slug, 'updated_at' => $product->updated_at?->toAtomString()])
-            ->all()));
+        return $this->rememberFrontendCacheVariant(FrontendCacheKeyEnum::Products, ['sitemap'], function (): array {
+            /** @var Collection<int, Product> $products */
+            $products = Product::query()
+                ->whereIn('status', self::LISTED_STATUSES)
+                ->orderByDesc('id')
+                ->get(['id', 'slug', 'updated_at', 'type']);
+
+            return array_values($products->map(fn (Product $product): array => ['slug' => $product->slug, 'updated_at' => $product->updated_at->toAtomString()])->all());
+        });
     }
 
     /**
@@ -216,13 +222,16 @@ class PageService
     {
         $payloads = $this->rememberFrontendCache(
             FrontendCacheKeyEnum::Offers,
-            fn (): array => Offer::query()
-                ->with('categories:id,name')
-                ->where('is_active', true)
-                ->orderByDesc('discount_percentage')
-                ->get()
-                ->map(fn (Offer $offer): array => $this->toFrontendCachePayload($offer, 'categories'))
-                ->all(),
+            function (): array {
+                /** @var Collection<int, Offer> $offers */
+                $offers = Offer::query()
+                    ->with('categories:id,name')
+                    ->where('is_active', true)
+                    ->orderByDesc('discount_percentage')
+                    ->get();
+
+                return $offers->map(fn (Offer $offer): array => $this->toFrontendCachePayload($offer, 'categories'))->all();
+            },
         );
 
         return $this->collectFromFrontendCachePayloads(Offer::class, $payloads)
@@ -330,13 +339,16 @@ class PageService
     {
         return $this->rememberFrontendCache(
             FrontendCacheKeyEnum::Faqs,
-            fn (): array => Faq::query()
-                ->where('status', FaqStatusEnum::Active)
-                ->orderBy('id')
-                ->limit(self::FAQS_LIMIT)
-                ->get(['id', 'title', 'description'])
-                ->map(fn (Faq $faq): array => $faq->only(['id', 'title', 'description']))
-                ->all(),
+            function (): array {
+                /** @var Collection<int, Faq> $faqs */
+                $faqs = Faq::query()
+                    ->where('status', FaqStatusEnum::Active)
+                    ->orderBy('id')
+                    ->limit(self::FAQS_LIMIT)
+                    ->get(['id', 'title', 'description']);
+
+                return $faqs->map(fn (Faq $faq): array => $faq->only(['id', 'title', 'description']))->all();
+            },
         );
     }
 
@@ -373,10 +385,10 @@ class PageService
                 $query = Product::query()->with('media');
                 $query->whereIn('status', $statuses)->latest()->orderByDesc('id');
 
-                return $scope($query)
-                    ->get()
-                    ->map(fn (Product $product): array => $this->toFrontendCachePayload($product, 'media'))
-                    ->all();
+                /** @var Collection<int, Product> $products */
+                $products = $scope($query)->get();
+
+                return $products->map(fn (Product $product): array => $this->toFrontendCachePayload($product, 'media'))->all();
             },
         ));
     }

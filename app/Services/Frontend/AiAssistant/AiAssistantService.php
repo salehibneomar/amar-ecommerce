@@ -31,7 +31,7 @@ class AiAssistantService
         $candidates = $this->searchService->candidates($message);
 
         try {
-            $result = $this->providerResolver->resolve()->generateJson($this->systemPrompt($candidates, $message), $this->messages($history, $message), $this->schema());
+            $result = $this->providerResolver->chat()->generateJson($this->systemPrompt($candidates, $message), $this->messages($history, $message), $this->schema());
         } catch (ConnectionException|RequestException $exception) {
             report($exception);
 
@@ -114,7 +114,7 @@ class AiAssistantService
     private function systemPrompt(array $candidates, string $message): string
     {
         return implode("\n", [
-            aiPrompt('assistant.system', ['shop' => config('app.name'), 'results' => aiAssistantResults(), 'currency' => appCurrencySymbol(), 'language' => $this->language($message)]),
+            aiPrompt('assistant.system', ['shop' => config('app.name'), 'results' => aiAssistantResults(), 'currency' => appCurrencySymbol(), 'language' => $this->language($message), 'today' => now()->toDateString()]),
             ...array_map(fn (array $candidate): string => (string) json_encode(Arr::except($candidate, 'id'), JSON_UNESCAPED_UNICODE), $candidates),
         ]);
     }

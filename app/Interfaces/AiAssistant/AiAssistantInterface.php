@@ -15,6 +15,11 @@ interface AiAssistantInterface
     public function aiAssistantEmbeddingText(): string;
 
     /**
+     * @return array<string, int|float|null>
+     */
+    public function aiAssistantFilterValues(): array;
+
+    /**
      * @return Builder<Model>
      */
     public static function aiAssistantEmbeddingQuery(): Builder;

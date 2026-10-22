@@ -35,9 +35,7 @@ class AiAssistantSearchService
     public function candidates(string $query): array
     {
         $catalogue = $this->catalogue();
-        $productIds = array_keys($catalogue['texts']);
-        $ids = $this->semanticIds($query, (new Product)->getMorphClass(), $productIds) ?: $this->keywordIds($query);
-        $ids = array_slice(array_values(array_unique([...$ids, ...$productIds])), 0, aiAssistantCandidates());
+        $ids = array_slice($this->rank($query, semantic: true), 0, aiAssistantTopMatches());
 
         return array_map(fn (int $ref, int $id): array => [
             'ref' => $ref + 1,
@@ -52,7 +50,7 @@ class AiAssistantSearchService
      */
     public function matches(string $query, int $limit): array
     {
-        return array_slice($this->keywordIds($query), 0, $limit);
+        return array_slice($this->rank($query, semantic: false), 0, $limit);
     }
 
     /**
@@ -103,7 +101,7 @@ class AiAssistantSearchService
         }
 
         try {
-            $queryVector = $this->providerResolver->resolve()->embed($query);
+            $queryVector = $this->providerResolver->embedding()->embed($query);
         } catch (ConnectionException|RequestException $exception) {
             report($exception);
 
@@ -124,34 +122,153 @@ class AiAssistantSearchService
 
         arsort($scores);
 
-        return array_slice(array_keys($scores), 0, aiAssistantCandidates());
+        return array_keys($scores);
     }
 
     /**
      * @return list<int>
      */
-    private function keywordIds(string $query): array
+    private function rank(string $query, bool $semantic): array
     {
-        $words = array_values(array_diff(
-            array_unique(array_filter(
-                preg_split('/[^\p{L}\p{M}\p{N}]+/u', mb_strtolower($query)) ?: [],
-                fn (string $word): bool => mb_strlen($word) >= 3,
-            )),
-            aiPromptList('assistant.stop_words'),
-        ));
+        $suffixes = aiPromptList('assistant.word_suffixes');
+        $text = $this->normalize($query);
+        $words = $this->words($text, $suffixes);
+        $filterWords = array_map(fn (array $list): array => array_map(fn (string $word): string => $this->stem(mb_strtolower($word), $suffixes), $list), aiPromptGroups('assistant.filters'));
+        $filters = array_keys(array_filter($filterWords, fn (array $list): bool => array_intersect($words, $list) !== []));
+        ['ranges' => $ranges, 'used' => $used] = $this->ranges($text, $suffixes);
+        $terms = array_values(array_diff($words, array_merge(...array_values($filterWords)), $used));
+        $ids = $terms === [] ? [] : (($semantic ? $this->semanticIds($query, (new Product)->getMorphClass(), array_keys($this->catalogue()['texts'])) : []) ?: $this->keywordIds($terms));
 
-        if ($words === []) {
-            return [];
+        if ($filters === [] && $ranges === []) {
+            return $ids;
         }
 
+        $filtered = $this->filteredIds($filters, $ranges);
+
+        return $terms === [] ? $filtered : array_values(array_intersect($ids, $filtered));
+    }
+
+    /**
+     * @param  list<string>  $suffixes
+     * @return array{ranges: array<string, array{min: float|null, max: float|null}>, used: list<string>}
+     */
+    private function ranges(string $text, array $suffixes): array
+    {
+        $tokens = preg_split('/[^\p{L}\p{M}\p{N}]+/u', $text) ?: [];
+        $stems = array_map(fn (string $token): string => $this->stem($token, $suffixes), $tokens);
+        $ranges = [];
+        $used = [];
+
+        foreach (aiPromptKeys('assistant.ranges') as $name) {
+            $triggers = array_map(fn (array $list): array => array_map(fn (string $word): string => $this->stem(mb_strtolower($word), $suffixes), $list), aiPromptGroups("assistant.ranges.{$name}"));
+            $numbers = array_keys(array_filter($tokens, is_numeric(...)));
+            $consumed = [];
+
+            foreach ($numbers as $position => $index) {
+                if (isset($consumed[$index])) {
+                    continue;
+                }
+
+                $near = array_slice($stems, max(0, $index - 3), min(3, $index));
+
+                foreach (['between', 'max', 'min'] as $bound) {
+                    $trigger = array_values(array_intersect($near, $triggers[$bound] ?? []));
+
+                    if ($trigger === []) {
+                        continue;
+                    }
+
+                    $value = (float) $tokens[$index];
+                    $next = $numbers[$position + 1] ?? null;
+                    $ranges[$name] = match ($bound) {
+                        'between' => ['min' => $value, 'max' => $next !== null ? (float) $tokens[$next] : null],
+                        'max' => ['min' => $ranges[$name]['min'] ?? null, 'max' => $value],
+                        'min' => ['min' => $value, 'max' => $ranges[$name]['max'] ?? null],
+                    };
+                    array_push($used, $trigger[0], $tokens[$index], ...($bound === 'between' && $next !== null ? [$tokens[$next]] : []));
+                    $consumed += $bound === 'between' && $next !== null ? [$next => true] : [];
+
+                    break;
+                }
+            }
+        }
+
+        return ['ranges' => $ranges, 'used' => array_values(array_unique($used))];
+    }
+
+    private function normalize(string $query): string
+    {
+        $text = mb_strtolower($query);
+
+        foreach (aiPromptList('assistant.digits') as $digits) {
+            $text = strtr($text, array_combine(mb_str_split($digits), array_map(strval(...), range(0, 9))));
+        }
+
+        return (string) preg_replace('/(?<=\d)[,.](?=\d{3}\b)/', '', $text);
+    }
+
+    /**
+     * @param  list<string>  $suffixes
+     * @return list<string>
+     */
+    private function words(string $text, array $suffixes): array
+    {
+        return array_values(array_unique(array_map(
+            fn (string $word): string => $this->stem($word, $suffixes),
+            array_diff(
+                array_filter(preg_split('/[^\p{L}\p{M}\p{N}]+/u', $text) ?: [], fn (string $word): bool => mb_strlen($word) >= 3),
+                aiPromptList('assistant.stop_words'),
+            ),
+        )));
+    }
+
+    /**
+     * @param  list<string>  $filters
+     * @param  array<string, array{min: float|null, max: float|null}>  $ranges
+     * @return list<int>
+     */
+    private function filteredIds(array $filters, array $ranges): array
+    {
+        $sorts = [];
+
+        foreach ($this->catalogue()['products'] as $id => $product) {
+            $values = $product->aiAssistantFilterValues();
+            $flags = array_map(fn (string $filter): int|float|null => $values[$filter] ?? null, $filters);
+            $amounts = array_map(fn (string $name): int|float|null => $values[$name] ?? null, array_keys($ranges));
+
+            if (in_array(null, [...$flags, ...$amounts], true)) {
+                continue;
+            }
+
+            foreach (array_values($ranges) as $index => $range) {
+                if (($range['min'] !== null && $amounts[$index] < $range['min']) || ($range['max'] !== null && $amounts[$index] > $range['max'])) {
+                    continue 2;
+                }
+            }
+
+            $sorts[$id] = [$flags, $amounts];
+        }
+
+        uasort($sorts, fn (array $a, array $b): int => ($b[0] <=> $a[0]) ?: ($a[1] <=> $b[1]));
+
+        return array_keys($sorts);
+    }
+
+    /**
+     * @param  list<string>  $terms
+     * @return list<int>
+     */
+    private function keywordIds(array $terms): array
+    {
+        $patterns = array_map(fn (string $term): string => '/(?<![\p{L}\p{M}\p{N}])'.preg_quote($term, '/').'/u', $terms);
         $scores = [];
 
         foreach ($this->catalogue()['texts'] as $id => $fields) {
             $score = 0;
 
-            foreach ($words as $word) {
+            foreach ($patterns as $pattern) {
                 foreach ($fields as $weight => $field) {
-                    $score += str_contains($field, $word) ? $weight : 0;
+                    $score += preg_match($pattern, $field) ? $weight : 0;
                 }
             }
 
@@ -163,6 +280,20 @@ class AiAssistantSearchService
         arsort($scores);
 
         return array_keys($scores);
+    }
+
+    /**
+     * @param  list<string>  $suffixes
+     */
+    private function stem(string $word, array $suffixes): string
+    {
+        foreach ($suffixes as $suffix) {
+            if (str_ends_with($word, $suffix) && mb_strlen($word) - mb_strlen($suffix) >= 3) {
+                return mb_substr($word, 0, -mb_strlen($suffix));
+            }
+        }
+
+        return $word;
     }
 
     /**

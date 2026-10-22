@@ -2,14 +2,14 @@
 
 use App\Models\Product;
 use App\Services\AiAssistant\AiAssistantGeminiService;
+use App\Services\AiAssistant\AiAssistantOpenAiCompatibleService;
 
 return [
     'enabled' => (bool) env('AI_ASSISTANT_ENABLED', false),
-    'provider' => env('AI_ASSISTANT_PROVIDER', 'gemini'),
     'history_messages' => (int) env('AI_ASSISTANT_HISTORY_MESSAGES', 12),
     'message_max_length' => (int) env('AI_ASSISTANT_MESSAGE_MAX_LENGTH', 500),
     'timeout_seconds' => (int) env('AI_ASSISTANT_TIMEOUT_SECONDS', 20),
-    'candidates' => (int) env('AI_ASSISTANT_CANDIDATES', 20),
+    'top_matches' => (int) env('AI_ASSISTANT_TOP_MATCHES', 5),
     'results' => (int) env('AI_ASSISTANT_RESULTS', 5),
     'cache_minutes' => (int) env('AI_ASSISTANT_CACHE_MINUTES', 60),
     'max_output_tokens' => (int) env('AI_ASSISTANT_MAX_OUTPUT_TOKENS', 1024),
@@ -20,15 +20,22 @@ return [
     'models' => [
         Product::class,
     ],
-    'providers' => [
-        'gemini' => [
-            'class' => AiAssistantGeminiService::class,
-            'url' => env('GEMINI_URL', 'https://generativelanguage.googleapis.com/v1beta/models'),
-            'api_key' => env('GEMINI_API_KEY'),
-            'model' => env('GEMINI_MODEL'),
-            'embedding_model' => env('GEMINI_EMBEDDING_MODEL'),
-            'embedding_dimensions' => (int) env('GEMINI_EMBEDDING_DIMENSIONS', 768),
-            'thinking_budget' => env('GEMINI_THINKING_BUDGET'),
-        ],
+    'drivers' => [
+        'gemini' => AiAssistantGeminiService::class,
+        'openai' => AiAssistantOpenAiCompatibleService::class,
+    ],
+    'chat' => [
+        'driver' => env('AI_CHAT_DRIVER', 'openai'),
+        'url' => env('AI_CHAT_URL'),
+        'api_key' => env('AI_CHAT_API_KEY'),
+        'model' => env('AI_CHAT_MODEL'),
+        'reasoning' => env('AI_CHAT_REASONING'),
+    ],
+    'embedding' => [
+        'driver' => env('AI_EMBEDDING_DRIVER') ?: env('AI_CHAT_DRIVER', 'openai'),
+        'url' => env('AI_EMBEDDING_URL') ?: env('AI_CHAT_URL'),
+        'api_key' => env('AI_EMBEDDING_API_KEY') ?: env('AI_CHAT_API_KEY'),
+        'model' => env('AI_EMBEDDING_MODEL'),
+        'dimensions' => env('AI_EMBEDDING_DIMENSIONS'),
     ],
 ];

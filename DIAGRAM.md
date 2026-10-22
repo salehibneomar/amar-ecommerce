@@ -414,6 +414,7 @@ classDiagram
             +generateJson(system, messages, schema) array
         }
         class AiAssistantGeminiService
+        class AiAssistantOpenAiCompatibleService
         class AiAssistantCacheService
         class AiAssistantProviderResolver
         class AiAssistantEmbeddingTrait {
@@ -456,6 +457,7 @@ classDiagram
     ProductService ..> AiAssistantEmbeddingTrait : uses
     AiAssistantProviderResolver --> AiAssistantProviderInterface
     AiAssistantGeminiService ..|> AiAssistantProviderInterface
+    AiAssistantOpenAiCompatibleService ..|> AiAssistantProviderInterface
     AiAssistantCacheService ..|> AiAssistantProviderInterface
     AiAssistantProviderResolver --> AiAssistantCacheService
     AiAssistantSearchService --> AiAssistantInterface
@@ -625,15 +627,15 @@ sequenceDiagram
     participant LW as AiAssistant\Index
     participant AS as AiAssistantService
     participant SS as AiAssistantSearchService
-    participant P as AI provider (Gemini)
+    participant P as AI provider (Gemini, Groq…)
 
     C->>LW: "A gift for a 12 year old under 300"
     LW->>AS: reply(history, message, throttleKey)
     AS->>AS: throttle, mask emails and phone numbers
     AS->>SS: candidates(message)
     SS->>P: embed(message) [only when vectors exist]
-    SS->>SS: cosine rank cached vectors, else keyword score, fill with newest
-    SS-->>AS: top AI_ASSISTANT_CANDIDATES rows: ref + aiAssistantDocument() + category
+    SS->>SS: apply filter and range words (sale, new, price), cosine rank cached vectors, else keyword score, no padding
+    SS-->>AS: top AI_ASSISTANT_TOP_MATCHES rows: ref + aiAssistantDocument() + category
     AS->>P: generateJson(system prompt + candidates without ids, history, schema) [cached by request hash]
     alt provider error
         AS->>SS: matches(message) keyword only

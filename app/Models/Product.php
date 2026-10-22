@@ -10,6 +10,7 @@ use App\Traits\AiAssistant\ProductAiAssistantTrait;
 use App\Traits\Cache\ClearsFrontendCacheTrait;
 use App\Traits\Model\CmsUpdateTrackerTrait;
 use App\Traits\Model\MediaTrait;
+use Carbon\CarbonImmutable;
 use Database\Factories\ProductFactory;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Casts\Attribute;
@@ -38,6 +39,9 @@ use Spatie\MediaLibrary\MediaCollections\Models\Media;
  * @property ProductBadgeEnum|null $badge
  * @property bool $is_featured
  * @property string|null $type
+ * @property CarbonImmutable $created_at
+ * @property CarbonImmutable $updated_at
+ * @property CarbonImmutable|null $deleted_at
  * @property-read int $final_price
  * @property-read bool $has_discount
  * @property-read bool $has_any_media

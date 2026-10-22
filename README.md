@@ -129,9 +129,8 @@ Example: the first line for an electronics store:
 APP_NAME="Your App"
 AI_ASSISTANT_ENABLED=true
 AI_ASSISTANT_EXAMPLE_PROMPTS_UI="First example|Second example|Third example"
-GEMINI_API_KEY=your-key
-GEMINI_MODEL=gemini-flash-lite-latest
-GEMINI_EMBEDDING_MODEL=gemini-embedding-001
+AI_CHAT_API_KEY=your-groq-key
+AI_EMBEDDING_API_KEY=your-gemini-key
 ```
 
 ```bash

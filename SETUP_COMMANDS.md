@@ -26,7 +26,7 @@ composer install
 npm install
 cp .env.example .env
 php artisan key:generate
-# edit .env: database, mail, GEMINI_API_KEY …
+# edit .env: database, mail, AI_CHAT_API_KEY …
 php artisan migrate --seed
 php artisan storage:link
 php artisan ai-assistant:embed
@@ -72,10 +72,10 @@ composer run dev                   # start the dev servers (php artisan dev)
 ```bash
 php artisan ai-assistant:embed             # embed new or changed products (skips unchanged ones)
 php artisan ai-assistant:embed --sleep=0   # no pause between calls (paid quota or few products)
-php artisan config:clear                   # after editing AI_ASSISTANT_* or GEMINI_* in .env
+php artisan config:clear                   # after editing AI_ASSISTANT_*, AI_CHAT_* or AI_EMBEDDING_* in .env
 ```
 
-Run `ai-assistant:embed` after the first install, after `php artisan app:fresh --seed`, after changing `GEMINI_EMBEDDING_MODEL` or `GEMINI_EMBEDDING_DIMENSIONS`, and after bulk imports. Products saved in the backoffice are embedded automatically. Without `GEMINI_EMBEDDING_MODEL` the command only prints a notice, and search uses keywords. How it works: [OUR_RAG.md](OUR_RAG.md).
+Run `ai-assistant:embed` after the first install, after `php artisan app:fresh --seed`, after changing `AI_EMBEDDING_DRIVER`, `AI_EMBEDDING_MODEL` or `AI_EMBEDDING_DIMENSIONS`, and after bulk imports. Products saved in the backoffice are embedded automatically. Without `AI_EMBEDDING_MODEL` the command only prints a notice, and search uses keywords. How it works: [OUR_RAG.md](OUR_RAG.md).
 
 ## Tests and code quality
 

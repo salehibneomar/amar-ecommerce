@@ -67,7 +67,7 @@ flowchart LR
         M --> R{Vectors exist?}
         R -- yes --> E2[Embed the question] --> S[Cosine rank]
         R -- no --> K[Keyword score]
-        S --> C[Top 20 candidates]
+        S --> C[Top 5 matches]
         K --> C
         C --> P[Prompt: rules + candidates + history]
         P --> G[Gemini generateContent JSON]
@@ -90,7 +90,7 @@ An **embedding** is a list of numbers (a **vector**) that represents the *meanin
 "Ceramic coffee mug"        → [-0.55, 0.20, 0.10, …]   (different direction)
 ```
 
-An embedding model (`gemini-embedding-001`) produces these vectors. We ask for 768 numbers per text (`GEMINI_EMBEDDING_DIMENSIONS`): enough for good search, small enough to keep in memory.
+An embedding model (`gemini-embedding-001`) produces these vectors. We ask for 768 numbers per text (`AI_EMBEDDING_DIMENSIONS`): enough for good search, small enough to keep in memory.
 
 ### 4.2 Cosine similarity
 
@@ -119,14 +119,28 @@ This exact example is a test in `tests/Feature/Frontend/AiAssistantTest.php`.
 When there are no vectors (no embedding model configured) or the embedding call fails, we score products by words instead:
 
 - Split the message into words of 3+ letters (Unicode-aware, so Bangla works), and drop filler words like "the", "product", "suggest" (`assistant.stop_words`).
+- Trim a plural ending from each word (`assistant.word_suffixes`, default `s`), so "cloths" looks for "cloth".
+- A word matches only at the **start** of a word in the product text: "cloth" finds "clothing", but "are" no longer finds "skincare".
 - For each product: a word found in the **name** scores 3, in the type's extra fields (`aiAssistantColumns()`) **or category** 2, in the **description** 1.
 - Highest scores first.
 
 Keyword search is cheap and predictable, but it misses synonyms ("trainers" vs "sneakers"). Semantic search catches those. Having both makes the assistant robust.
 
+### Filters: questions about data, not meaning
+
+Some questions are about facts that neither search can see by meaning: "Which products are on sale?", "What is new this week?". Filters answer those from real data:
+
+- `assistant.filters` in `config/ai-prompts.php` maps a filter name to its trigger words (`on_sale`: sale, discount, offer… `new`: new, latest, week…). Add words for any language there.
+- Each model returns a sort value per filter from `aiAssistantFilterValues()` (Product: `on_sale` = discount %, `new` = date added). Null or missing means the record doesn't match. Models without filters return `[]` from `AiAssistantTrait`.
+- Trigger words are removed from the search words. If nothing else is left ("Which products are on sale?"), the matching records are sent, highest value first, with **no embedding call**. If other words remain ("cotton on sale"), search runs as usual and only records that also match the filter are kept.
+- **Number ranges** work the same way: `assistant.ranges` maps a value name to its `max` words (under, below, less…), `min` words (over, above…) and `between` words (between, from). "under $1,000", "less than ১০০০ taka" and "between 500 and 1500" become a price range. Commas and Bangla digits (`assistant.digits`) are normalised first. The model returns the value (Product: `price` = final price) from the same `aiAssistantFilterValues()`. Matches are sorted cheapest first.
+- The same ranking feeds the keyword fallback, so sale and new questions still get real matches when the AI is down.
+
+Nothing is padded: if no record matches, the model gets an empty list and says so.
+
 ### 4.4 Candidates, not the whole catalogue
 
-We never send the whole catalogue to the model. Retrieval picks the **top 20 candidates** (`AI_ASSISTANT_CANDIDATES`), and the model chooses **up to 5** (`AI_ASSISTANT_RESULTS`). If retrieval finds fewer than 20, we top up with the newest listed products, so general questions ("what's popular?") still get real options.
+We never send the whole catalogue to the model. Retrieval picks the **top 5 matching products** (`AI_ASSISTANT_TOP_MATCHES`), and the model chooses **up to 5** of them (`AI_ASSISTANT_RESULTS`). If retrieval finds fewer than 5, only those are sent: we never pad the list with unrelated products, so every suggestion is a real match. With no match at all, the model says so and asks a clarifying question.
 
 ### 4.5 Grounding and structured output
 
@@ -151,7 +165,7 @@ Read them in this order. Each layer depends only on the ones above it.
 | File | Role |
 |---|---|
 | `app/Interfaces/AiAssistant/AiAssistantProviderInterface.php` | What any AI provider must do: `embed(text): ?array` and `generateJson(system, messages, schema): array` |
-| `app/Interfaces/AiAssistant/AiAssistantInterface.php` | What a model must offer to join the assistant: `aiAssistantDocument()` (the **only** fields the AI may see), `aiAssistantEmbeddingText()` (text to embed), `aiAssistantEmbeddingQuery()` (which records to embed) |
+| `app/Interfaces/AiAssistant/AiAssistantInterface.php` | What a model must offer to join the assistant: `aiAssistantDocument()` (the **only** fields the AI may see), `aiAssistantEmbeddingText()` (text to embed), `aiAssistantFilterValues()` (values for sale, new and other filters), `aiAssistantEmbeddingQuery()` (which records to embed) |
 
 ### Model side
 
@@ -166,16 +180,17 @@ Read them in this order. Each layer depends only on the ones above it.
 
 | File | Role |
 |---|---|
-| `app/Services/AiAssistant/AiAssistantGeminiService.php` | Calls Gemini's `embedContent` and `generateContent` (JSON mode with `responseSchema`, `maxOutputTokens`, and `thinkingBudget` when set). Converts our plain JSON schema to Gemini's format (upper-case types) |
+| `app/Services/AiAssistant/AiAssistantGeminiService.php` | Calls Gemini's `embedContent` and `generateContent` (JSON mode with `responseSchema`, `maxOutputTokens`, and `AI_CHAT_REASONING` as `thinkingBudget` when a number or `thinkingLevel` when a word). Converts our plain JSON schema to Gemini's format (upper-case types) |
+| `app/Services/AiAssistant/AiAssistantOpenAiCompatibleService.php` | One class for every OpenAI-compatible API (Groq, OpenAI, Mistral, DeepSeek, OpenRouter, Ollama…). Calls `{url}/chat/completions` (`response_format` JSON schema in strict mode, so the reply always matches the schema, `max_completion_tokens`, `reasoning_effort` from `AI_CHAT_REASONING`) and `{url}/embeddings` (`dimensions` when set). A new provider needs only new `.env` values |
 | `app/Services/AiAssistant/AiAssistantCacheService.php` | A wrapper with the same interface that caches answers and question embeddings |
-| `app/Resolvers/AiAssistant/AiAssistantProviderResolver.php` | Builds the provider named in `AI_ASSISTANT_PROVIDER`, wrapped in the cache when `AI_ASSISTANT_CACHE_MINUTES > 0` |
-| `app/Enums/AiAssistant/AiAssistantProviderEnum.php`, `AiAssistantRoleEnum.php` | Provider names (`gemini`), chat roles (`user`, `assistant`) |
+| `app/Resolvers/AiAssistant/AiAssistantProviderResolver.php` | `chat()` and `embedding()` build the class of `AI_CHAT_DRIVER` or `AI_EMBEDDING_DRIVER` from `drivers` in `config/ai-assistant.php`, wrapped in the cache when `AI_ASSISTANT_CACHE_MINUTES > 0`. Each driver reads its URL, key and model from the matching `chat` or `embedding` config |
+| `app/Enums/AiAssistant/AiAssistantRoleEnum.php` | Chat roles (`user`, `assistant`). Provider names never appear in code, only in `.env` values |
 
 ### Retrieval and answering
 
 | File | Role |
 |---|---|
-| `app/Services/Frontend/AiAssistant/AiAssistantSearchService.php` | **The "R" in RAG.** `candidates()` (semantic, else keyword, then fill), `matches()` (keyword only, for the fallback), `products()` (models for the cards) |
+| `app/Services/Frontend/AiAssistant/AiAssistantSearchService.php` | **The "R" in RAG.** `candidates()` (filters and ranges, then semantic, else keyword), `matches()` (keyword only, for the fallback), `products()` (models for the cards) |
 | `app/Services/Frontend/AiAssistant/AiAssistantService.php` | **The "A" and "G".** `reply()`: throttle, mask, retrieve, build the prompt, call the provider, apply the guards, fall back on errors |
 | `app/Services/Frontend/Shop/PageService.php` | `getListedProducts()` (in-stock and out-of-stock products): cached catalogue data that retrieval reads, so a chat message adds no catalogue query |
 
@@ -193,7 +208,7 @@ Read them in this order. Each layer depends only on the ones above it.
 |---|---|
 | `app/Livewire/Frontend/AiAssistant/Index.php` | Chat state (`messages` with `role`, `text`, `suggestions`), `send()`, `clear()`, computed `products` for the cards |
 | `resources/views/components/frontend/ai-assistant/index.blade.php` | Chat page: example prompts, bubbles, suggestion cards (`x-frontend.cards.product-list-item`), composer |
-| `config/ai-assistant.php` + `app/Helpers/config_helpers.php` | Every setting, read through plain helpers (`isAiAssistantEnabled()`, `aiAssistantCandidates()` …) |
+| `config/ai-assistant.php` + `app/Helpers/config_helpers.php` | Every setting, read through plain helpers (`isAiAssistantEnabled()`, `aiAssistantTopMatches()` …) |
 | `config/ai-prompts.php` | **Every AI text in one place:** the system prompt rules, reply and error messages, history note, masking tokens, keyword stop words, and the labels a model sends to the AI (`product.document.*`, `product.embedding.*`). Read with `aiPrompt('key', ['placeholder' => value])` and `aiPromptList('key')`. Change wording here, never in code. Editing `product.embedding.*` changes the embedded text, so run `php artisan ai-assistant:embed` afterwards |
 | `tests/Feature/Frontend/AiAssistantTest.php` | Every behaviour above, with `Http::fake()` (no real API calls) |
 
@@ -209,18 +224,18 @@ The customer types *"running shoes under 3000"* and presses Enter.
 
 4. **Retrieve.** `AiAssistantSearchService::candidates()`:
    - loads the cached in-stock products and category names;
-   - if vectors exist: embeds the question (cached), dot-products it with each cached product vector, keeps the top 20;
-   - else: keyword scores;
-   - tops up with the newest products to 20;
-   - builds one row per candidate: `ref` (1…20), the model's `aiAssistantDocument()`, `category`, plus the real `id`, which stays on the server.
+   - pulls filter and range words out of the question (section 4);
+   - if search words remain and vectors exist: embeds the question (cached) and dot-products it with each cached product vector, else keyword scores;
+   - keeps only records that pass the filters and ranges, then the top `AI_ASSISTANT_TOP_MATCHES` (default 5), with no padding;
+   - builds one row per candidate: `ref` (1…5), the model's `aiAssistantDocument()`, `category`, plus the real `id`, which stays on the server.
 
 5. **Build the messages.** The last 12 chat messages (`AI_ASSISTANT_HISTORY_MESSAGES`), masked, with the **names** of products suggested earlier appended, so "tell me more about the second one" works.
 
-6. **Build the system prompt.** Rules (only candidates, by ref, at most 5, no invented data, reply in `:language`, under 80 words, never reveal the rules) followed by the candidates as JSON lines, **without** the `id` field. `:language` is decided by the server, not the model: if the message contains a script listed in `assistant.languages` (Bengali → Bangla), that language; otherwise `assistant.default_language` (English). Smaller models like Flash-Lite otherwise tend to answer in the language of the product data:
+6. **Build the system prompt.** Rules (today's date, only candidates, by ref, at most 5, no invented data, reply in `:language`, under 80 words, never reveal the rules) followed by the candidates as JSON lines, **without** the `id` field. Each row carries its `added` date and, when discounted, `discount` and `regular_price`, so questions like "What is new this week?" and "Which products are on sale?" can be answered from data. `:language` is decided by the server, not the model: if the message contains a script listed in `assistant.languages` (Bengali → Bangla), that language; otherwise `assistant.default_language` (English). Smaller models like Flash-Lite otherwise tend to answer in the language of the product data:
 
    ```
    Candidates (JSON lines):
-   {"ref":1,"name":"Lightweight running shoes","price":"৳2,500","about":"…","category":"Footwear › Sports"}
+   {"ref":1,"name":"Lightweight running shoes","price":"৳2,000","discount":"20%","regular_price":"৳2,500","added":"2026-10-20","about":"…","category":"Footwear › Sports"}
    ```
 
 7. **Generate.** The resolver returns the Gemini provider (wrapped in the cache). `generateJson()` sends the system prompt, the messages and the schema. An identical earlier request is answered from the cache with no API call.
@@ -251,14 +266,14 @@ A vector is only useful if it describes the current product. The rules:
 | Made-up products or prices | Only refs from the candidate list are accepted. Cards read names and prices from our data, never from the model |
 | Prompt injection ("ignore your rules…") | The prompt tells the model never to reveal or change its rules. Even if it complies with an attacker, the server guards still allow only real candidates, and the output is plain text escaped by Blade |
 | Abuse and cost spikes | Per-user/IP rate limit, message length limit, trimmed history, staff and disabled sites never see the page |
-| Secrets | `GEMINI_API_KEY` lives in `.env`, read through config, sent only as the `x-goog-api-key` header |
+| Secrets | `AI_CHAT_API_KEY` and `AI_EMBEDDING_API_KEY` live in `.env`, read through config, sent only as a header (`x-goog-api-key` or `Authorization: Bearer`) |
 
 ## 9. Saving tokens and money
 
-- **Response cache** (`AiAssistantCacheService`, `AI_ASSISTANT_CACHE_MINUTES`, default 60): the key is a sha256 of provider, models, system prompt (with candidates), messages and schema. The same question with the same catalogue costs nothing the second time. When stock or prices change, the candidates change, so the key changes and the answer is fresh. Question embeddings are cached too. Embeddings made by `ai-assistant:embed` are not, because they are stored in the database anyway.
-- **No hidden thinking tokens:** newer Gemini Flash models "think" before answering, and those tokens are billed. In a live test, one short answer cost 491 thinking tokens for 13 output tokens. Picking products from a list doesn't need it, so we use **Flash-Lite** (`gemini-flash-lite-latest`), which doesn't think by default and has its own, larger free quota. The free tier allowed only 20 Flash requests a day. Leave `GEMINI_THINKING_BUDGET` empty for Flash-Lite, because it rejects `0`. If you switch to a thinking model like `gemini-flash-latest`, set `GEMINI_THINKING_BUDGET=0`.
+- **Response cache** (`AiAssistantCacheService`, `AI_ASSISTANT_CACHE_MINUTES`, default 60): the key is a sha256 of the job (chat or embedding), driver, URL, model, dimensions, system prompt (with candidates), messages and schema. The same question with the same catalogue costs nothing the second time. When stock or prices change, the candidates change, so the key changes and the answer is fresh. Question embeddings are cached too. Embeddings made by `ai-assistant:embed` are not, because they are stored in the database anyway.
+- **No hidden thinking tokens:** newer Gemini Flash models "think" before answering, and those tokens are billed. In a live test, one short answer cost 491 thinking tokens for 13 output tokens. Picking products from a list doesn't need it, so we use **Flash-Lite** (`gemini-flash-lite-latest`), which doesn't think by default and has its own, larger free quota. The free tier allowed only 20 Flash requests a day. Leave `AI_CHAT_REASONING` empty for Flash-Lite, because it rejects `0`. If you switch to a thinking model like `gemini-flash-latest`, set `AI_CHAT_REASONING=0`.
 - **Hard output cap:** `AI_ASSISTANT_MAX_OUTPUT_TOKENS` (default 1024) limits what one reply can cost, on top of the "under 80 words" instruction.
-- **Small prompts:** 20 candidates with 200-character descriptions, 12 history messages, replies under 80 words.
+- **Small prompts:** 5 products with 200-character descriptions, 12 history messages, replies under 80 words.
 - **One catalogue pass per request:** `AiAssistantSearchService` is bound as `scoped` in `AppServiceProvider`, and it builds the in-stock catalogue, lower-cased search text and vectors once per request. Retrieval, history names and the cards all reuse them.
 - **At most 2 calls per message:** 1 embedding (only when vectors exist) and 1 generation.
 - **No re-embedding** of unchanged products (content hash), and price changes don't count.
@@ -268,25 +283,37 @@ A vector is only useful if it describes the current product. The rules:
 
 ```dotenv
 AI_ASSISTANT_ENABLED=true
-AI_ASSISTANT_PROVIDER=gemini
 AI_ASSISTANT_EXAMPLE_PROMPTS_UI="Suggest a gift under 1000|What is new this week?|Which products are on sale?"
 AI_ASSISTANT_HISTORY_MESSAGES=12        # chat messages sent as context
 AI_ASSISTANT_MESSAGE_MAX_LENGTH=500
 AI_ASSISTANT_TIMEOUT_SECONDS=20
-AI_ASSISTANT_CANDIDATES=20              # rows retrieval sends to the model
+AI_ASSISTANT_TOP_MATCHES=5              # best-matching products sent to the AI
 AI_ASSISTANT_RESULTS=5                  # max suggestions shown
 AI_ASSISTANT_CACHE_MINUTES=60           # 0 turns the response cache off
 AI_ASSISTANT_MAX_OUTPUT_TOKENS=1024     # hard cap per reply
 THROTTLE_ASSISTANT_ATTEMPTS=10       # messages per minute per user or IP
-GEMINI_URL=https://generativelanguage.googleapis.com/v1beta/models
-GEMINI_API_KEY=
-GEMINI_MODEL=gemini-flash-lite-latest   # alias that follows the current Flash-Lite model
-GEMINI_EMBEDDING_MODEL=gemini-embedding-001   # empty = keyword search only
-GEMINI_EMBEDDING_DIMENSIONS=768
-GEMINI_THINKING_BUDGET=               # empty for Flash-Lite; 0 for thinking models like gemini-flash-latest
+AI_CHAT_DRIVER=openai                 # API format: openai (Groq, OpenAI, Mistral, Ollama…) or gemini
+AI_CHAT_URL=https://api.groq.com/openai/v1
+AI_CHAT_API_KEY=
+AI_CHAT_MODEL=openai/gpt-oss-120b     # best free Groq chat model, supports JSON schema output
+AI_CHAT_REASONING=low                 # low, medium or high; a number is a Gemini thinking budget; empty = model default
+AI_EMBEDDING_DRIVER=gemini            # empty driver, URL or key = the chat ones
+AI_EMBEDDING_URL=https://generativelanguage.googleapis.com/v1beta/models
+AI_EMBEDDING_API_KEY=
+AI_EMBEDDING_MODEL=gemini-embedding-001   # empty = keyword search only
+AI_EMBEDDING_DIMENSIONS=768
 ```
 
-The page appears only when `AI_ASSISTANT_ENABLED=true` **and** the provider's key and model are set. Models available to a key: `GET https://generativelanguage.googleapis.com/v1beta/models` with the `x-goog-api-key` header. Run `php artisan config:clear` after editing `.env`.
+Settings are named by **job** (chat, embedding), never by provider, so switching provider means changing values, not keys. Groq has no embedding models, so chat uses Groq and embeddings use Gemini. Vectors are stored per embedding model, so changing only the chat settings keeps them valid. Change the embedding driver, model or dimensions only together with `php artisan ai-assistant:embed`.
+
+| Provider | `AI_CHAT_DRIVER` | `AI_CHAT_URL` | Example model |
+|---|---|---|---|
+| Groq | `openai` | `https://api.groq.com/openai/v1` | `openai/gpt-oss-120b` |
+| Gemini | `gemini` | `https://generativelanguage.googleapis.com/v1beta/models` | `gemini-flash-lite-latest` (leave reasoning empty) |
+| OpenAI | `openai` | `https://api.openai.com/v1` | `gpt-4.1-mini` |
+| Ollama (local) | `openai` | `http://localhost:11434/v1` | `llama3.2` (any non-empty key) |
+
+The page appears only when `AI_ASSISTANT_ENABLED=true` **and** `AI_CHAT_URL`, `AI_CHAT_API_KEY` and `AI_CHAT_MODEL` are set. Models available to a key: `GET {AI_CHAT_URL}/models` (Bearer key for `openai`, `x-goog-api-key` header for `gemini`). Run `php artisan config:clear` after editing `.env`.
 
 ## 11. Extending it
 
@@ -296,20 +323,20 @@ The page appears only when `AI_ASSISTANT_ENABLED=true` **and** the provider's ke
    - `aiAssistantDocument()`: only public fields, kept short;
    - `aiAssistantEmbeddingText()`: the text that describes its meaning;
    - optionally `aiAssistantEmbeddingQuery()`: which records, with eager loads.
+   - optionally `aiAssistantFilterValues()`: a sort value per filter name in `assistant.filters` (null = doesn't match);
 2. **Service:** in `CourseService`, `use AiAssistantEmbeddingTrait;` and call `$this->syncAiAssistantEmbeddingLater($course)` after create and update.
 3. **Config:** add `Course::class` to `models` in `config/ai-assistant.php`, then run `php artisan ai-assistant:embed`.
 4. **Retrieval and cards:** `AiAssistantSearchService` currently searches products. Add a candidates source for the new model (or merge both lists) and a card for it. Vectors are already stored per model type (`vectors()[morph class]`).
 
 Nothing else changes: services only check `instanceof AiAssistantInterface`, and a model that doesn't implement it is silently skipped.
 
-### Add another provider (for example OpenAI or Grok)
+### Add another provider (for example OpenAI, Mistral or Ollama)
 
-1. Add a case to `AiAssistantProviderEnum`.
-2. Create `app/Services/AiAssistant/AiAssistant<Name>Service.php` implementing `AiAssistantProviderInterface`. Return `null` from `embed()` if it has no embedding model; the assistant then uses keyword search.
-3. Add `providers.<name>` to `config/ai-assistant.php` (class, url, api_key, model, embedding_model) and the keys to `.env.example`.
-4. Switch with `AI_ASSISTANT_PROVIDER=<name>`.
+**OpenAI-compatible API (most providers): `.env` only, no code or config change.** Set `AI_CHAT_DRIVER=openai`, the provider's `AI_CHAT_URL` (the part before `/chat/completions`), `AI_CHAT_API_KEY` and `AI_CHAT_MODEL`. The same goes for `AI_EMBEDDING_*`.
 
-**Combining providers** is just another class implementing the same interface: a failover that tries Gemini then Grok, or a router that embeds with one and generates with another. `AiAssistantCacheService` is already an example of this "wrapper" pattern.
+**A different API format** (like Gemini's native API): create `app/Services/AiAssistant/AiAssistant<Name>Service.php` implementing `AiAssistantProviderInterface`, reading `aiAssistantChatConfig()` in `generateJson()` and `aiAssistantEmbeddingConfig()` in `embed()`. Return `null` from `embed()` if it has no embedding model. Add it to `drivers` in `config/ai-assistant.php` and set `AI_CHAT_DRIVER=<name>`.
+
+**Chat and embeddings already mix**, because each job has its own settings. A failover that tries one provider then another is just another class implementing the same interface. `AiAssistantCacheService` is already an example of this "wrapper" pattern.
 
 ## 12. Build a RAG yourself, from zero
 
@@ -453,7 +480,7 @@ php artisan optimize:clear && env $(grep -oE '^[A-Z_][A-Z0-9_]*' .env | sed 's/^
 
 **Current limits**
 
-- Vector search runs in PHP over cached vectors. That's fine for a few thousand products (raise `memory_limit` or lower `GEMINI_EMBEDDING_DIMENSIONS` as the catalogue grows).
+- Vector search runs in PHP over cached vectors. That's fine for a few thousand products (raise `memory_limit` or lower `AI_EMBEDDING_DIMENSIONS` as the catalogue grows).
 - Replies are not streamed, and the chat resets on page reload.
 - Retrieval and cards cover products only, although embeddings already support any model.
 
@@ -463,13 +490,13 @@ php artisan optimize:clear && env $(grep -oE '^[A-Z_][A-Z0-9_]*' .env | sed 's/^
 |---|---|
 | **v3: cart actions** | Extend the schema with `add_to_cart: [refs]` and `remove_from_cart: [refs]`, filled only on a clear request. Map refs to ids, call `CartService::add()` / `remove()` (same ownership and stock rules as the buttons), dispatch `cart-updated`, and add an **Add to cart** button on each suggestion |
 | Bigger catalogues | Move vectors to a vector store: MySQL 9 `VECTOR`, PostgreSQL `pgvector`, Qdrant, Meilisearch. Only `semanticIds()` changes |
-| Better ranking | **Hybrid search:** combine the semantic and keyword scores instead of either/or. Then **rerank** the top 20 with a second, cheap model call |
-| Filters from the question | Let the model extract `max_price` or `category` first, and filter candidates in SQL before ranking |
+| Better ranking | **Hybrid search:** combine the semantic and keyword scores instead of either/or. Then **rerank** a longer list with a second, cheap model call |
+| Smarter filters | Trigger words already cover sale, new and price ranges. Let the model extract `category` or other filters first, and filter candidates in SQL before ranking |
 | Streaming replies | Livewire `wire:stream` with the provider's streaming endpoint |
 | Saved chats | A `conversations` table per user, if customers want to come back to a chat |
 | Quality checks | A small set of test questions with expected products, run against the real API before releases |
 | Analytics | Count questions, suggestions clicked and fallbacks, to tune prompts and the catalogue |
-| More providers | OpenAI or Grok behind the same interface, with a failover wrapper |
+| Provider failover | A wrapper that tries a second provider when the first fails |
 
 ## 15. Glossary
 

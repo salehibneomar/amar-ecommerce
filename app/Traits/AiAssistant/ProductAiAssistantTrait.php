@@ -8,9 +8,9 @@ use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Support\Str;
 
 /**
- * @mixin Product
- *
  * @method static Builder<static> query()
+ *
+ * @mixin Product
  */
 trait ProductAiAssistantTrait
 {
@@ -51,8 +51,22 @@ trait ProductAiAssistantTrait
             'name' => $this->name,
             ...$this->aiAssistantAttributes(),
             'price' => formatMoney($this->final_price),
+            ...($this->has_discount ? ['discount' => "{$this->discount_percentage}%", 'regular_price' => formatMoney($this->price)] : []),
+            'added' => $this->created_at->toDateString(),
             'about' => Str::limit(plainText($this->description), 200),
             ...($this->status->isInStock() ? [] : ['stock' => aiPrompt('product.document.out_of_stock')]),
+        ];
+    }
+
+    /**
+     * @return array<string, int|float|null>
+     */
+    public function aiAssistantFilterValues(): array
+    {
+        return [
+            'on_sale' => $this->has_discount ? $this->discount_percentage : null,
+            'new' => $this->created_at->getTimestamp(),
+            'price' => $this->final_price,
         ];
     }
 

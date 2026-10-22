@@ -13,14 +13,27 @@ final class AiAssistantProviderResolver
 {
     public function __construct(private readonly Container $container) {}
 
-    public function resolve(bool $cached = true): AiAssistantProviderInterface
+    public function chat(bool $cached = true): AiAssistantProviderInterface
     {
-        $provider = aiAssistantProvider();
-        $class = aiAssistantProviderConfig($provider, 'class');
+        return $this->resolve('chat', aiAssistantChatConfig(...), $cached);
+    }
+
+    public function embedding(bool $cached = true): AiAssistantProviderInterface
+    {
+        return $this->resolve('embedding', aiAssistantEmbeddingConfig(...), $cached);
+    }
+
+    /**
+     * @param  callable(string): mixed  $config
+     */
+    private function resolve(string $job, callable $config, bool $cached): AiAssistantProviderInterface
+    {
+        $driver = (string) $config('driver');
+        $class = aiAssistantDriverClass($driver);
         $instance = $class ? $this->container->make($class) : null;
 
         if (! $instance instanceof AiAssistantProviderInterface) {
-            throw new InvalidArgumentException("No assistant provider is configured for [{$provider}].");
+            throw new InvalidArgumentException("No assistant driver is configured for [{$driver}].");
         }
 
         if (! $cached || aiAssistantCacheMinutes() === 0) {
@@ -28,10 +41,11 @@ final class AiAssistantProviderResolver
         }
 
         return new AiAssistantCacheService($instance, implode('|', [
-            $provider,
-            aiAssistantProviderConfig($provider, 'model'),
-            aiAssistantProviderConfig($provider, 'embedding_model'),
-            aiAssistantProviderConfig($provider, 'embedding_dimensions'),
+            $job,
+            $driver,
+            $config('url'),
+            $config('model'),
+            $config('dimensions'),
         ]));
     }
 }
