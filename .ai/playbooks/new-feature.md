@@ -35,7 +35,7 @@ Write three lines, and ask only if one is unclear:
 - UI change: `npm run build` once.
 
 ## 4. Close the loop
-- Unless `DEV_SKIP_OPTIONAL_DOCS=true`: update `TECHNICAL.md` / `DIAGRAM.md` only for new tables, flows or cache keys. New `.env` keys go in `SETUP.md`. Update `INCOMPLETE.md` with fixed items and v1 gaps.
+- Update `README.md` or `docs/` only when asked. New `.env` keys go in `.env.example` with a one-line comment.
 - Report in three bullets: changed, tested, left for v2.
 
 ## v1 checklist

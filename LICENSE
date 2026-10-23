@@ -1,0 +1,79 @@
+AmarEcommerce Lite Commercial License
+
+Copyright (c) 2026 SIOKRAFT. All rights reserved.
+
+AmarEcommerce Lite (the "Software") is the property of SIOKRAFT. The Software
+includes its source code, database migrations, views, assets, configuration,
+AI agent instructions, rules and documentation. It is licensed, not sold.
+
+1. Who May Use the Software
+
+   Only a person or company that has bought a license from SIOKRAFT or an
+   authorised SIOKRAFT reseller (the "Customer") may use the Software. Anyone
+   who got the Software any other way has no rights to it.
+
+2. What the Customer May Do
+
+   The Customer may, for its own projects and its own clients' projects:
+
+   a. install, run and host the Software;
+   b. change, extend and customise the Software in any way;
+   c. build and deliver websites, shops and applications based on the
+      Software (each an "End Product") for itself or for its clients, and
+      charge for that work.
+
+3. What Is Not Allowed
+
+   Unless Section 4 applies, no one, including the Customer, may:
+
+   a. sell, resell, sublicense, rent, lease or give away the Software or any
+      copy of it;
+   b. redistribute or publish the Software, in full or in part, including in
+      public or shared code repositories, marketplaces, file sharing sites,
+      starter kit or template stores, or as part of another boilerplate,
+      theme, template or starter kit;
+   c. offer the Software, or an End Product that is substantially the same as
+      the Software, as a product that competes with AmarEcommerce Lite;
+   d. remove or change this license, copyright notices or SIOKRAFT branding in
+      the license files;
+   e. copy, take, share or use the Software without a valid license.
+
+4. Resale or Redistribution of a Changed Version
+
+   The Customer may sell or redistribute its own changed version of the
+   Software only when all of these are true:
+
+   a. at least 30% (thirty percent) of the source code files of the Software
+      have been substantially changed, rewritten or replaced with the
+      Customer's own work. Renaming, reformatting, rebranding, translating,
+      reordering, changing colors, text or assets, or other cosmetic edits do
+      not count as changes;
+   b. the changed version is not offered as a starter kit, boilerplate,
+      template or theme that competes with AmarEcommerce Lite;
+   c. this license notice stays in the parts that come from the Software.
+
+   The Customer must keep proof of the changes (for example version control
+   history) and must show it to SIOKRAFT on written request. If the Customer
+   cannot show the changes meet Section 4a, the resale or redistribution is
+   not allowed.
+
+5. Ownership
+
+   SIOKRAFT keeps all rights, title and ownership of the Software. The
+   Customer owns the code it writes itself. Third party packages included with
+   the Software keep their own licenses.
+
+6. Ending the License
+
+   This license ends at once, without notice, if its terms are broken. When it
+   ends, the Customer must stop using the Software and delete every copy.
+   SIOKRAFT may take legal action for any breach, including theft, copying or
+   resale without permission.
+
+7. No Warranty
+
+   The Software is provided "as is", without warranty of any kind. SIOKRAFT is
+   not liable for any claim, damage or loss arising from the Software or its
+   use, to the extent the law allows.
+
+For licensing questions or permission requests, contact SIOKRAFT.

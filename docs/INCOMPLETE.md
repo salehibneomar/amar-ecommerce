@@ -10,7 +10,7 @@ Status legend: 🔴 fix before launch · 🟠 should fix soon · 🟢 nice to ha
 |---|---|---|---|
 | 🔴 | **Review the legal pages** (`resources/views/frontend/legal/*`) | The terms, privacy and refund texts describe how the app works but were not written by a lawyer | The owner approves the wording and updates "Last updated" |
 | 🔴 | **Working email on the live server** | Customers cannot log in until they verify their email | Configure `MAIL_*` and send a test registration |
-| 🔴 | **Production `.env`** | Demo data must never be seeded live | Set `APP_ENV=production`, `APP_DEBUG=false`, `DB_SEEDING_ENABLED=false`, `APP_CURRENCY`, `APP_CURRENCY_SYMBOL`, `DB_SEED_ADMIN_EMAIL`, `DB_SEED_ADMIN_PASSWORD` (see SETUP.md) |
+| 🔴 | **Production `.env`** | Demo data must never be seeded live | Set `APP_ENV=production`, `APP_DEBUG=false`, `DB_SEEDING_ENABLED=false`, `APP_CURRENCY`, `APP_CURRENCY_SYMBOL`, `DB_SEED_ADMIN_EMAIL`, `DB_SEED_ADMIN_PASSWORD` (see SETUP_ADVANCED.md) |
 
 ## 2. Small design gaps
 

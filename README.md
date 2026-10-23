@@ -47,10 +47,18 @@ Each staff member is paid either a fixed monthly salary or a percentage of the m
 
 Laravel 13 (PHP 8.4), Livewire 4, Flux UI, Tailwind CSS 4 and MySQL. No queue worker or cron is needed, so the app runs on cPanel shared hosting as well as on a VPS.
 
-## Quick start (for developers)
+## Installation
+
+Follow **[SETUP.md](SETUP.md)**. It is written for everyone, including people who have never used a terminal, and covers:
+
+- the tools to install on [Windows](SETUP.md#windows), [Mac](SETUP.md#mac) and [Linux](SETUP.md#linux-ubuntu-or-debian) (PHP 8.4, Composer, Node.js 22 and MySQL 8);
+- [running the shop on your computer](SETUP.md#3-run-the-shop-on-your-computer);
+- [putting it online](SETUP.md#4-put-the-shop-online) on cPanel or a VPS;
+- [fixes for common problems](SETUP.md#5-common-problems).
+
+Already a Laravel developer? The short version:
 
 ```bash
-git clone <repository-url> amar-ecommerce-lite && cd amar-ecommerce-lite
 composer install && npm install
 cp .env.example .env && php artisan key:generate
 # set your database (and APP_CURRENCY / APP_CURRENCY_SYMBOL) in .env, then:
@@ -121,7 +129,7 @@ Example: the first line for an electronics store:
    - `aiAssistantEmbeddingText()`: the text that describes the item, built with `aiPrompt('<model>.embedding.…')`.
 2. **Service:** in the service that saves the model, `use AiAssistantEmbeddingTrait;` and call `$this->syncAiAssistantEmbeddingLater($model)` after create and update.
 3. **Config:** list the class in `models` in `config/ai-assistant.php`.
-4. **Retrieval and cards:** `AiAssistantSearchService` and the chat view currently read products. Point the candidate source and the card component at your model. See [OUR_RAG.md §11](OUR_RAG.md#11-extending-it).
+4. **Retrieval and cards:** `AiAssistantSearchService` and the chat view currently read products. Point the candidate source and the card component at your model. See [OUR_RAG.md §11](docs/OUR_RAG.md#11-extending-it).
 
 ### 3. Set `.env` and embed
 
@@ -139,22 +147,27 @@ php artisan config:clear
 php artisan ai-assistant:embed
 ```
 
-Prompt edits take effect immediately (run `php artisan config:clear` if config is cached). Only `<model>.embedding.*` edits need a new `ai-assistant:embed`. How the whole RAG works: [OUR_RAG.md](OUR_RAG.md).
+Prompt edits take effect immediately (run `php artisan config:clear` if config is cached). Only `<model>.embedding.*` edits need a new `ai-assistant:embed`. How the whole RAG works: [OUR_RAG.md](docs/OUR_RAG.md).
 
 ## Documentation
 
-New here? Read the docs in this order. Steps 1 to 4 get the app running and make the code readable. Read the rest when you need it.
+Read in this order. Steps 1 and 2 get the shop running. Read the rest when you need it.
 
 | # | File | What is inside |
 |---|---|---|
 | 1 | [README.md](README.md) | What the app is, the pages, the stack and sample accounts |
-| 2 | [SETUP.md](SETUP.md) | Installation for local development, a VPS and cPanel, plus every `.env` setting |
-| 3 | [SETUP_COMMANDS.md](SETUP_COMMANDS.md) | Every command in one place, including the **safe test command** (a plain `php artisan test` wipes the dev database) |
-| 4 | [TECHNICAL.md](TECHNICAL.md) | Architecture, folders, database, flows, caching and conventions. The most important read before touching code |
-| 5 | [DIAGRAM.md](DIAGRAM.md) | ERD, class and sequence diagrams for TECHNICAL.md |
-| 6 | [AGENTS.md](AGENTS.md) | The golden rules, working loop and test rules. Written for AI agents, but the rules apply to everyone. Path rules are in `.ai/rules/` and the feature playbook is in `.ai/playbooks/` |
-| 7 | [HOW_TO.md](HOW_TO.md) | Recipes for everyday changes: titles, links, colors, limits, `.env` |
-| 8 | [INCOMPLETE.md](INCOMPLETE.md) | Known gaps and ideas for later |
-| 9 | [OUR_RAG.md](OUR_RAG.md) | How the AI shopping assistant (RAG) works, file by file, and how to build one yourself |
+| 2 | [SETUP.md](SETUP.md) | Easy step by step installation on Windows, Mac and Linux, and on cPanel or a VPS |
+| 3 | [docs/SETUP_ADVANCED.md](docs/SETUP_ADVANCED.md) | Every `.env` setting, Nginx, PHP limits, queue worker, free hosting and updating a live site |
+| 4 | [docs/SETUP_COMMANDS.md](docs/SETUP_COMMANDS.md) | Every command in one place, including the **safe test command** (a plain `php artisan test` wipes the dev database) |
+| 5 | [docs/TECHNICAL.md](docs/TECHNICAL.md) | Architecture, folders, database, flows, caching and conventions. The most important read before touching code |
+| 6 | [docs/DIAGRAM.md](docs/DIAGRAM.md) | ERD, class and sequence diagrams for TECHNICAL.md |
+| 7 | [AGENTS.md](AGENTS.md) | The golden rules, working loop and test rules. Written for AI agents, but the rules apply to everyone. Path rules are in `.ai/rules/` and the feature playbook is in `.ai/playbooks/` |
+| 8 | [docs/HOW_TO.md](docs/HOW_TO.md) | Recipes for everyday changes: titles, links, colors, limits, `.env` |
+| 9 | [docs/INCOMPLETE.md](docs/INCOMPLETE.md) | Known gaps and ideas for later |
+| 10 | [docs/OUR_RAG.md](docs/OUR_RAG.md) | How the AI shopping assistant (RAG) works, file by file, and how to build one yourself |
 
-A good first task: run the safe test command, make one small change from HOW_TO.md, read its rule in `.ai/rules/`, then run Pint and the related test file.
+A good first task: run the safe test command, make one small change from [HOW_TO.md](docs/HOW_TO.md), read its rule in `.ai/rules/`, then run Pint and the related test file.
+
+## License
+
+AmarEcommerce Lite belongs to SIOKRAFT. Buyers may use and change it for their own and their clients' projects, but may not resell or share it. See [LICENSE](LICENSE) for the full terms.

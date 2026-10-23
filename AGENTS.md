@@ -4,15 +4,15 @@ Single source of instructions for every AI coding agent. `CLAUDE.md` imports it.
 
 ## Project
 
-Laravel 13 / PHP 8.4 ecommerce boilerplate that client shops start from, so shared code stays generic. It ships as a simple generic shop: one flat `products` table whose base `Product` model can host child product types, up to five images per product (the first is the thumbnail), tracked stock, and Stripe/SSLCommerz-style orders (order status, payment status, a `payments` row per attempt). `PAYMENT_GATEWAYS` lists the gateways customers pick from at checkout (`cod`, `manual` for bKash or Nagad verified by staff, `stripe`), and blank means no payment step. Staff use the backoffice with role permissions (Super Admin does everything) plus per-person permissions. Stack: Livewire 4, Flux UI 2, Tailwind 4, Fortify, Socialite, spatie permission and medialibrary, Pest 5, Larastan, Pint. Architecture: `TECHNICAL.md`.
+Laravel 13 / PHP 8.4 ecommerce boilerplate that client shops start from, so shared code stays generic. It ships as a simple generic shop: one flat `products` table whose base `Product` model can host child product types, up to five images per product (the first is the thumbnail), tracked stock, and Stripe/SSLCommerz-style orders (order status, payment status, a `payments` row per attempt). `PAYMENT_GATEWAYS` lists the gateways customers pick from at checkout (`cod`, `manual` for bKash or Nagad verified by staff, `stripe`), and blank means no payment step. Staff use the backoffice with role permissions (Super Admin does everything) plus per-person permissions. Stack: Livewire 4, Flux UI 2, Tailwind 4, Fortify, Socialite, spatie permission and medialibrary, Pest 5, Larastan, Pint.
 
 ## Agent mode (DEV_AI_AGENT)
 
-Read once per session: `grep -E '^DEV_(AI_AGENT|SKIP_OPTIONAL_DOCS|CAN_MIGRATE_FRESH)=' .env` (missing means `free`, `false` and `false`).
+Read once per session: `grep -E '^DEV_(AI_AGENT|CAN_MIGRATE_FRESH)=' .env` (missing means `free` and `false`).
 
-- **DEV_SKIP_OPTIONAL_DOCS=true:** never update `TECHNICAL.md`, `DIAGRAM.md`, `HOW_TO.md`, `SETUP.md`, `SETUP_COMMANDS.md`, `OUR_RAG.md` or `INCOMPLETE.md`, even where a rule or playbook says to. Only `AGENTS.md`, `CLAUDE.md`, `.ai/**` and `README.md` may change. Mention skipped doc updates in one line of the report.
+- **Docs:** `README.md` and its guides are for buyers. Never read or update them unless asked.
 
-- **free (lean):** follow Golden rules, Tests and Replies only. Read a rule file or doc only when the change clearly depends on it. Smallest change, one Pint run, one targeted test run. Skip PHPStan, skills, sub-agents, screenshots and doc updates unless asked. If a fix fails twice, stop and ask.
+- **free (lean):** follow Golden rules, Tests and Replies only. Read a rule file only when the change clearly depends on it. Smallest change, one Pint run, one targeted test run. Skip PHPStan, skills, sub-agents and screenshots unless asked. If a fix fails twice, stop and ask.
 - **paid (full):** the whole file, including the Working loop and the context map. Still no needless iterations: at most three fix attempts before asking.
 
 ## Context map (read on demand, never all at once)
@@ -21,12 +21,6 @@ Read once per session: `grep -E '^DEV_(AI_AGENT|SKIP_OPTIONAL_DOCS|CAN_MIGRATE_F
 |---|---|
 | Rules for files you touch | `.ai/rules/index.md`, then only matching files |
 | New feature or first version | `.ai/playbooks/new-feature.md` |
-| Architecture, tables, flows, cache | the section of `TECHNICAL.md` |
-| ERD, class, sequence diagrams | the section of `DIAGRAM.md` (update when schema, relations or flows change) |
-| Install, `.env`, commands | `SETUP.md`, `SETUP_COMMANDS.md` |
-| AI assistant / RAG | `OUR_RAG.md` |
-| Everyday tweaks | `HOW_TO.md` |
-| Known gaps | `INCOMPLETE.md` |
 
 ## Golden rules
 

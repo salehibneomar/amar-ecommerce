@@ -1,6 +1,6 @@
 # Technical guide
 
-How AmarEcommerce Lite, the ecommerce boilerplate for client shop projects, is built: layers, folders, data model, flows and conventions. For installation see [SETUP.md](SETUP.md). For known gaps see [INCOMPLETE.md](INCOMPLETE.md). AI agents start at [AGENTS.md](AGENTS.md).
+How AmarEcommerce Lite, the ecommerce boilerplate for client shop projects, is built: layers, folders, data model, flows and conventions. For installation see [SETUP_ADVANCED.md](SETUP_ADVANCED.md). For known gaps see [INCOMPLETE.md](INCOMPLETE.md). AI agents start at [AGENTS.md](../AGENTS.md).
 
 ## Contents
 
@@ -327,7 +327,7 @@ composer types:check
 - **No prose comments:** only the PHPDoc types PHPStan needs.
 - **Migrations:** pre-launch, edit the existing migration and rebuild with `php artisan app:fresh --seed`.
 - **Keep it simple:** no repositories, DTOs or abstractions until a second real use appears.
-- **New features:** follow [.ai/playbooks/new-feature.md](.ai/playbooks/new-feature.md).
+- **New features:** follow [.ai/playbooks/new-feature.md](../.ai/playbooks/new-feature.md).
 
 ## 14. Future scope
 

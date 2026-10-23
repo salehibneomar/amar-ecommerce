@@ -51,7 +51,7 @@ Components live in purpose folders under `resources/views/components`, never at 
 - Never hex colors, `slate-*`/`gray-*`, or raw palettes (`blue-*`, `sky-*`) for brand elements. Raw Flux colors only for semantic status (success, danger, info).
 
 ## Radius and shadow
-By role (HOW_TO.md §4): badges `rounded-sm`, menu items and small controls `rounded-md`, buttons, inputs and boxes inside cards `rounded-lg`, cards and panels `rounded-xl`, page sections `rounded-2xl`, avatars `rounded-full`. Nested elements step down. No arbitrary radii. Every card gets `shadow-card`, never a hard-coded shadow.
+By role (docs/HOW_TO.md §4): badges `rounded-sm`, menu items and small controls `rounded-md`, buttons, inputs and boxes inside cards `rounded-lg`, cards and panels `rounded-xl`, page sections `rounded-2xl`, avatars `rounded-full`. Nested elements step down. No arbitrary radii. Every card gets `shadow-card`, never a hard-coded shadow.
 
 ## Text
 User-facing text never contains a semicolon or an em dash. Split the sentence or use a comma. Empty values use `appEmptyValue()` or `<x-ui.empty-value />`, never a hard-coded `-`.

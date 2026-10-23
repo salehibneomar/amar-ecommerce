@@ -1,6 +1,6 @@
 # Setup commands
 
-Every command this project needs, in one place. Each section says when to run it. For explanations and `.env` settings, see [SETUP.md](SETUP.md).
+Every command this project needs, in one place. Each section says when to run it. For explanations and `.env` settings, see [SETUP_ADVANCED.md](SETUP_ADVANCED.md).
 
 > **Never run `php artisan app:fresh` or `php artisan migrate:fresh` on a live site.** They delete every user, order, product, uploaded image and banner.
 

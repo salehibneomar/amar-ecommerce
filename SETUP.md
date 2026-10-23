@@ -1,386 +1,286 @@
-# Installation and setup
+# Setup Guide
 
-This guide installs AmarEcommerce on your computer for development, on a Linux server (VPS) and on cPanel shared hosting. For what the app does, see the [README](README.md). For how it is built, see [TECHNICAL.md](TECHNICAL.md).
+This guide takes you from the downloaded kit to a running shop, one step at a time. You do not need to be a programmer. Copy each command exactly as shown, paste it, and press **Enter**.
+
+Need every setting or a special server? See [docs/SETUP_ADVANCED.md](docs/SETUP_ADVANCED.md).
 
 ## Contents
 
-- [Requirements](#requirements)
-- [Local installation](#local-installation)
-- [Production installation (VPS)](#production-installation)
-- [cPanel (shared hosting)](#cpanel-shared-hosting)
-- [All environment settings](#2-configure-the-environment-all-settings)
+1. [What you need](#1-what-you-need)
+2. [Install the tools on your computer](#2-install-the-tools-on-your-computer) ([Windows](#windows), [Mac](#mac), [Linux](#linux-ubuntu-or-debian))
+3. [Run the shop on your computer](#3-run-the-shop-on-your-computer)
+4. [Put the shop online](#4-put-the-shop-online) ([cPanel](#option-a-cpanel-shared-hosting), [VPS](#option-b-vps-ubuntu-server))
+5. [Common problems](#5-common-problems)
 
-## Requirements
+## 1. What you need
 
-| Software | Version |
-|---|---|
-| PHP | 8.4 with `pdo_mysql`, `mbstring`, `intl`, `fileinfo`, `gd` (with WebP), `zip`, `exif`, `dom` |
-| Composer | 2.x |
-| Node.js / npm | 20+ (builds the front-end assets only) |
-| MySQL / MariaDB | MySQL 8+ or MariaDB 10.6+ |
+| Tool | Version | What it does |
+|---|---|---|
+| PHP | 8.4 | Runs the shop |
+| Composer | 2 | Downloads the PHP parts of the shop |
+| Node.js | 22 LTS | Builds the design files (CSS and JavaScript) |
+| MySQL | 8 or newer (or MariaDB 10.6+) | Stores products, orders and customers |
 
-By default the app needs no queue worker and no cron jobs, so it runs on shared hosting (cPanel) as well as on a VPS. Turning on the mail queue (`MAIL_QUEUE_ENABLED=true`) adds one worker so emails are retried when the mail server is down.
+PHP also needs these extensions: `pdo_mysql`, `mbstring`, `intl`, `fileinfo`, `gd`, `zip`, `exif`, `dom` and `curl`. The steps below install them for you.
 
-## Local installation
+**How to open a terminal** (the window where you type commands):
 
-### 1. Clone and install dependencies
+- **Windows:** open the kit folder in File Explorer, right click an empty space and pick **Open in Terminal**.
+- **Mac:** open **Terminal** from Applications → Utilities. Type `cd ` (with a space), drag the kit folder into the window and press Enter.
+- **Linux:** open the kit folder, right click an empty space and pick **Open in Terminal**.
+
+## 2. Install the tools on your computer
+
+Follow only the section for your system. You do this once.
+
+### Windows
+
+1. **PHP, Composer and Node.js:** download and install **Laravel Herd** from [herd.laravel.com](https://herd.laravel.com). Open Herd, go to **PHP** and make sure **8.4** is selected. Herd installs Composer and Node.js too.
+2. **MySQL:** download **MySQL Community Server** (Windows MSI installer) from [dev.mysql.com/downloads/mysql](https://dev.mysql.com/downloads/mysql/). During setup, pick a **root password** and write it down.
+3. **Check it worked.** Open a new terminal and run:
+
+   ```bash
+   php -v
+   composer -V
+   node -v
+   ```
+
+   Each command should print a version number. PHP must show `8.4`.
+
+### Mac
+
+1. **Homebrew** (an installer for developer tools). Open Terminal and run:
+
+   ```bash
+   /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
+   ```
+
+   When it finishes, run the two `echo` and `eval` lines it prints under **Next steps**.
+
+2. **PHP, Composer, Node.js and MySQL:**
+
+   ```bash
+   brew install php@8.4 composer node@22 mysql
+   brew link --force --overwrite php@8.4 node@22
+   brew services start mysql
+   ```
+
+3. **Set a MySQL root password** (pick your own and write it down):
+
+   ```bash
+   mysql -u root -e "ALTER USER 'root'@'localhost' IDENTIFIED BY 'your-password';"
+   ```
+
+4. **Check it worked:** close Terminal, open it again and run `php -v`, `composer -V` and `node -v`. PHP must show `8.4`.
+
+Prefer an app with buttons? Install **Laravel Herd** for Mac from [herd.laravel.com](https://herd.laravel.com) and **DBngin** from [dbngin.com](https://dbngin.com) for MySQL instead.
+
+### Linux (Ubuntu or Debian)
+
+1. **PHP 8.4 and its extensions:**
+
+   ```bash
+   sudo apt update
+   sudo apt install -y software-properties-common curl unzip git
+   sudo add-apt-repository -y ppa:ondrej/php
+   sudo apt update
+   sudo apt install -y php8.4-cli php8.4-mysql php8.4-mbstring php8.4-intl php8.4-gd php8.4-zip php8.4-xml php8.4-curl
+   ```
+
+   On Debian, use the [packages.sury.org](https://packages.sury.org/php/) repository instead of the `ppa` line.
+
+2. **Composer:**
+
+   ```bash
+   curl -sS https://getcomposer.org/installer | php
+   sudo mv composer.phar /usr/local/bin/composer
+   ```
+
+3. **Node.js 22:**
+
+   ```bash
+   curl -fsSL https://deb.nodesource.com/setup_22.x | sudo -E bash -
+   sudo apt install -y nodejs
+   ```
+
+4. **MySQL:**
+
+   ```bash
+   sudo apt install -y mysql-server
+   sudo mysql -e "ALTER USER 'root'@'localhost' IDENTIFIED WITH caching_sha2_password BY 'your-password';"
+   ```
+
+   Pick your own password and write it down.
+
+5. **Check it worked:** run `php -v`, `composer -V` and `node -v`. PHP must show `8.4`.
+
+## 3. Run the shop on your computer
+
+Open a terminal **inside the kit folder** (see [How to open a terminal](#1-what-you-need)) and follow these steps in order.
+
+### Step 1: Create the database
 
 ```bash
-git clone <repository-url> amar-ecommerce-lite
-cd amar-ecommerce-lite
+mysql -u root -p -e "CREATE DATABASE amar_ecom_lite CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;"
+```
+
+Type your MySQL root password when asked. Nothing shows while you type, that is normal.
+
+**Windows:** if `mysql` is "not recognized", open **MySQL Command Line Client** from the Start menu instead, type your root password, then type this and press Enter:
+
+```sql
+CREATE DATABASE amar_ecom_lite CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
+```
+
+### Step 2: Download the shop's parts
+
+```bash
 composer install
 npm install
 ```
 
-### 2. Configure the environment
+This can take a few minutes the first time.
+
+### Step 3: Create your settings file
+
+- **Windows:** `copy .env.example .env`
+- **Mac and Linux:** `cp .env.example .env`
+
+Then run:
 
 ```bash
-cp .env.example .env
 php artisan key:generate
 ```
 
-Edit `.env` and set the database connection:
+### Step 4: Fill in your settings
+
+Open the `.env` file in any text editor (Notepad, TextEdit or VS Code) and change these lines:
 
 ```dotenv
-DB_CONNECTION=mysql
-DB_HOST=127.0.0.1
-DB_PORT=3306
+APP_NAME="My Shop"
+
 DB_DATABASE=amar_ecom_lite
-DB_USERNAME=your_user
-DB_PASSWORD=your_password
+DB_USERNAME=root
+DB_PASSWORD=your-password
+
+APP_CURRENCY=BDT
+APP_CURRENCY_SYMBOL=৳
 ```
 
-For local email testing, point the mailer at [Mailpit](https://mailpit.axllent.org/) (web inbox at `http://127.0.0.1:8025`):
+Use your MySQL root password for `DB_PASSWORD`, and your own currency code and symbol. Save the file.
 
-```dotenv
-MAIL_MAILER=failover
-MAIL_HOST=127.0.0.1
-MAIL_PORT=1025
-```
-
-`failover` sends through SMTP and, if the mail server is down, writes the email to `storage/logs/laravel.log` instead of failing the request. `MAIL_TIMEOUT` (default 10 seconds) limits how long it waits for the server.
-
-### 3. Create the database tables and sample data
+### Step 5: Fill the shop with sample data
 
 ```bash
 php artisan migrate --seed
 php artisan storage:link
-php artisan ai-assistant:embed
 ```
 
-### 4. Start the app
+This creates the tables, sample products and sample accounts.
+
+### Step 6: Start the shop
 
 ```bash
 composer dev
 ```
 
-This runs the web server, log viewer and Vite together. Open `http://localhost:8200`.
+Open [http://localhost:8200](http://localhost:8200) in your browser. Keep the terminal open while you use the shop, and press `Ctrl + C` in it to stop.
 
-To open the dev site from a phone or another computer on the same network, set `SERVER_HOST=0.0.0.0` and `VITE_DEV_HOST` to this machine's LAN IP (`hostname -I`) in `.env`, then restart `composer dev` from a new terminal. Open `http://<LAN-IP>:8200`. Keep `SERVER_HOST=127.0.0.1` on shared or public networks, because debug mode shows error details to anyone who can reach the site.
+**Sample accounts** (password `123456` for all):
 
-New customers must verify their email before they can use their account: registering opens the verification page (with a resend button) without logging in, and logging in unverified sends a fresh link and opens the same page instead of logging in. Locally the verification emails arrive in Mailpit; the seeded accounts are already verified.
-
-### Sample accounts
-
-All seeded accounts use the password `123456`.
-
-| Role | Email | Login page |
+| Who | Email | Login page |
 |---|---|---|
-| Super Admin | `admin@example.com` | `/backoffice/login` |
-| Moderator | `moderator@example.com` | `/backoffice/login` |
-| Customer | `customer@example.com` | `/user/login` |
+| Admin | `admin@example.com` | [localhost:8200/backoffice/login](http://localhost:8200/backoffice/login) |
+| Moderator | `moderator@example.com` | [localhost:8200/backoffice/login](http://localhost:8200/backoffice/login) |
+| Customer | `customer@example.com` | [localhost:8200/user/login](http://localhost:8200/user/login) |
 
-### Resetting the database
+Next time, you only need Step 6.
 
-```bash
-php artisan app:fresh --seed
-```
+## 4. Put the shop online
 
-This deletes every media library item with `media-library:clear`, removes leftover media files (product, category, banner and avatar images), then runs `migrate:fresh --seed`. Use it instead of `php artisan migrate:fresh`, which leaves orphaned files in `storage/`.
+Before you start, you need a **domain** (for example `myshop.com`) and **hosting** with PHP 8.4 and MySQL.
 
-`composer serve:dev` keeps your data. It clears Laravel's caches, runs `php artisan migrate` (no seeding), rebuilds the caches with `php artisan optimize`, embeds the products for the AI assistant with `php artisan ai-assistant:embed` (it only prints a notice when no embedding model is set), and finally starts the dev servers with `composer run dev`.
-
-### Running tests
-
-Tests use an in-memory SQLite database defined in `phpunit.xml`. If your shell exports the values from `.env` (for example `DB_CONNECTION=mysql`), those values override `phpunit.xml` and the tests will reset your local MySQL database. Unset them when running tests:
+**Build the files on your computer first.** In the kit folder, run:
 
 ```bash
-env $(grep -oE '^[A-Z_][A-Z0-9_]*' .env | sed 's/^/-u /') php artisan test --compact
-```
-
-Run `php artisan optimize:clear` first if you ran `composer serve:dev` or `php artisan optimize`, because tests refuse to run with cached config.
-
-Other checks:
-
-```bash
-vendor/bin/pint --dirty   # code style
-composer types:check      # PHPStan
-```
-
-## Production installation
-
-The steps below are for a Linux server (VPS) with Nginx and PHP-FPM. A cPanel section follows.
-
-### 1. Upload the code and install dependencies
-
-```bash
-git clone <repository-url> /var/www/amar-ecommerce-lite
-cd /var/www/amar-ecommerce-lite
 composer install --no-dev --optimize-autoloader
 npm ci
 npm run build
 ```
 
-### 2. Configure the environment (all settings)
+### Option A: cPanel (shared hosting)
 
-```bash
-cp .env.example .env
-php artisan key:generate
-```
+Your host must offer PHP 8.4 and **Terminal** in cPanel.
 
-Set at least the following in `.env`:
+1. **Set PHP 8.4:** cPanel → **MultiPHP Manager** → pick your domain → **PHP 8.4**.
+2. **Create the database:** cPanel → **MySQL Databases**. Create a database and a user, then add the user to the database with **All Privileges**. Write down all three names and the password.
+3. **Upload the kit:** zip the kit folder (leave out `node_modules`), upload it in cPanel → **File Manager** to your home folder (not inside `public_html`) and extract it. Name the folder `amar-ecommerce-lite`.
+4. **Point the domain to the shop:** cPanel → **Domains** → your domain → set **Document Root** to `amar-ecommerce-lite/public`.
+5. **Create the settings file:** in File Manager, click **Settings** and tick **Show Hidden Files**. Open the shop folder, copy `.env.example` to `.env` and edit it:
 
-```dotenv
-APP_ENV=production
-APP_DEBUG=false
-APP_URL=https://your-domain.com
-APP_IS_IN_PRODUCTION=true
-DEV_CAN_MIGRATE_FRESH=false
-SESSION_SECURE_COOKIE=true
+   ```dotenv
+   APP_NAME="My Shop"
+   APP_ENV=production
+   APP_DEBUG=false
+   APP_URL=https://myshop.com
+   APP_IS_IN_PRODUCTION=true
+   DEV_CAN_MIGRATE_FRESH=false
+   SESSION_SECURE_COOKIE=true
 
-DB_CONNECTION=mysql
-DB_HOST=127.0.0.1
-DB_DATABASE=your_database
-DB_USERNAME=your_user
-DB_PASSWORD=your_password
-DB_SEEDING_ENABLED=false
-DB_SEED_ADMIN_EMAIL=you@your-domain.com
-DB_SEED_ADMIN_PASSWORD=a-strong-password
+   DB_DATABASE=your_database
+   DB_USERNAME=your_user
+   DB_PASSWORD=your_password
+   DB_SEEDING_ENABLED=false
+   DB_SEED_ADMIN_EMAIL=you@myshop.com
+   DB_SEED_ADMIN_PASSWORD=a-strong-password
 
-APP_CURRENCY=BDT
-APP_CURRENCY_SYMBOL=৳
-VALID_PHONE_LENGTH=11
-
-MAIL_MAILER=failover
-MAIL_HOST=your.smtp.host
-MAIL_PORT=587
-MAIL_USERNAME=your_smtp_user
-MAIL_PASSWORD=your_smtp_password
-MAIL_FROM_ADDRESS=no-reply@your-domain.com
-
-```
-
-Review the app-specific settings as well:
-
-| Setting | Purpose |
-|---|---|
-| `APP_CATEGORY_LEVEL` | How deep categories go: `1` root only, `2` root › sub (default), `3` root › sub › sub-sub (max). After lowering it, deeper categories are ignored, not deleted |
-| `SESSION_SECURE_COOKIE` | `true` on a live HTTPS site, so the login cookie is never sent over plain http. Keep `false` locally |
-| `SEO_INDEXING_ENABLED`, `SEO_DESCRIPTION`, `SEO_IMAGE` | Search and link previews: `false` hides every page from search engines (staging), the default description, and the default share image (empty uses the logo). Product pages use their own description and first image |
-| `ADMIN_ROUTE_PREFIX` | URL prefix of the whole admin area: `/{prefix}/login`, `/{prefix}/dashboard`, `/{prefix}/manage/…`, `/{prefix}/settings/…`. Default `backoffice`. Use a hard-to-guess value on a live site, then run `php artisan optimize`. Staff must use the new login URL |
-| `APP_IS_IN_PRODUCTION` | `true` when the app runs in production. A plain flag, read with `config('app.is_in_production')`. Default `false` |
-| `DEV_AI_AGENT` | Development only, for AI coding agents. The app never reads it. `free` = lean mode (core rules, fewest tool calls and reads), `paid` = full `AGENTS.md` workflow. Default `free` |
-| `DEV_CAN_MIGRATE_FRESH` | Development only, for AI coding agents. The app never reads it. `true` = agents may edit existing migrations and you rebuild with `php artisan app:fresh --seed`. `false` = the database holds real data, schema changes go in new migrations only and `app:fresh` must not be run. Default `false` |
-| `DEV_SKIP_OPTIONAL_DOCS` | Development only, for AI coding agents. `true` = agents skip updating project docs (TECHNICAL, DIAGRAM, HOW_TO, SETUP, SETUP_COMMANDS, OUR_RAG, INCOMPLETE) and only update `AGENTS.md`, `CLAUDE.md`, `.ai/**` and `README.md`. Default `false` |
-| `APP_MAINTENANCE_DRIVER` | `system` (default): maintenance mode is stored in the `system_settings` table and managed from Settings → System, and `php artisan down`/`up` change the same setting. Needs no cron or queue |
-| `MAIL_QUEUE_ENABLED`, `MAIL_QUEUE_BACKOFF_SECONDS`, `MAIL_QUEUE_RETRY_HOURS` | `false` (default) sends order emails right after the response, with no worker; if SMTP is down the email goes to the log. `true` queues them and retries every 300 seconds for 24 hours until the mail server answers; needs a queue worker (step 6, or the cPanel cron below). Verification and password reset emails are always sent at once, because their links expire in minutes |
-| `APP_SEARCH_DEBOUNCE_MS` | Wait after the last keystroke before any search box searches, in milliseconds. Default `300`; applies to every search in the shop, the navbar and the admin panel |
-| `APP_CURRENCY`, `APP_CURRENCY_SYMBOL` | Currency code (invoices) and symbol (screens, emails, messages). Amounts are always whole units, for example ৳550 |
-| `APP_EMPTY_VALUE` | Text shown for an empty field in admin tables, detail views and invoices (default `N/A`) |
-| `VALID_PHONE_LENGTH` | Exact number of digits a profile phone number must have. Default `11` (`01XXXXXXXXX`) |
-| `SHOP_ORDER_PREFIX`, `SHOP_OWNER_EMAIL` | Order ID prefix (`AE-XXXXXX`) and the address that receives "new order" emails |
-| `OFFER_GLOBAL_ONLY` | `true`: staff create whole-shop offers only (the type and categories are hidden, and the shop ignores category offers). `false` (default) also allows offers on chosen root categories. Either way two global offers cannot be active with overlapping dates |
-| `SHOP_MAX_EXTRA_DISCOUNT` | Highest extra discount (whole %) staff can add to an order on request, applied after offer discounts. Default `50` |
-| `SUPPORT_EMAIL`, `WHATSAPP_NUMBER`, `WHATSAPP_COUNTRY_CODE`, `FACEBOOK_MESSENGER_URL`, `FACEBOOK_PAGE_URL`, `FACEBOOK_GROUP_URL` | Contact channels shown after checkout and on the contact page |
-| `PAYMENT_GATEWAYS` | Gateways offered at checkout, comma separated: `cod`, `manual`, `stripe`. Blank means no payment step |
-| `PAYMENT_DEFAULT_METHOD`, `PAYMENT_BKASH_NUMBER`, `PAYMENT_NAGAD_NUMBER` | Manual payment methods and the numbers customers pay to |
-| `STRIPE_PUBLISHABLE_KEY`, `STRIPE_SECRET_KEY`, `STRIPE_WEBHOOK_SECRET` | Stripe keys. Use `pk_test_`/`sk_test_` keys for the sandbox. Point the webhook at `/payments/webhook/stripe` (events `payment_intent.*`), or run `stripe listen --forward-to <APP_URL>/payments/webhook/stripe` locally |
-| `GOOGLE_*`, `FACEBOOK_*` | Social login credentials |
-| `FRONTEND_CACHE_ENABLED`, `FRONTEND_CACHE_STORE`, `FRONTEND_CACHE_TTL_MINUTES` | Turns the public page cache on or off (default `true`; `false` reads the database on every request), its cache store (empty uses `CACHE_STORE`; set `redis` to move it to Redis) and its lifetime (default 180 minutes). Admin changes clear the affected data immediately |
-| `PRODUCT_IMAGE_MAX_FILES`, `PRODUCT_IMAGE_MAX_SIZE_MB`, `BANNER_IMAGE_MAX_SIZE_MB`, `CATEGORY_IMAGE_MAX_SIZE_MB`, `USER_AVATAR_MAX_SIZE_MB`, `LIVEWIRE_TEMPORARY_FILE_UPLOAD_MAX_SIZE_MB` | Upload size limits |
-| `AI_ASSISTANT_ENABLED`, `AI_ASSISTANT_HISTORY_MESSAGES`, `AI_ASSISTANT_MESSAGE_MAX_LENGTH`, `AI_ASSISTANT_TIMEOUT_SECONDS`, `AI_ASSISTANT_TOP_MATCHES`, `AI_ASSISTANT_RESULTS`, `AI_ASSISTANT_CACHE_MINUTES`, `AI_ASSISTANT_MAX_OUTPUT_TOKENS`, `AI_ASSISTANT_EXAMPLE_PROMPTS_UI`, `AI_CHAT_DRIVER`, `AI_CHAT_URL`, `AI_CHAT_API_KEY`, `AI_CHAT_MODEL`, `AI_CHAT_REASONING`, `AI_EMBEDDING_DRIVER`, `AI_EMBEDDING_URL`, `AI_EMBEDDING_API_KEY`, `AI_EMBEDDING_MODEL`, `AI_EMBEDDING_DIMENSIONS` | AI shopping assistant (beta). It shows only when enabled and `AI_CHAT_URL`, `AI_CHAT_API_KEY` and `AI_CHAT_MODEL` are set. Settings are per job, not per provider: `AI_CHAT_DRIVER` is the API format (`openai` for Groq, OpenAI, Mistral, Ollama and other compatible APIs, or `gemini`). The default is free Groq (`openai/gpt-oss-120b`, `AI_CHAT_REASONING=low`) for chat and Gemini (`gemini-embedding-001`) for embeddings, because Groq has no embedding models. Empty embedding driver, URL or key reuse the chat ones. With `AI_EMBEDDING_MODEL` set, run `php artisan ai-assistant:embed` once to embed the catalogue (new and edited products are embedded automatically). Without it, product search uses keywords. For Gemini chat use `gemini-flash-lite-latest` with `AI_CHAT_REASONING` empty (a number sets a thinking budget, 0 = off). `AI_ASSISTANT_CACHE_MINUTES` reuses identical answers to save tokens (0 turns it off), `AI_ASSISTANT_MAX_OUTPUT_TOKENS` caps each reply, and `AI_ASSISTANT_EXAMPLE_PROMPTS_UI` sets the example cards, separated by `|` |
-| `THROTTLE_*` | Rate limits per minute: login, registration, checkout, order tracking, password reset, opening reset links, verification email and assistant messages |
-| `PASSWORD_RESET_RESEND_SECONDS`, `PASSWORD_RESET_EXPIRE_MINUTES` | Password reset resend wait and link lifetime |
-| `PASSWORD_MIN_LENGTH` | Minimum password length for every account (registration, reset, staff, settings). Default `6`. On a live site passwords also need mixed case, numbers and symbols |
-| `EMAIL_VERIFICATION_RESEND_SECONDS`, `EMAIL_VERIFICATION_EXPIRE_MINUTES` | Wait before a customer can resend the verification email, and how long a verification link works |
-| `DB_SEEDING_ENABLED` | `false` makes `--seed` create only the roles and one super admin, never demo accounts, products or orders. Keep it `false` on a live site |
-| `DB_SEED_ADMIN_EMAIL`, `DB_SEED_ADMIN_PASSWORD` | The super admin seeded when `DB_SEEDING_ENABLED=false`. Skipped when empty or when the email already exists. Clear the password after the first seed |
-| `QUEUE_CONVERSIONS_BY_DEFAULT` | `false` resizes product and other images during the upload instead of on a queue, so no queue worker is needed |
-
-Customers must verify their email before they can log in and order, so the `MAIL_*` settings must work on the live site.
-
-### 3. Set up the database and storage
-
-```bash
-php artisan migrate --force --seed
-php artisan storage:link
-php artisan optimize
-php artisan ai-assistant:embed
-sudo chown -R www-data:www-data storage bootstrap/cache
-sudo chmod -R 775 storage bootstrap/cache
-```
-
-With `DB_SEEDING_ENABLED=false`, `--seed` only creates the roles, the permissions and the super admin from `DB_SEED_ADMIN_EMAIL` / `DB_SEED_ADMIN_PASSWORD`. Sign in, change the password, then clear `DB_SEED_ADMIN_PASSWORD` in `.env`.
-
-> **Never run `php artisan app:fresh` or `php artisan migrate:fresh` on a live site.** They delete all users, orders, products, uploaded images and banners.
-
-### 4. Nginx
-
-Point the site root to the `public` directory and allow uploads larger than the app limit:
-
-```nginx
-server {
-    server_name your-domain.com;
-    root /var/www/amar-ecommerce-lite/public;
-    index index.php;
-
-    client_max_body_size 110M;
-
-    location / {
-        try_files $uri $uri/ /index.php?$query_string;
-    }
-
-    location ~ \.php$ {
-        include snippets/fastcgi-php.conf;
-        fastcgi_pass unix:/run/php/php8.4-fpm.sock;
-        fastcgi_read_timeout 300s;
-    }
-}
-```
-
-```bash
-sudo nginx -t && sudo systemctl reload nginx
-```
-
-### 5. PHP limits
-
-In `/etc/php/8.4/fpm/php.ini`:
-
-```ini
-upload_max_filesize = 128M
-post_max_size = 128M
-max_execution_time = 300
-memory_limit = 256M
-```
-
-```bash
-sudo systemctl restart php8.4-fpm
-```
-
-The limits must follow this order: Nginx `client_max_body_size` ≥ `post_max_size` ≥ `upload_max_filesize` ≥ `LIVEWIRE_TEMPORARY_FILE_UPLOAD_MAX_SIZE_MB`.
-
-### 6. Queue worker and scheduler (optional)
-
-Without a worker, emails are sent right after the response and images are resized during the upload (`QUEUE_CONVERSIONS_BY_DEFAULT=false`). Set up the worker only when `MAIL_QUEUE_ENABLED=true`: order emails then wait in the `jobs` table and are retried every `MAIL_QUEUE_BACKOFF_SECONDS` for `MAIL_QUEUE_RETRY_HOURS` while the mail server is down. With the queue on and no worker running, no order email is sent.
-
-Create `/etc/systemd/system/amar-ecommerce-lite-queue.service`:
-
-```ini
-[Unit]
-Description=AmarEcommerce queue worker
-After=network.target
-
-[Service]
-User=www-data
-Restart=always
-WorkingDirectory=/var/www/amar-ecommerce-lite
-ExecStart=/usr/bin/php artisan queue:work --tries=1 --max-time=3600
-
-[Install]
-WantedBy=multi-user.target
-```
-
-```bash
-sudo systemctl enable --now amar-ecommerce-lite-queue
-```
-
-Add the scheduler to the `www-data` crontab (`sudo crontab -u www-data -e`):
-
-```cron
-* * * * * cd /var/www/amar-ecommerce-lite && php artisan schedule:run >> /dev/null 2>&1
-```
-
-### 7. Updating a live site
-
-```bash
-cd /var/www/amar-ecommerce-lite
-php artisan down
-git pull
-composer install --no-dev --optimize-autoloader
-npm ci && npm run build
-php artisan migrate --force
-php artisan optimize
-php artisan ai-assistant:embed
-php artisan up
-```
-
-### Free hosting without Terminal (InfinityFree)
-
-InfinityFree serves only the `htdocs` folder and has no Terminal, symlinks or document root setting.
-
-1. **Build locally**, with production values in `.env` (`APP_ENV=production`, `APP_DEBUG=false`, the host's database, `MEDIA_DISK=assets`), then run `composer install --no-dev --optimize-autoloader` and `npm run build`.
-2. **Prepare the database locally:** run `php artisan migrate --seed` against a local copy, export it to a `.sql` file and import it in the host's phpMyAdmin.
-3. **Upload the whole project** into `htdocs`, including `vendor`, `public/build` and the root `.htaccess` (`node_modules` is not needed). The root `.htaccess` sends every request to `public/` and blocks the other folders, so `.env` stays private.
-4. **Check** that `https://your-domain/.env` and `https://your-domain/vendor` return an error page, and that an uploaded product image shows.
-
-### cPanel (shared hosting)
-
-The app runs on cPanel if the host provides PHP 8.4, Terminal (SSH) access and Cron Jobs.
-
-1. **Check the server** in cPanel → Terminal:
-
-   ```bash
-   php -v
-   php -i | grep disable_functions
+   MEDIA_DISK=assets
    ```
 
-2. **Build locally**:
-
-   ```bash
-   composer install --no-dev --optimize-autoloader
-   npm ci
-   npm run build
-   ```
-
-   Upload the whole project, including `vendor` and `public/build` (`node_modules` is not needed), to a folder outside `public_html`, for example `~/amar-ecommerce-lite`.
-
-3. **Point the domain to `public`.** In cPanel → Domains, set the document root to `amar-ecommerce-lite/public`. If the main domain's root cannot be changed:
-
-   ```bash
-   rm -rf ~/public_html && ln -s ~/amar-ecommerce-lite/public ~/public_html
-   ```
-
-4. **Create the database** in cPanel → MySQL Databases, then fill in `.env` as in production step 2 (Configure the environment).
-
-5. **Run the setup** in Terminal:
+6. **Finish the setup:** open cPanel → **Terminal** and run:
 
    ```bash
    cd ~/amar-ecommerce-lite
    php artisan key:generate
    php artisan migrate --force --seed
-   php artisan storage:link
    php artisan optimize
-   php artisan ai-assistant:embed
    chmod -R 775 storage bootstrap/cache
    ```
 
-   Then create your admin account as shown in production step 3.
+7. **Sign in** at `https://myshop.com/backoffice/login` with the email and password from step 5. Change your password, then delete the `DB_SEED_ADMIN_PASSWORD` value in `.env`.
 
-   **Images:** `MEDIA_DISK=assets` saves images straight into `public/assets/uploads`, so `storage:link` is not needed. `MEDIA_DISK=r2` saves them to a Cloudflare R2 bucket (fill every `R2_*` key, the site refuses to load while one is empty). Set `R2_ROOT` to share one bucket between projects. Switching an existing shop moves no files, so choose before the first upload, and run `php artisan optimize:clear` after a switch.
+### Option B: VPS (Ubuntu server)
 
-6. **No Cron Jobs are needed** while `MAIL_QUEUE_ENABLED=false`; keep `QUEUE_CONVERSIONS_BY_DEFAULT=false` so images are resized during the upload. To retry emails when the mail server is down, set `MAIL_QUEUE_ENABLED=true` and add one cron job (cPanel → Cron Jobs, every minute) that runs the worker briefly:
+1. Install the tools as in [Linux](#linux-ubuntu-or-debian), plus a web server: `sudo apt install -y nginx php8.4-fpm`.
+2. Upload the built kit to `/var/www/amar-ecommerce-lite`.
+3. Create the database (as in [Step 1](#step-1-create-the-database)) and the `.env` file (as in cPanel step 5, without the `MEDIA_DISK` line).
+4. Run:
 
-   ```cron
-   * * * * * cd /home/USER/amar-ecommerce-lite && php artisan queue:work --stop-when-empty --max-time=50 >> /dev/null 2>&1
+   ```bash
+   cd /var/www/amar-ecommerce-lite
+   php artisan key:generate
+   php artisan migrate --force --seed
+   php artisan storage:link
+   php artisan optimize
+   sudo chown -R www-data:www-data storage bootstrap/cache
+   sudo chmod -R 775 storage bootstrap/cache
    ```
 
-7. **Raise upload limits** in cPanel → MultiPHP INI Editor:
+5. Set up Nginx and HTTPS with the ready-made config in [docs/SETUP_ADVANCED.md](docs/SETUP_ADVANCED.md#4-nginx).
 
-   ```ini
-   upload_max_filesize = 128M
-   post_max_size = 128M
-   max_execution_time = 300
-   memory_limit = 256M
-   ```
+> **Never run `php artisan migrate:fresh` or `php artisan app:fresh` on a live shop.** They delete every order, customer and product.
 
-   If large uploads still fail with "413 Request Entity Too Large", ask the host to raise the web server request body limit above 100 MB.
+## 5. Common problems
+
+| Problem | Fix |
+|---|---|
+| `php` or `composer` is "not recognized" or "not found" | Close the terminal and open a new one. If it still fails, install the tools again (step 2) |
+| PHP shows a version other than 8.4 | Windows: pick 8.4 in Herd. Mac: run the `brew link` line again. Linux: `sudo update-alternatives --set php /usr/bin/php8.4` |
+| "Access denied for user" | The `DB_USERNAME` or `DB_PASSWORD` in `.env` is wrong |
+| "Unknown database" | Create the database first ([Step 1](#step-1-create-the-database)) and check `DB_DATABASE` in `.env` |
+| The page has no styles | Local: keep `composer dev` running. Online: run `npm run build` on your computer and upload the `public/build` folder again |
+| Product images do not show | Local: run `php artisan storage:link`. cPanel: set `MEDIA_DISK=assets` in `.env` |
+| "500 Server Error" online | Run `chmod -R 775 storage bootstrap/cache`, then `php artisan optimize:clear` and `php artisan optimize` |
+| Changed `.env` online but nothing changed | Run `php artisan optimize` again |
+
+Still stuck? Read [docs/SETUP_ADVANCED.md](docs/SETUP_ADVANCED.md) or contact SIOKRAFT support.

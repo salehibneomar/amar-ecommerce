@@ -2,7 +2,7 @@
 
 This document explains the **Ask AI** assistant (`/ai-assistant`): what we built, how it works, and why each part exists. It is written so you can learn RAG from it: by the end you should be able to read every file involved, change it safely, add another model or provider, and build a RAG of your own from scratch.
 
-Commands live in [SETUP_COMMANDS.md](SETUP_COMMANDS.md). Settings live in [SETUP.md](SETUP.md).
+Commands live in [SETUP_COMMANDS.md](SETUP_COMMANDS.md). Settings live in [SETUP_ADVANCED.md](SETUP_ADVANCED.md).
 
 ## Contents
 

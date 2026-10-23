@@ -2,7 +2,7 @@
 
 Quick recipes for everyday changes. Each one says **where** to change, a **small example**, and what to do **after**.
 
-For install and server setup see `SETUP.md`. For architecture see `TECHNICAL.md`.
+For install and server setup see `SETUP_ADVANCED.md`. For architecture see `TECHNICAL.md`.
 
 ---
 
