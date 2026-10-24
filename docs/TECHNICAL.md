@@ -18,6 +18,7 @@ How AmarEcommerce Lite, the ecommerce boilerplate for client shop projects, is b
 12. [Testing](#12-testing)
 13. [Conventions](#13-conventions)
 14. [Future scope](#14-future-scope)
+15. [Ownership signature](#15-ownership-signature)
 
 ---
 
@@ -338,3 +339,13 @@ composer types:check
 | Other product types | A model that extends `Product` (like `Shirt`), named after its `type` value, and, if needed, a details table like `shirts` declared with `$detailTable` and `$detailColumns` (see Product types) |
 | Redis cache | `FRONTEND_CACHE_STORE=redis` |
 | Scheduled reminders or auto-cancel | A scheduled command calling `Backoffice\OrderService` (needs cron) |
+
+## 15. Ownership signature
+
+A bcrypt hash (cost 20) of a secret only the owner knows, stored as a comment so it has no effect on the app.
+
+| Item | Value |
+|---|---|
+| Hash | `$2a$20$RxZC7kHpv4k2kTuF8EZreusYqdwRv8xCKZifYr0Ycm7MDXntW5NMC` |
+| Stored In | `storage/framework/views/.gitignore` (last line) |
+| Verify | `php -r 'var_dump(password_verify("<secret>", "<hash>"));'` prints `true` (takes a minute or more at cost 20) |
