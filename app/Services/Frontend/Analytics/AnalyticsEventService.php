@@ -58,7 +58,9 @@ class AnalyticsEventService
     }
 
     /**
-     * @param  Collection<int, array{product: Product, quantity: int, line_total: int, original_total: int|null}>  $items
+     * @template TProduct of Product
+     *
+     * @param  Collection<int, array{product: TProduct, quantity: int, line_total: int, original_total: int|null}>  $items
      * @return array{name: string, params: array<string, mixed>}|null
      */
     public function beginCheckoutEvent(Collection $items, int $total): ?array

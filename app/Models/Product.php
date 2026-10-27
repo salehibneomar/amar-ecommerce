@@ -159,6 +159,11 @@ class Product extends Model implements AiAssistantInterface, HasMedia, SeoMetaIn
         return (new $class)->newFromBuilder($attributes, $connection);
     }
 
+    public function getMorphClass(): string
+    {
+        return self::class;
+    }
+
     public function productType(): ?string
     {
         return static::class === self::class ? null : Str::snake(class_basename(static::class));
