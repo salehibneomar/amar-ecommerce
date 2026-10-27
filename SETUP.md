@@ -2,7 +2,7 @@
 
 This guide takes you from the downloaded kit to a running shop, one step at a time. You do not need to be a programmer. Copy each command exactly as shown, paste it, and press **Enter**.
 
-Need every setting or a special server? See [docs/SETUP_ADVANCED.md](docs/SETUP_ADVANCED.md).
+Every `.env` setting and special servers are covered in `docs/SETUP_ADVANCED.md` when the `docs/` folder is included.
 
 ## Contents
 
@@ -266,7 +266,7 @@ Your host must offer PHP 8.4 and **Terminal** in cPanel.
    sudo chmod -R 775 storage bootstrap/cache
    ```
 
-5. Set up Nginx and HTTPS with the ready-made config in [docs/SETUP_ADVANCED.md](docs/SETUP_ADVANCED.md#4-nginx).
+5. Point Nginx at the `public/` folder with the standard Laravel config (`try_files $uri $uri/ /index.php?$query_string;` and PHP 8.4 FPM), then add HTTPS with Certbot (`sudo certbot --nginx`).
 
 > **Never run `php artisan migrate:fresh` or `php artisan app:fresh` on a live shop.** They delete every order, customer and product.
 
@@ -283,4 +283,4 @@ Your host must offer PHP 8.4 and **Terminal** in cPanel.
 | "500 Server Error" online | Run `chmod -R 775 storage bootstrap/cache`, then `php artisan optimize:clear` and `php artisan optimize` |
 | Changed `.env` online but nothing changed | Run `php artisan optimize` again |
 
-Still stuck? Read [docs/SETUP_ADVANCED.md](docs/SETUP_ADVANCED.md) or contact SIOKRAFT support.
+Still stuck? Contact SIOKRAFT support.

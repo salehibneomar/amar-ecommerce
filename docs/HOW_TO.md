@@ -78,27 +78,33 @@ Logo **size** is a Tailwind class on the tag:
 
 ## 4. Theme colors (brand, surfaces, dark mode) and font
 
-The brand colors live in **one file**: `config/theme.php`. Change them there and the whole app follows: shop and admin (Flux components included), emails and the browser `theme-color`. No `npm run build` is needed, because `<x-brand.theme-colors />` in `partials/head` prints them as CSS variables on every page and `resources/css/app.css` only points at them. Run `php artisan config:clear` if config is cached. Surfaces, grays, the card shadow and the font stay in `resources/css/app.css` (below).
+Staff pick the brand color in **Settings → Appearance** (Default, Teal, Gold, Pink or Violet). The choice is saved as `theme_color` in `system_settings` and the whole app follows: shop and admin (Flux components included), emails and the browser `theme-color`. No `npm run build` is needed, because `<x-brand.theme-colors />` in `<x-layouts.head>` prints the colors as CSS variables on every page and `resources/css/app.css` only points at them. Surfaces, grays, the card shadow and the font stay in `resources/css/app.css` (below).
 
-### Brand (buttons, links, shop navbar, active menu items, emails)
+### Brand presets (buttons, links, shop navbar, active menu items, emails)
+
+The presets live in `config/theme.php`. Edit one there, or add one (a `presets` entry plus a `ThemeColorEnum` case with its label). Run `php artisan config:clear` if config is cached.
 
 ```php
-'palettes' => [
-    'brand' => [
-        50 => '#eef6ff',    // lightest tint
-        // …
-        600 => '#1663e6',   // main brand color
-        // …
-        950 => '#11234f',   // darkest shade
+'presets' => [
+    'default' => [
+        'palette' => [
+            50 => '#eef6ff',    // lightest tint
+            // …
+            600 => '#1663e6',   // main brand color
+            // …
+            950 => '#11234f',   // darkest shade
+        ],
+        'brand' => 600,         // shade used for primary buttons and links
+        'brand_hover' => 700,   // hover shade
+        'brand_dark' => 500,    // brighter shade used in dark mode
     ],
-    'gold' => [/* 50 to 900 */],   // highlights, badges, offers
 ],
-'brand' => 600,              // shade used for primary buttons and links
-'brand_dark' => 500,         // brighter shade used in dark mode
-'brand_foreground' => '#ffffff',   // text on brand buttons
+'palettes' => ['gold' => [/* 50 to 900 */]],   // highlights, badges, offers
+'text_light' => '#ffffff',   // text on dark brand shades
+'text_dark' => '#09090b',    // text on light brand shades
 ```
 
-Replace all eleven brand shades together. A palette generator (search "tailwind color shades generator") gives you 50 to 950 from one hex code. Keep white text readable on the `brand` shade (WCAG AA, 4.5:1). Views keep using `brand-*` and `gold-*` classes, never raw hex or palette names like `blue-600`.
+Text on brand buttons switches between `text_light` and `text_dark` by itself, whichever reads better on the `brand` shade. Replace all eleven shades of a preset together. A palette generator (search "tailwind color shades generator") gives you 50 to 950 from one hex code. Keep white text readable on the `brand` shade (WCAG AA, 4.5:1). Views keep using `brand-*` and `gold-*` classes, never raw hex or palette names like `blue-600`.
 
 Status colors (paid, cancelled, errors, edit buttons) stay semantic Flux colors (`green`, `red`, `sky`…) in the enums and views, so they keep their meaning whatever the brand is.
 
@@ -218,10 +224,10 @@ Tab shows `Title - App name`. You write only the short title; the layout adds th
     <x-frontend.layout.page :title="__('Frequently asked questions')">   ← page heading (separate)
 ```
 
-**Admin settings pages** (`resources/views/pages/settings/⚡*.blade.php`):
+**Admin pages** (`resources/views/backoffice/<area>/<page>.blade.php`):
 
-```php
-new #[Title('Appearance')] class extends Component {
+```blade
+<x-layouts.backoffice :title="__('Appearance')">
 ```
 
 **Rules:** one or two words; detail pages may use data (`:title="$product->name"`); always use `__()` and the `:` before `title`.
@@ -266,7 +272,7 @@ The mobile menu uses the same `nav-links` file, so it updates too.
 
 ## 8. Admin Settings list (Profile, Security, …)
 
-**Where:** `resources/views/pages/settings/⚡index.blade.php`, method `items()`
+**Where:** `app/Livewire/Backoffice/Settings/Index.php`, method `items()`
 
 ```php
 ['route' => 'profile.edit', 'icon' => 'user-circle', 'title' => __('Profile'), 'description' => __('Update your name, email address and photo')],
@@ -369,7 +375,7 @@ Admin saves clear the cache automatically. To turn it off (for example while deb
 | About | `resources/views/frontend/about/index.blade.php` |
 | Contact | `resources/views/frontend/contact/index.blade.php` |
 | Terms / Privacy / Refund | `resources/views/frontend/legal/*.blade.php` |
-| Home page sections | `resources/views/frontend/landing/index.blade.php` |
+| Home page sections | `resources/views/index.blade.php` |
 
 FAQs and banners are edited in the admin panel, not in code.
 

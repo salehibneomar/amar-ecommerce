@@ -58,7 +58,7 @@ return [
 
     'server_host' => env('SERVER_HOST', '127.0.0.1'),
 
-    'server_port' => (int) env('SERVER_PORT', 8000),
+    'server_port' => (int) env('SERVER_PORT', 8200),
 
     /*
     |--------------------------------------------------------------------------

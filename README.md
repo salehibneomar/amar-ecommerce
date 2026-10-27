@@ -131,7 +131,7 @@ Example: the first line for an electronics store:
    - `aiAssistantEmbeddingText()`: the text that describes the item, built with `aiPrompt('<model>.embedding.…')`.
 2. **Service:** in the service that saves the model, `use AiAssistantEmbeddingTrait;` and call `$this->syncAiAssistantEmbeddingLater($model)` after create and update.
 3. **Config:** list the class in `models` in `config/ai-assistant.php`.
-4. **Retrieval and cards:** `AiAssistantSearchService` and the chat view currently read products. Point the candidate source and the card component at your model. See [OUR_RAG.md §11](docs/OUR_RAG.md#11-extending-it).
+4. **Retrieval and cards:** `AiAssistantSearchService` and the chat view currently read products. Point the candidate source and the card component at your model.
 
 ### 3. Set `.env` and embed
 
@@ -149,26 +149,19 @@ php artisan config:clear
 php artisan ai-assistant:embed
 ```
 
-Prompt edits take effect immediately (run `php artisan config:clear` if config is cached). Only `<model>.embedding.*` edits need a new `ai-assistant:embed`. How the whole RAG works: [OUR_RAG.md](docs/OUR_RAG.md).
+Prompt edits take effect immediately (run `php artisan config:clear` if config is cached). Only `<model>.embedding.*` edits need a new `ai-assistant:embed`.
 
 ## Documentation
 
-Read in this order. Steps 1 and 2 get the shop running. Read the rest when you need it.
+Read in this order. Steps 1 and 2 get the shop running.
 
 | # | File | What is inside |
 |---|---|---|
 | 1 | [README.md](README.md) | What the app is, the pages, the stack and sample accounts |
 | 2 | [SETUP.md](SETUP.md) | Easy step by step installation on Windows, Mac and Linux, and on cPanel or a VPS |
-| 3 | [docs/SETUP_ADVANCED.md](docs/SETUP_ADVANCED.md) | Every `.env` setting, Nginx, PHP limits, queue worker, free hosting and updating a live site |
-| 4 | [docs/SETUP_COMMANDS.md](docs/SETUP_COMMANDS.md) | Every command in one place, including the **safe test command** (a plain `php artisan test` wipes the dev database) |
-| 5 | [docs/TECHNICAL.md](docs/TECHNICAL.md) | Architecture, folders, database, flows, caching and conventions. The most important read before touching code |
-| 6 | [docs/DIAGRAM.md](docs/DIAGRAM.md) | ERD, class and sequence diagrams for TECHNICAL.md |
-| 7 | [AGENTS.md](AGENTS.md) | The golden rules, working loop and test rules. Written for AI agents, but the rules apply to everyone. Path rules are in `.ai/rules/` and the feature playbook is in `.ai/playbooks/` |
-| 8 | [docs/HOW_TO.md](docs/HOW_TO.md) | Recipes for everyday changes: titles, links, colors, limits, `.env` |
-| 9 | [docs/INCOMPLETE.md](docs/INCOMPLETE.md) | Known gaps and ideas for later |
-| 10 | [docs/OUR_RAG.md](docs/OUR_RAG.md) | How the AI shopping assistant (RAG) works, file by file, and how to build one yourself |
+| 3 | [AGENTS.md](AGENTS.md) | The golden rules, working loop and the **safe test command** (a plain `php artisan test` wipes the dev database). Written for AI agents, but the rules apply to everyone. Path rules are in `.ai/rules/` and the feature playbook is in `.ai/playbooks/` |
 
-A good first task: run the safe test command, make one small change from [HOW_TO.md](docs/HOW_TO.md), read its rule in `.ai/rules/`, then run Pint and the related test file.
+Longer guides (every `.env` setting, Nginx, commands, architecture, diagrams, recipes, known gaps and the AI assistant) live in the `docs/` folder, listed in `docs/README.md`. The folder is reference only. Nothing in the app, tests or build reads it, so it can be left out of a client project.
 
 ## License
 
