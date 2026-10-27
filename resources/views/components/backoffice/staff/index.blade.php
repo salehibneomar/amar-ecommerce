@@ -73,7 +73,7 @@
                                 @if ($member->status->isActive())
                                     <x-backoffice.management.action icon="no-symbol" :label="__('Deactivate')" variant="danger" wire:click="confirmToggleStatus({{ $member->id }})" />
                                 @else
-                                    <x-backoffice.management.action icon="check-circle" :label="__('Activate')" variant="filled" wire:click="confirmToggleStatus({{ $member->id }})" />
+                                    <x-backoffice.management.action icon="lock-open" :label="__('Activate')" variant="filled" color="teal" wire:click="confirmToggleStatus({{ $member->id }})" />
                                 @endif
                             </x-backoffice.management.actions>
                         </flux:table.cell>
