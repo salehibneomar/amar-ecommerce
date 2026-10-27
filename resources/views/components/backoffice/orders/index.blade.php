@@ -130,29 +130,13 @@
                     <x-backoffice.orders.customer-card :order="$order" :extra-discount="$this->extraDiscountPreview" />
 
                     <div class="grid gap-4 sm:grid-cols-3">
-                        <flux:select wire:model.live="orderPaymentStatus" :label="__('Payment Status')">
-                            @foreach ($this->paymentStatusOptions as $value => $label)
-                                <flux:select.option :value="$value">{{ $label }}</flux:select.option>
-                            @endforeach
-                        </flux:select>
+                        <x-ui.select model="orderPaymentStatus" :label="__('Payment Status')" :options="$this->paymentStatusOptions" live />
                         @if ($this->isManualPayment)
-                            <flux:select wire:model="paymentMethod" :label="__('Payment Mode')">
-                                @foreach ($this->paymentMethodOptions as $value => $label)
-                                    <flux:select.option :value="$value">{{ $label }}</flux:select.option>
-                                @endforeach
-                            </flux:select>
+                            <x-ui.select model="paymentMethod" :label="__('Payment Mode')" :options="$this->paymentMethodOptions" :placeholder="__('Select a payment mode')" />
                             <flux:input wire:model="trxId" :label="__('TrxID')" :placeholder="__('Transaction ID from the customer')" />
-                            <flux:select wire:model="contactMode" :label="__('Contact Mode')" :placeholder="__('Not yet')">
-                                @foreach ($this->contactModeOptions as $value => $label)
-                                    <flux:select.option :value="$value">{{ $label }}</flux:select.option>
-                                @endforeach
-                            </flux:select>
+                            <x-ui.select model="contactMode" :label="__('Contact Mode')" :options="$this->contactModeOptions" :placeholder="__('Not yet')" />
                         @endif
-                        <flux:select wire:model="orderStatus" :label="__('Order Status')">
-                            @foreach ($this->editableStatusOptions as $value => $option)
-                                <flux:select.option :value="$value" :disabled="$option['disabled']">{{ $option['label'] }}</flux:select.option>
-                            @endforeach
-                        </flux:select>
+                        <x-ui.select model="orderStatus" :label="__('Order Status')" :options="$this->editableStatusOptions" />
                         <flux:input type="number" step="1" min="0" :max="shopMaxExtraDiscount()" wire:model.live.debounce.400ms="extraDiscountPercentage" :disabled="! $order->isExtraDiscountEditable()" :label="__('Extra Discount (%)')" :placeholder="__('Max :max%', ['max' => shopMaxExtraDiscount()])" />
                     </div>
 

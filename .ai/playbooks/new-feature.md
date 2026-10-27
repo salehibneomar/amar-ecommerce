@@ -23,8 +23,8 @@ Write three lines, and ask only if one is unclear:
 2. **Schema:** new `create_<table>` migration (or edit per `DEV_CAN_MIGRATE_FRESH`). Money `unsignedInteger`, index filter and sort columns.
 3. **Model + factory:** `php artisan make:model <Name> -f --no-interaction`, casts, relations, `@property` PHPDoc, factory states. Seeder only if demo data helps.
 4. **Service:** `app/Services/{Backoffice|Frontend}/<Domain>/<Name>Service.php` holds every query and write. Public reads cached, cache cleared through the model.
-5. **Access:** named route in its `routes/web.php` group with `can:` and a new `PermissionEnum` case, plus a `config/backoffice.php` nav item.
-6. **Controller + page shell:** `Http/Controllers/{Backoffice|Frontend}/<Name>Controller.php` returns `resources/views/{backoffice|frontend}/<area>/index.blade.php`, which hosts the Livewire component.
+5. **Access:** named route in `routes/backoffice/<domain>.php` (or `routes/frontend/<domain>.php`) with `can:` and a new `PermissionEnum` case, `password.confirm` for sensitive pages, plus a `config/backoffice.php` nav item or a Settings list card.
+6. **Controller + page shell:** `Http/Controllers/{Backoffice|Frontend}/<Name>Controller.php` returns `resources/views/{backoffice|frontend}/<area>/index.blade.php`, which hosts the Livewire component. Never `Route::livewire`.
 7. **Livewire + view:** `app/Livewire/{Backoffice|Frontend}/<Area>/Index.php` and `resources/views/components/{backoffice|frontend}/<area>/index.blade.php`, built from existing components.
 8. **Navigation:** backoffice sidebar `x-backoffice.layout.nav-item` gated like the route, or storefront `components/frontend/layout/nav-links.blade.php`.
 9. **Config:** `.env.example` → `config/*.php` → helper in `config_helpers.php`.

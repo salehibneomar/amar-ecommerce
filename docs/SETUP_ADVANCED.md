@@ -176,7 +176,9 @@ Review the app-specific settings as well:
 |---|---|
 | `APP_CATEGORY_LEVEL` | How deep categories go: `1` root only, `2` root › sub (default), `3` root › sub › sub-sub (max). After lowering it, deeper categories are ignored, not deleted |
 | `SESSION_SECURE_COOKIE` | `true` on a live HTTPS site, so the login cookie is never sent over plain http. Keep `false` locally |
-| `SEO_INDEXING_ENABLED`, `SEO_DESCRIPTION`, `SEO_IMAGE` | Search and link previews: `false` hides every page from search engines (staging), the default description, and the default share image (empty uses the logo). Product pages use their own description and first image |
+| `SEO_INDEXING_ENABLED`, `SEO_DESCRIPTION`, `SEO_IMAGE`, `SEO_GOOGLE_SITE_VERIFICATION` | Search and link previews. These are fallbacks: values saved in Settings → SEO win. `SEO_INDEXING_ENABLED=false` always hides every page from search engines (staging), whatever the backoffice switch says. Then the default description, the default share image (empty uses the logo) and the Google Search Console code |
+| `SEO_PAGE_NOINDEX_ENABLED` | `true` shows the Hide From Search switch in the SEO form of products and categories and applies it (the page gets `noindex` and leaves the sitemap). Default `false` |
+| `SEO_IMAGE_MAX_SIZE_MB` | Max size of an uploaded link preview image. Default `2` |
 | `ADMIN_ROUTE_PREFIX` | URL prefix of the whole admin area: `/{prefix}/login`, `/{prefix}/dashboard`, `/{prefix}/manage/…`, `/{prefix}/settings/…`. Default `backoffice`. Use a hard-to-guess value on a live site, then run `php artisan optimize`. Staff must use the new login URL |
 | `APP_IS_IN_PRODUCTION` | `true` when the app runs in production. A plain flag, read with `config('app.is_in_production')`. Default `false` |
 | `DEV_AI_AGENT` | Development only, for AI coding agents. The app never reads it. `free` = lean mode (core rules, fewest tool calls and reads), `paid` = full `AGENTS.md` workflow. Default `free` |
@@ -184,6 +186,7 @@ Review the app-specific settings as well:
 | `APP_MAINTENANCE_DRIVER` | `system` (default): maintenance mode is stored in the `system_settings` table and managed from Settings → System, and `php artisan down`/`up` change the same setting. Needs no cron or queue |
 | `MAIL_QUEUE_ENABLED`, `MAIL_QUEUE_BACKOFF_SECONDS`, `MAIL_QUEUE_RETRY_HOURS` | `false` (default) sends order emails right after the response, with no worker; if SMTP is down the email goes to the log. `true` queues them and retries every 300 seconds for 24 hours until the mail server answers; needs a queue worker (step 6, or the cPanel cron below). Verification and password reset emails are always sent at once, because their links expire in minutes |
 | `APP_SEARCH_DEBOUNCE_MS` | Wait after the last keystroke before any search box searches, in milliseconds. Default `300`; applies to every search in the shop, the navbar and the admin panel |
+| `APP_NOTIFICATION_LONG_POLL_SECONDS` | Seconds between refreshes of the notification bell (unread count and latest notifications) in the navbar and the admin panel. Default `300` (5 minutes) |
 | `APP_CURRENCY`, `APP_CURRENCY_SYMBOL` | Currency code (invoices) and symbol (screens, emails, messages). Amounts are always whole units, for example ৳550 |
 | `APP_EMPTY_VALUE` | Text shown for an empty field in admin tables, detail views and invoices (default `N/A`) |
 | `VALID_PHONE_LENGTH` | Exact number of digits a profile phone number must have. Default `11` (`01XXXXXXXXX`) |
@@ -191,9 +194,11 @@ Review the app-specific settings as well:
 | `OFFER_GLOBAL_ONLY` | `true`: staff create whole-shop offers only (the type and categories are hidden, and the shop ignores category offers). `false` (default) also allows offers on chosen root categories. Either way two global offers cannot be active with overlapping dates |
 | `SHOP_MAX_EXTRA_DISCOUNT` | Highest extra discount (whole %) staff can add to an order on request, applied after offer discounts. Default `50` |
 | `SUPPORT_EMAIL`, `WHATSAPP_NUMBER`, `WHATSAPP_COUNTRY_CODE`, `FACEBOOK_MESSENGER_URL`, `FACEBOOK_PAGE_URL`, `FACEBOOK_GROUP_URL` | Contact channels shown after checkout and on the contact page |
-| `PAYMENT_GATEWAYS` | Gateways offered at checkout, comma separated: `cod`, `manual`, `stripe`. Blank means no payment step |
-| `PAYMENT_DEFAULT_METHOD`, `PAYMENT_BKASH_NUMBER`, `PAYMENT_NAGAD_NUMBER` | Manual payment methods and the numbers customers pay to |
+| `PAYMENT_GATEWAYS` | First install only: gateways that start enabled, in checkout order, comma separated: `cod`, `manual`, `stripe`, `sslcommerz`, `bkash`. After that, staff change them in Settings → Payment Gateways |
+| `PAYMENT_BKASH_NUMBER`, `PAYMENT_NAGAD_NUMBER` | First install only: optional bKash and Nagad numbers staff share with customers. After that, staff change them in Settings → Payment Gateways |
 | `STRIPE_PUBLISHABLE_KEY`, `STRIPE_SECRET_KEY`, `STRIPE_WEBHOOK_SECRET` | Stripe keys. Use `pk_test_`/`sk_test_` keys for the sandbox. Point the webhook at `/payments/webhook/stripe` (events `payment_intent.*`), or run `stripe listen --forward-to <APP_URL>/payments/webhook/stripe` locally |
+| `SSLCOMMERZ_STORE_ID`, `SSLCOMMERZ_STORE_PASSWORD`, `SSLCOMMERZ_SANDBOX`, `SSLCOMMERZ_COUNTRY` | SSLCommerz store credentials. `SSLCOMMERZ_SANDBOX=true` uses the sandbox, `false` the live store. The IPN URL is `/payments/webhook/sslcommerz`. `SSLCOMMERZ_COUNTRY` is sent as the customer country |
+| `BKASH_APP_KEY`, `BKASH_APP_SECRET`, `BKASH_USERNAME`, `BKASH_PASSWORD`, `BKASH_SANDBOX` | bKash Tokenized Checkout credentials. `BKASH_SANDBOX=true` uses the sandbox, `false` the live API. Live credentials come from the bKash merchant portal. Payments are in BDT only |
 | `GOOGLE_*`, `FACEBOOK_*` | Social login credentials |
 | `FRONTEND_CACHE_ENABLED`, `FRONTEND_CACHE_STORE`, `FRONTEND_CACHE_TTL_MINUTES` | Turns the public page cache on or off (default `true`; `false` reads the database on every request), its cache store (empty uses `CACHE_STORE`; set `redis` to move it to Redis) and its lifetime (default 180 minutes). Admin changes clear the affected data immediately |
 | `PRODUCT_IMAGE_MAX_FILES`, `PRODUCT_IMAGE_MAX_SIZE_MB`, `BANNER_IMAGE_MAX_SIZE_MB`, `CATEGORY_IMAGE_MAX_SIZE_MB`, `USER_AVATAR_MAX_SIZE_MB`, `LIVEWIRE_TEMPORARY_FILE_UPLOAD_MAX_SIZE_MB` | Upload size limits |

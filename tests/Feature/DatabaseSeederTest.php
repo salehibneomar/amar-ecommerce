@@ -1,10 +1,14 @@
 <?php
 
 use App\Enums\User\UserRoleEnum;
+use App\Models\Order;
 use App\Models\Product;
 use App\Models\Role;
 use App\Models\User;
 use Database\Seeders\DatabaseSeeder;
+use Database\Seeders\NotificationSeeder;
+use Database\Seeders\RoleSeeder;
+use Illuminate\Notifications\DatabaseNotification;
 use Illuminate\Support\Facades\Hash;
 
 test('turning seeding off only seeds the roles', function () {
@@ -32,4 +36,16 @@ test('turning seeding off seeds one super admin from the env once', function () 
         ->and($admin->hasRole(UserRoleEnum::SuperAdmin->value))->toBeTrue()
         ->and(Hash::check('a-strong-password', $admin->password))->toBeTrue()
         ->and(Product::count())->toBe(0);
+});
+
+test('the notification seeder fills the inbox with read and unread notifications', function () {
+    $this->seed(RoleSeeder::class);
+    User::factory()->superAdmin()->create();
+    Order::factory(2)->for(User::factory())->create();
+
+    $this->seed(NotificationSeeder::class);
+
+    expect(DatabaseNotification::count())->toBeGreaterThan(0)
+        ->and(DatabaseNotification::whereNotNull('read_at')->exists())->toBeTrue()
+        ->and(DatabaseNotification::whereNull('read_at')->exists())->toBeTrue();
 });

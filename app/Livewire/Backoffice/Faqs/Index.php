@@ -37,7 +37,7 @@ class Index extends Component
 
     public string $description = '';
 
-    public string $faqStatus = 'active';
+    public string $faqStatus = 'draft';
 
     protected FaqService $faqService;
 
@@ -178,7 +178,7 @@ class Index extends Component
     private function resetForm(): void
     {
         $this->reset(['editingFaqId', 'title', 'description']);
-        $this->faqStatus = FaqStatusEnum::Active->value;
+        $this->faqStatus = FaqStatusEnum::Draft->value;
         $this->resetValidation();
     }
 }

@@ -128,7 +128,7 @@ class Index extends Component
         $this->orderStatus = $order->status->value;
         $this->orderPaymentStatus = $order->payment_status->value;
         $this->contactMode = $order->contact_mode->value ?? '';
-        $this->paymentMethod = $order->payment?->method->value ?? paymentDefaultMethod();
+        $this->paymentMethod = (string) $order->payment?->method?->value;
         $this->trxId = (string) $order->payment?->transaction_id;
         $this->internalNote = (string) $order->internal_note;
         $this->extraDiscountPercentage = $order->extra_discount_percentage > 0 ? (string) $order->extra_discount_percentage : '';

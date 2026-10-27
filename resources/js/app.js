@@ -325,4 +325,46 @@ document.addEventListener('alpine:init', () => {
             }
         },
     }));
+
+    window.Alpine.data('select', function ({ model, live = false, placeholder = '', loadMore = null, loadMoreParams = [] }) {
+        return {
+            open: false,
+            loading: false,
+            value: this.$wire.$entangle(model, live),
+
+            is(option) {
+                return String(this.value ?? '') === option;
+            },
+
+            pick(option) {
+                this.value = option;
+                this.close();
+            },
+
+            close() {
+                if (! this.open) {
+                    return;
+                }
+
+                this.open = false;
+                this.$refs.trigger.focus();
+            },
+
+            get text() {
+                const key = String(this.value ?? '');
+                const item = key === '' ? null : this.$root.querySelector(`[data-select-option='${CSS.escape(key)}']`);
+
+                return item ? item.dataset.selectLabel : placeholder;
+            },
+
+            loadMoreOptions() {
+                if (this.loading || ! loadMore) {
+                    return;
+                }
+
+                this.loading = true;
+                this.$wire.call(loadMore, ...loadMoreParams).finally(() => this.loading = false);
+            },
+        };
+    });
 });

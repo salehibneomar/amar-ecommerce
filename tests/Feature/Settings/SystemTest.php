@@ -1,6 +1,8 @@
 <?php
 
 use App\Enums\System\MaintenanceStatusEnum;
+use App\Livewire\Backoffice\Settings\Branding;
+use App\Livewire\Backoffice\Settings\System;
 use App\Models\User;
 use App\Services\Backoffice\System\SystemSettingService;
 use Illuminate\Http\UploadedFile;
@@ -8,18 +10,18 @@ use Illuminate\Support\Facades\Process;
 use Illuminate\Support\Facades\Storage;
 use Livewire\Livewire;
 
-test('system settings page requires password confirmation', function () {
+test('sensitive settings pages require password confirmation', function (string $route) {
     $user = User::factory()->superAdmin()->create();
 
     $this->actingAs($user)
-        ->get(route('system.edit'))
+        ->get(route($route))
         ->assertRedirect(route('password.confirm'));
 
     $this->actingAs($user)
         ->withSession(['auth.password_confirmed_at' => time()])
-        ->get(route('system.edit'))
+        ->get(route($route))
         ->assertOk();
-});
+})->with(['system.edit', 'branding.edit', 'manage.analytics-trackers.index']);
 
 test('customers cannot open the system settings page', function () {
     $this->actingAs(User::factory()->create())
@@ -32,7 +34,7 @@ test('administrators can clear and rebuild the application cache', function (str
 
     $this->actingAs(User::factory()->superAdmin()->create());
 
-    Livewire::test('pages::settings.system')
+    Livewire::test(System::class)
         ->call($action)
         ->assertHasNoErrors()
         ->assertRedirect(route('system.edit'));
@@ -51,17 +53,17 @@ function confirmedAdmin(): User
     return $admin;
 }
 
-test('staff without the system permission cannot open the system settings page', function () {
+test('staff without the system permission cannot open the system settings pages', function (string $route) {
     $this->actingAs(User::factory()->moderator()->create())
         ->withSession(['auth.password_confirmed_at' => time()])
-        ->get(route('system.edit'))
+        ->get(route($route))
         ->assertRedirect(route('dashboard'));
-});
+})->with(['system.edit', 'branding.edit']);
 
 test('enabling maintenance without times takes the site down until it is turned off', function () {
     confirmedAdmin();
 
-    Livewire::test('pages::settings.system')
+    Livewire::test(System::class)
         ->set('maintenanceEnabled', true)
         ->call('saveMaintenance')
         ->assertHasNoErrors()
@@ -136,7 +138,7 @@ test('a maintenance window starts and ends on its own', function () {
 test('the maintenance end must be in the future and after the start', function () {
     confirmedAdmin();
 
-    Livewire::test('pages::settings.system')
+    Livewire::test(System::class)
         ->set('maintenanceEnabled', true)
         ->set('maintenanceStartsAt', now()->addDays(2)->format('Y-m-d\TH:i'))
         ->set('maintenanceEndsAt', now()->addDay()->format('Y-m-d\TH:i'))
@@ -163,13 +165,13 @@ test('an uploaded logo replaces the default and removing it falls back', functio
     confirmedAdmin();
     $default = asset('assets/logo/logo.png');
 
-    Livewire::test('pages::settings.system')
+    Livewire::test(Branding::class)
         ->set('logoUpload', UploadedFile::fake()->image('brand.png', 400, 120))
         ->set('faviconUpload', UploadedFile::fake()->createWithContent('favicon.svg', '<svg xmlns="http://www.w3.org/2000/svg"></svg>'))
         ->call('saveBrand')
         ->assertHasErrors(['faviconUpload']);
 
-    Livewire::test('pages::settings.system')
+    Livewire::test(Branding::class)
         ->set('logoUpload', UploadedFile::fake()->image('brand.png', 400, 120))
         ->call('saveBrand')
         ->assertHasNoErrors();
@@ -178,7 +180,7 @@ test('an uploaded logo replaces the default and removing it falls back', functio
     expect($logo)->not->toBe($default);
     $this->get(route('about'))->assertSee($logo)->assertDontSee($default);
 
-    Livewire::test('pages::settings.system')
+    Livewire::test(Branding::class)
         ->set('removeLogo', true)
         ->call('saveBrand')
         ->assertHasNoErrors();

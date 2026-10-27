@@ -70,29 +70,30 @@ app/
 │   └── helpers.php           Universal helpers (formatMoney(), formatDateTime(), sanitizeRichText(), media rules)
 ├── Http/Controllers/         Auth/ (social login), Backoffice/ (page shells), Frontend/ (pages, account, cart)
 ├── Http/Middleware/          Auth/ (Guest, NotBlocked, PasswordResetThrottle), Access/ (Backoffice, Customer, AppOwner)
-├── Interfaces/               AiAssistant/ (AiAssistantInterface for opt-in models, AiAssistantProviderInterface for AI vendors), Payment/ (PaymentGatewayInterface)
+├── Interfaces/               AiAssistant/ (AiAssistantInterface for opt-in models, AiAssistantProviderInterface for AI vendors), Payment/ (PaymentGatewayInterface), Seo/ (SeoMetaInterface for models with SEO)
 ├── Livewire/
 │   ├── Backoffice/<Area>/Index.php   Banners, Products, Categories, Faqs, Staff, Roles, StaffPayments,
-│   │                                 Offers, Orders, SalesReports, Users, Notifications
+│   │                                 Offers, Orders, SalesReports, Users, Notifications, AnalyticsTrackers, SeoMetas
 │   ├── Frontend/<Area>/              Auth/*, Cart/{Index,Counter,Checkout}, Orders/Track, Profile,
 │   │                                 Settings, Shop, Search, Notifications, AiAssistant
-│   └── Concerns/             InteractsWithTable (admin tables), InteractsWithAvatar, InteractsWithAddresses, InteractsWithCategoryLevels
+│   └── Concerns/             InteractsWithTable (admin tables), InteractsWithAvatar, InteractsWithAddresses, InteractsWithCategoryLevels, InteractsWithSeoMeta (SEO form for any model)
 ├── Mail/Order/               OrderPlaced, OrderRequested (owner), OrderProcessing, OrderShipped, OrderCompleted, OrderCancelled
 ├── Models/                   User, Category, Product, Banner, Offer, Order, OrderItem, Payment, Faq,
-│                             StaffProfile, StaffPayment, SystemSetting, AiAssistantEmbedding
+│                             StaffProfile, StaffPayment, SystemSetting, AiAssistantEmbedding, SeoMeta
 ├── Resolvers/                Payment/ (PaymentGatewayResolver), Pdf/ (MpdfFont), AiAssistant/ (AiAssistantProviderResolver)
 ├── Services/
 │   ├── Auth/                 EmailVerificationService, PasswordResetService, SocialAuthService
 │   ├── Backoffice/           Catalog/ (Product, Category), Content/ (Banner, Faq, Offer),
 │   │                         Sales/ (Order, SalesReport, Dashboard), People/ (User, Staff, StaffPayment, Role),
-│   │                         System/ (System, SystemSetting, MaintenanceMode), Notification/
+│   │                         System/ (System, SystemSetting, MaintenanceMode), Notification/,
+│   │                         Seo/ (SeoMeta: saves SEO for any model, cached site defaults, resolves a page's tags)
 │   ├── Frontend/             Shop/ (PageService: cached public data, Cart, Order), Account/ (Account),
 │   │                         AiAssistant/ (AiAssistant, AiAssistantSearch)
 │   ├── AiAssistant/          AiAssistantGeminiService, AiAssistantOpenAiCompatibleService (Groq, OpenAI…), AiAssistantCacheService (response cache)
 │   ├── Mail/                 MailService (sends now or queues, per MAIL_QUEUE_ENABLED)
-│   └── Payment/              PaymentService, Cod/Manual/StripePaymentGatewayService, InvoiceService
+│   └── Payment/              PaymentService, InvoiceService, Gateway/ (PaymentGatewayService base, Cod/Manual/Stripe/SslCommerz/BkashPaymentGatewayService)
 └── Traits/                   Model/ (Media, CmsUpdateTracker), Query/ (TableQuery, CategoryTree), Cache/ (FrontendCache, ClearsFrontendCache),
-                              Catalog/ (Stock), Pdf/ (Mpdf), AiAssistant/ (3), Mail/ (MailQueue), Security/ (Throttle)
+                              Catalog/ (Stock), Pdf/ (Mpdf), AiAssistant/ (3), Mail/ (MailQueue), Security/ (Throttle), Seo/ (SeoMeta)
 
 resources/views/
 ├── backoffice/<area>/index.blade.php    Admin page shells (layout + Livewire component)
@@ -161,7 +162,9 @@ The full entity relationship diagram is in [DIAGRAM.md](DIAGRAM.md#1-entity-rela
 | `staff_payments` | One payment per staff member per month, with snapshots of sales and compensation |
 | `faqs` | `title`, `description`, `status` |
 | `notifications` | Laravel database notifications, one row per recipient. `type` is a `NotificationTypeEnum` value and `data` holds a translation key, its params, a route name and route params, so any feature can send one. `Backoffice\NotificationService` sends (order events to staff with `manage_orders` and to the order's customer, new active offers to active customers). `Auth\InboxService` reads, opens and marks read/unread for the signed-in user in both panels. Shown on page load, not real time |
-| `system_settings` | One row: `maintenance_enabled`, `maintenance_starts_at`, `maintenance_ends_at` (empty start means now, empty end means until turned off), `maintenance_secret` (bypass link). Logo, icon and favicon are single-file media collections (`config/system.php`) that fall back to the default files in `public/assets/uploads` |
+| `system_settings` | One row: `maintenance_enabled`, `maintenance_starts_at`, `maintenance_ends_at` (empty start means now, empty end means until turned off), `maintenance_secret` (bypass link), `theme_color`, `seo_indexing_enabled` and `google_site_verification` (Settings → SEO). Logo, icon and favicon are single-file media collections (`config/system.php`) that fall back to the default files in `public/assets/uploads` |
+| `payment_gateways` | One row per gateway: `gateway` (unique, `PaymentGatewayEnum`), `is_enabled`, `sort_order` (checkout order), `settings` (json, non-secret values only: the manual row holds the optional `bkash_number` and `nagad_number`). API keys stay in `.env` |
+| `seo_metas` | Optional SEO for any model that implements `SeoMetaInterface` (polymorphic `seoable`, unique): `title` (70), `description` (160), `noindex`, and a single share image (`seo.media.image`, `share` 1200×630 jpg). Products and categories have one row each when staff set it (title, description, `noindex`, no image), and the `system_settings` row holds the shop-wide defaults with the share image. Deleted with its owner, and saving it touches the owner's `updated_at` (sitemap `lastmod`) |
 | `cache`, `sessions`, `jobs` | Laravel infrastructure |
 
 **Design decisions**
@@ -178,8 +181,8 @@ See the checkout sequence and the order status diagram in [DIAGRAM.md](DIAGRAM.m
 
 - Marking the payment as paid always completes the order. Cancelled orders are frozen.
 - Customers can cancel their own order only while it is `Pending` and unpaid (`Order::isCancellableByCustomer()`). `Frontend\OrderService::cancelForUser()` checks ownership and reuses `Backoffice\OrderService::cancel(pendingOnly: true)`, which rechecks the status under the row lock, so stock, payment, emails and staff notifications match a staff cancel.
-- Payment gateways use a strategy: `PaymentGatewayEnum` (`cod`, `manual`, `stripe`) names them, `config/payment.php` maps each to a `PaymentGatewayInterface` class (`CodPaymentGatewayService`, `ManualPaymentGatewayService`, `StripePaymentGatewayService`) and `PaymentGatewayResolver` builds it. Offline gateways share `OfflinePaymentGatewayTrait` (no redirect, no provider status, no webhook).
-- `PAYMENT_GATEWAYS` lists the gateways offered at checkout. The customer's choice becomes the order's `payments` row, so `payments.gateway` is the order's payment type. Manual (TrxID, contact links) UI is gated per order with `PaymentService::isManual($order)`.
+- Payment gateways use a strategy: `PaymentGatewayEnum` (`cod`, `manual`, `stripe`, `sslcommerz`, `bkash`) names them, `config/payment.php` maps each to a class in `Services/Payment/Gateway` (`CodPaymentGatewayService`, `ManualPaymentGatewayService`, `StripePaymentGatewayService`, `SslCommerzPaymentGatewayService`, `BkashPaymentGatewayService`) and `PaymentGatewayResolver` builds it. Every gateway extends `PaymentGatewayService`, which implements `PaymentGatewayInterface` with offline defaults, and owns its own label, icon and flow. The enum only delegates to it.
+- Settings → Payment Gateways (`manage_payment_gateways`, password confirmation) decides which gateways are offered at checkout and in what order. Rows live in `payment_gateways` and are read through `Backoffice/Payment/PaymentGatewaySettingService` (cached under `frontend.payment-gateways`, cleared by the model). `PaymentService::gateways()` returns the enabled rows in order and drops any gateway whose `isConfigured()` is false (Stripe and SSLCommerz need their keys, bKash needs its keys and BDT, COD and Manual are always ready). Such a gateway shows as Not Installed and cannot be turned on or moved. `PAYMENT_GATEWAYS` and `PAYMENT_BKASH_NUMBER` / `PAYMENT_NAGAD_NUMBER` only seed the rows on the first install (`PaymentGatewaySeeder`, which never overwrites saved rows). The customer's choice becomes the order's `payments` row, so `payments.gateway` is the order's payment type. Manual (TrxID, contact links) UI is gated per order with `PaymentService::isManual($order)`. Staff pick bKash or Nagad for a manual payment on the order screen, with no default.
 - Online flow (`PaymentController`, routes `payments.*`): a gateway with a payment page (`PaymentGatewayEnum::pageView()`) places no order at checkout. `OrderService::holdCheckout()` keeps the details in the session and `payments.checkout` shows the cart with the Payment Element in deferred mode (amount only, no PaymentIntent). Clicking Pay posts to `payments.place`, which places the order, opens the payment and creates the PaymentIntent, then the browser confirms it with the returned client secret. A declined card retries on the same intent. An unpaid order is paid later from the signed `payments.show` page, which creates a PaymentIntent lazily (idempotent on the payment reference). Both pages render the Stripe Payment Element styled from the theme tokens (`stripePayment` in `resources/js/app.js`). Stripe returns to `payments.return`, and `POST payments/webhook/{gateway}` (CSRF free, signature checked) also arrives. Both call `PaymentService::sync()`, which asks the gateway for the real status and updates the payment and the order. The confirmation page shows a Pay button while an online payment is pending or failed.
 - Stripe amounts are sent in minor units (`× 100`, or `× 1` / `× 1000` for zero and three decimal currencies). Staff cancelling an order also cancels the PaymentIntent.
 - Order emails go through `Mail\MailService::send()`. With `MAIL_QUEUE_ENABLED=false` they are sent with `defer()` after the response, so no worker is needed, and the `failover` mailer writes them to the log if SMTP is down. With `true` they are queued on the `smtp` mailer and `MailQueueTrait` retries them (`backoff()`, `retryUntil()`) until the mail server is back. Every new Mailable uses `MailQueueTrait` and is sent through `MailService`. Verification and password reset emails stay immediate because their links expire in minutes.
@@ -194,7 +197,7 @@ See the checkout sequence and the order status diagram in [DIAGRAM.md](DIAGRAM.m
 - A child type extends `Product` and declares `$detailTable` and `$detailColumns`. For example, `Shirt extends Product` with `$detailTable = 'shirts'` and `$detailColumns = ['size', 'color']` makes `$shirt->size` and `Shirt::create([..., 'size' => 'M'])` work like any other attribute. For the AI assistant it uses `ProductAiAssistantTrait` and only names its extra fields (`aiAssistantColumns()`).
 - `Product` does the work for any type that declares a detail table: a `type` global scope, a left join of the detail table that selects its columns whenever `products.*` is selected, and a split save (the `products` row first, then an upsert into the detail table, only for changed detail columns). Aggregates and custom selects stay untouched. The detail table is keyed by `product_id` and must not repeat `products` column names (no `id` or timestamps), so unqualified `where`, `orderBy` and `latest()` stay unambiguous.
 - Types follow a naming convention, so `Product` never references a subclass: `type = shirt` hydrates as `App\Models\Shirt` (`Product::newFromBuilder()`), and a subclass's `type` is its snake-case class name (`productType()`), used by the type scope and set on save. Generic code such as cart lines, order items, stock and categories queries `Product` and still gets the child instances.
-- Polymorphic rows (`media`, `ai_assistant_embeddings`) store the concrete class, so Spatie builds conversions from the right model. Generic code that reaches products through `OrderItem` loads media per concrete class (`Frontend\OrderService::getOrderWithItems()`).
+- Polymorphic rows (`media`, `ai_assistant_embeddings`, `seo_metas`) store the concrete class, so Spatie builds conversions from the right model. Generic code that reaches products through `OrderItem` loads media per concrete class (`Frontend\OrderService::getOrderWithItems()`).
 
 ### AI shopping assistant (beta)
 
@@ -216,6 +219,16 @@ Settings → System (`manage_system`, password confirmation) holds branding, mai
 - Visitors get a 503 (`errors/503.blade.php`: logo, message, "Expected back by", no buttons) with `Retry-After` when an end is set. The bypass link `/<secret>` sets Laravel's bypass cookie for that browser.
 - Admin paths skip the check through the `except` list in `bootstrap/app.php` (`admin/*`, `dashboard`, `manage/*`, `settings*`, `logout`, password confirmation, `email/*`, `livewire-*`, `flux/*`). They still run their normal auth and permission middleware, so admins sign in as usual from any device.
 - `SystemSettingService` is scoped (one instance per request) and keeps the whole row as one plain array in `frontend.system-settings`. A view composer passes `brandUrls()` only to `partials.head` and the `brand` logo components.
+
+### SEO
+
+Settings → SEO (`manage_seo_meta`, password confirmation) holds the shop-wide defaults, and the SEO row action on products and categories (their own permissions) holds per-item values. One polymorphic `seo_metas` table serves every model.
+
+- **Opt-in models:** a model implements `SeoMetaInterface` and uses `SeoMetaTrait` (the `seoMeta()` morph relation, deletion with the owner, and `seoMetaDefaults()` for its natural title, description and image). `Product`, `Category` and `SystemSetting` use it.
+- **Admin form:** `InteractsWithSeoMeta` (properties, rules, fill, save) plus `x-backoffice.seo-meta.form-modal` (row modal) or `x-backoffice.seo-meta.fields` (any form). The host returns its model class from `seoMetaOwnerType()` and can add a share image upload with `hasSeoMetaImage()` (only Settings → SEO does, so products and categories share their own image). The settings page reuses the same concern with `SystemSetting`.
+- **Resolution:** `SeoMetaService::forPage($model)` gives the item's own row, then `seoMetaDefaults()`. `SeoMetaProvider` passes `siteDefaults()` to the head (and `robots.txt`) through a view composer: the `SystemSetting` row, then `config/seo.php`, then the logo for the image. Site values are one plain array under a `frontend.system-settings` variant, so nothing extra is queried per request. The product page eager-loads `seoMeta.media` with the product.
+- **Indexing:** `SEO_INDEXING_ENABLED=false` always wins, then the backoffice switch decides. The per-item Hide From Search switch only shows and applies when `SEO_PAGE_NOINDEX_ENABLED=true`, and then hidden products also leave the sitemap.
+- **Cache:** `SeoMeta` clears its owner's `frontendCacheKeys()`. Image changes clear them from `SeoMetaService::save()`, because `MediaProvider` cannot see the owner of a `SeoMeta` file.
 
 ### Navbar search
 
@@ -246,7 +259,7 @@ Only **public, shared** data is cached. Admin screens and per-user data always r
 | `frontend.banners` | Active banners | `Banner` saves, deletes and media |
 | `frontend.offers` | Active offers | `Offer` saves and deletes, `Category` changes, plus `OfferService` after its category `sync()` |
 | `frontend.faqs` | Active FAQs | `Faq` saves and deletes |
-| `frontend.system-settings` | Maintenance flag, window, secret and brand image URLs (one plain array) | `SystemSetting` saves and media |
+| `frontend.system-settings` | Maintenance flag, window, secret and brand image URLs (one plain array), plus a `seo-meta` variant with the site SEO defaults | `SystemSetting` saves and media, and its `SeoMeta` saves |
 | `frontend.ai-assistant-vectors` | `morph type → id → vector` for the current embedding model | `AiAssistantEmbeddingTrait` |
 | `ai-assistant.json.*`, `ai-assistant.embed.*` | Provider replies and query embeddings, keyed by a hash of provider, models and request, for `AI_ASSISTANT_CACHE_MINUTES` | Expire only |
 
@@ -281,7 +294,7 @@ Only **public, shared** data is cached. Admin screens and per-user data always r
 | `config/ai-prompts.php` | All AI text: system prompt lines (`:shop`, `:results`, `:currency` placeholders), messages, masking tokens, stop words and per-model labels. Read with `aiPrompt()` / `aiPromptList()` |
 | `config/ai-assistant.php` | Assistant switch, history, message length, timeout, top matches, results, response cache minutes, `models` (classes that implement `AiAssistantInterface`), `drivers` (API format to class), and the `chat` and `embedding` jobs (driver, URL, key, model, reasoning or dimensions) |
 | `config/backoffice.php` (`route_prefix`) | `ADMIN_ROUTE_PREFIX`: one URL prefix for the whole admin area (Fortify login and password reset, dashboard, `manage/*`, `settings/*`). Routes, the guest redirect and the maintenance exception read `adminRoutePrefix()`; `config/fortify.php` reads the same env key |
-| `config/seo.php` | Indexing switch, default description and share image for `x-ui.seo` |
+| `config/seo.php` | `.env` fallbacks for Settings → SEO (indexing switch, default description, share image, Google verification), the per-item Hide From Search switch (`page_noindex_enabled`), and the share image media rules |
 | `config/cache.php` (`frontend`) | Public cache store and TTL |
 | `config/database.php` (`seeding_enabled`, `seed_admin`) | Demo data switch; super admin seeded when it is off |
 
@@ -296,7 +309,7 @@ Both helper files (autoloaded from `composer.json`) stay generic. `config_helper
   - backoffice: `x-backoffice.management.*`;
   - storefront: `x-frontend.layout.page`, `x-frontend.layout.section`, `x-frontend.cards.card`, `x-frontend.cards.product-card`, `x-frontend.cart.summary`, `x-frontend.orders.items` (compact receipt), `x-frontend.orders.summary` (totals for any order);
   - storefront rows and overlays: `x-frontend.cards.product-tile` (grid card) and `x-frontend.cards.product-list-item` (row card, also used by search, "New Products" and AI suggestions), `x-ui.drawer` + `x-ui.drawer-trigger` (menu, filters and cart all use one drawer wrapper, opened by name);
-  - shared: `x-ui.price`, `x-ui.badge`, `x-ui.tabs`, `x-media.upload`, `x-ui.error-page`, `x-ui.search-input` (every live search; debounce from `APP_SEARCH_DEBOUNCE_MS`, instant clear), `x-ui.dropdown` (every action menu, wraps `flux:dropdown`), `x-ui.popover` (floating panels such as the navbar search), `x-ui.backdrop`, `x-ui.load-more-select` (select that loads options in batches with a "Load more…" item; used by admin filters and the parent category field), `x-ui.seo` (description, canonical and OpenGraph/Twitter tags; storefront layout only, defaults from `config/seo.php` (`SEO_DESCRIPTION`, `SEO_IMAGE`, `SEO_INDEXING_ENABLED`), product pages pass their description and first image, `/sitemap.xml` lists public pages and in-stock or out-of-stock products, never archived ones).
+  - shared: `x-ui.price`, `x-ui.badge`, `x-ui.tabs`, `x-media.upload`, `x-ui.copy-text` (read-only value with an icon copy button and a toast, such as the sitemap URL), `x-ui.error-page`, `x-ui.search-input` (every live search; debounce from `APP_SEARCH_DEBOUNCE_MS`, instant clear), `x-ui.dropdown` (every action menu, wraps `flux:dropdown`), `x-ui.popover` (floating panels such as the navbar search), `x-ui.backdrop`, `x-ui.load-more-select` (select that loads options in batches with a "Load more…" item; used by admin filters and the parent category field), `x-ui.seo` (description, canonical and OpenGraph/Twitter tags; storefront layout only, defaults from `config/seo.php` (`SEO_DESCRIPTION`, `SEO_IMAGE`, `SEO_INDEXING_ENABLED`), product pages pass their description and first image, `/sitemap.xml` lists public pages and in-stock or out-of-stock products, never archived ones).
 - Every admin table uses `InteractsWithTable` + `TableQueryTrait` + the `management-*` components.
 - Alpine handles client-only behaviour.
 - Brand colors come only from `config/theme.php` (see HOW_TO.md §4). Views use the `brand-*`, `gold-*` and surface tokens, never hex or raw palette names for brand elements. Changing a brand color needs no rebuild.

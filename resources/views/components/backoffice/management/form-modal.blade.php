@@ -55,7 +55,7 @@
         @isset($footer)
             {{ $footer }}
         @elseif ($showDefaultFooter)
-            <x-form.actions>
+            <x-form.actions modal>
                 @isset($footerActions)
                     <div class="flex flex-col gap-2 sm:me-auto sm:flex-row">{{ $footerActions }}</div>
                 @endisset

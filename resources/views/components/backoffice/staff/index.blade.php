@@ -93,11 +93,7 @@
                 <flux:input wire:model="name" :label="__('Name')" required />
                 <flux:input wire:model="email" type="email" :label="__('Email')" required />
                 <flux:input wire:model="password" type="password" viewable :label="$editingStaffId ? __('New password') : __('Password')" :placeholder="$editingStaffId ? __('Leave empty to keep the current password') : null" autocomplete="new-password" />
-                <flux:select wire:model.live="role" :label="__('Role')" required>
-                    @foreach ($this->roleOptions as $value => $label)
-                        <flux:select.option :value="$value">{{ $label }}</flux:select.option>
-                    @endforeach
-                </flux:select>
+                <x-ui.select model="role" :label="__('Role')" :options="$this->roleOptions" required live />
             </div>
             @if ($this->isAdminRole)
                 <x-ui.alert icon="shield-check" :heading="__('Admins can do anything by default')" :text="__('A new admin gets every permission. Use Permissions to give a particular admin less.')" />

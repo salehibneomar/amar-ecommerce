@@ -140,3 +140,23 @@ function formatTimeLeft(CarbonInterface $date, string $separator = ':'): string
         ->map(fn (int $count, string $unit): string => sprintf('%02d%s', $count, __($unit)))
         ->join(" {$separator} ");
 }
+
+function colorLuminance(string $hex): float
+{
+    $channels = array_map(fn (string $pair): float => hexdec($pair) / 255, str_split(ltrim($hex, '#'), 2));
+    [$red, $green, $blue] = array_map(fn (float $channel): float => $channel <= 0.04045 ? $channel / 12.92 : (($channel + 0.055) / 1.055) ** 2.4, $channels);
+
+    return 0.2126 * $red + 0.7152 * $green + 0.0722 * $blue;
+}
+
+function colorContrastRatio(string $first, string $second): float
+{
+    $luminances = [colorLuminance($first), colorLuminance($second)];
+
+    return (max($luminances) + 0.05) / (min($luminances) + 0.05);
+}
+
+function readableTextColor(string $background, string $light = '#ffffff', string $dark = '#000000'): string
+{
+    return colorContrastRatio($background, $light) >= colorContrastRatio($background, $dark) ? $light : $dark;
+}

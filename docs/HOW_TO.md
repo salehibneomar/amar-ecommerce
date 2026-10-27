@@ -36,18 +36,15 @@ Never type `৳` or `BDT` in code. Show money with `formatMoney($amount)`. `APP_
 
 ---
 
-## 2. Contact details, social links, payment numbers
+## 2. Contact details and social links
 
-**Where:** `.env`
+**Where:** `.env`. Payment gateways, their checkout order and the bKash and Nagad numbers are set in the admin under **Settings → Payment Gateways**.
 
 ```env
 SUPPORT_EMAIL=help@example.com
 WHATSAPP_NUMBER=1712345678
 FACEBOOK_PAGE_URL=https://facebook.com/yourpage
 FACEBOOK_MESSENGER_URL=https://m.me/yourpage
-
-PAYMENT_BKASH_NUMBER=01712345678
-PAYMENT_NAGAD_NUMBER=01812345678
 
 SHOP_OWNER_EMAIL=owner@example.com   # gets the "new order" email
 SHOP_ORDER_PREFIX=AE                 # order IDs look like AE-ABC123
@@ -464,10 +461,14 @@ Set `ADMIN_ROUTE_PREFIX` in `.env` (default `backoffice`). The admin login moves
 
 ## 23. SEO and link previews
 
-- **Where:** the `# === SEO ===` group in `.env`: `SEO_DESCRIPTION` (default description), `SEO_IMAGE` (default share image, empty uses the logo), `SEO_INDEXING_ENABLED` (`false` on staging hides every page). Product pages use their own description and first image.
-- **Per page:** pass `description` and `image` to `<x-layouts::frontend>`. Tags come from `x-ui.seo`.
+- **Shop-wide:** admin → Settings → SEO (`manage_seo_meta`). Allow Search Engines, Default Title (also the home page title), Default Description, Share Image (1200×630), Google Verification Code, and the Sitemap URL with a copy button to paste into Google Search Console. The sitemap is built from the shop data on each request (cached), so there is nothing to upload.
+- **Per product or category:** the SEO button on the row sets its own title and description. Link previews use the item's own image (a product's first image, a category's image). Empty fields use the item's name, description and image.
+- **Order used for each value:** the item's own SEO, then the item itself, then Settings → SEO, then `.env`, then the logo (image only).
+- **`.env` fallbacks:** the `# === SEO ===` group: `SEO_DESCRIPTION`, `SEO_IMAGE`, `SEO_GOOGLE_SITE_VERIFICATION`. `SEO_INDEXING_ENABLED=false` on staging hides every page and wins over the backoffice. `SEO_PAGE_NOINDEX_ENABLED=true` adds a Hide From Search switch to the item SEO form.
+- **Per page in code:** pass `title`, `description`, `image` and `noindex` to `<x-layouts.frontend>`. Tags come from `x-ui.seo`.
+- **Add SEO to another model:** implement `SeoMetaInterface`, use `SeoMetaTrait` (override `seoMetaDefaults()` for its own name, description and image), then in its admin Livewire component use `InteractsWithSeoMeta`, return the model class from `seoMetaOwnerType()` (override `hasSeoMetaImage()` with `true` to add a share image upload), add a row action calling `editSeoMeta(id)` and render `<x-backoffice.seo-meta.form-modal />`. On its storefront page eager-load `seoMeta.media` and pass `SeoMetaService::forPage($model)` to the layout.
 - **Hidden from search:** every page outside the storefront layout (admin, auth, errors) gets `noindex`.
-- **Sitemap:** `/sitemap.xml` lists the public pages and every in-stock or out-of-stock product (archived products are left out). Submit it once in Google Search Console.
+- **Sitemap:** `/sitemap.xml` lists the public pages and every in-stock or out-of-stock product (archived products are left out, and hidden ones too when `SEO_PAGE_NOINDEX_ENABLED=true`). Submit it once in Google Search Console.
 
 ## 24. Category depth
 

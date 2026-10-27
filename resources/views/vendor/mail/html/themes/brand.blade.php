@@ -28,7 +28,7 @@ blockquote {
 }
 
 a {
-    color: {{ themeBrandColor() }};
+    color: {{ $theme['brand'] }};
 }
 
 a img {
@@ -38,7 +38,7 @@ a img {
 /* Typography */
 
 h1 {
-    color: {{ themePalettes()['brand'][900] }};
+    color: {{ $theme['palette'][900] }};
     font-size: 20px;
     font-weight: bold;
     margin-top: 0;
@@ -80,7 +80,7 @@ img {
     -premailer-cellpadding: 0;
     -premailer-cellspacing: 0;
     -premailer-width: 100%;
-    background-color: {{ themePalettes()['brand'][50] }};
+    background-color: {{ $theme['palette'][50] }};
     margin: 0;
     padding: 0;
     width: 100%;
@@ -123,9 +123,9 @@ img {
     -premailer-cellpadding: 0;
     -premailer-cellspacing: 0;
     -premailer-width: 100%;
-    background-color: {{ themePalettes()['brand'][50] }};
-    border-bottom: 1px solid {{ themePalettes()['brand'][50] }};
-    border-top: 1px solid {{ themePalettes()['brand'][50] }};
+    background-color: {{ $theme['palette'][50] }};
+    border-bottom: 1px solid {{ $theme['palette'][50] }};
+    border-top: 1px solid {{ $theme['palette'][50] }};
     margin: 0;
     padding: 0;
     width: 100%;
@@ -136,7 +136,7 @@ img {
     -premailer-cellspacing: 0;
     -premailer-width: 570px;
     background-color: #ffffff;
-    border: 1px solid {{ themePalettes()['brand'][100] }};
+    border: 1px solid {{ $theme['palette'][100] }};
     border-radius: 12px;
     box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px -1px rgba(0, 0, 0, 0.1);
     margin: 0 auto;
@@ -237,11 +237,12 @@ img {
 
 .button-blue,
 .button-primary {
-    background-color: {{ themeBrandColor() }};
-    border-bottom: 10px solid {{ themeBrandColor() }};
-    border-left: 22px solid {{ themeBrandColor() }};
-    border-right: 22px solid {{ themeBrandColor() }};
-    border-top: 10px solid {{ themeBrandColor() }};
+    background-color: {{ $theme['brand'] }};
+    color: {{ $theme['foreground'] }};
+    border-bottom: 10px solid {{ $theme['brand'] }};
+    border-left: 22px solid {{ $theme['brand'] }};
+    border-right: 22px solid {{ $theme['brand'] }};
+    border-top: 10px solid {{ $theme['brand'] }};
 }
 
 .button-green,
@@ -265,12 +266,12 @@ img {
 /* Panels */
 
 .panel {
-    border-left: {{ themePalettes()['brand'][500] }} solid 4px;
+    border-left: {{ $theme['palette'][500] }} solid 4px;
     margin: 21px 0;
 }
 
 .panel-content {
-    background-color: {{ themePalettes()['brand'][50] }};
+    background-color: {{ $theme['palette'][50] }};
     color: #52525b;
     padding: 16px;
 }

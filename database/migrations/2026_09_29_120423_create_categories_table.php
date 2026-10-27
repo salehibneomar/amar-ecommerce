@@ -16,7 +16,7 @@ return new class extends Migration
             $table->foreignId('parent_id')->nullable()->constrained('categories')->restrictOnDelete();
             $table->unsignedTinyInteger('depth')->default(1)->index();
             $table->text('description')->nullable();
-            $table->string('status')->default(CategoryStatusEnum::Active->value)->index();
+            $table->string('status')->default(CategoryStatusEnum::Draft->value)->index();
             $table->unsignedInteger('sort_order')->default(1);
             $table->boolean('is_featured')->default(false)->index();
             $table->foreignId('updated_by')->nullable()->constrained('users')->nullOnDelete();

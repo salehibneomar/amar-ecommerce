@@ -1,5 +1,6 @@
 <?php
 
+use App\Enums\Catalog\ProductStatusEnum;
 use App\Livewire\Frontend\Shop\Index;
 use App\Models\Banner;
 use App\Models\Category;
@@ -87,6 +88,12 @@ test('the product page renders its image gallery and archived products return 40
         ->assertSee($product->refresh()->gallery_images[1]['thumbnail'], false);
     $this->get(route('shop.product', $archived->slug))->assertNotFound();
 });
+
+test('draft and discontinued products return 404', function (ProductStatusEnum $status) {
+    $product = Product::factory()->create(['status' => $status]);
+
+    $this->get(route('shop.product', $product->slug))->assertNotFound();
+})->with([ProductStatusEnum::Draft, ProductStatusEnum::Discontinued]);
 
 test('customers see their dashboard and orders', function () {
     $this->actingAs(User::factory()->create());

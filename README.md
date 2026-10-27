@@ -4,14 +4,14 @@
 
 Out of the box it runs as a simple generic shop: products with up to five images (the first is the thumbnail), stock that is tracked on every order, and orders that follow the Stripe and SSLCommerz shape (an order status, a payment status, and one payment record per attempt). Every price is in whole currency units (for example ৳550, never ৳550.50). New product types extend the base `Product` model, and payment gateways plug in through `PaymentGatewayInterface`.
 
-How customers pay is set by `PAYMENT_GATEWAYS`, a comma separated list the customer picks from at checkout: `cod` (cash on delivery), `manual` (bKash or Nagad verified by staff) and `stripe` (card payment on a branded page). Blank means no payment step. A new gateway is an enum case, a `PaymentGatewayInterface` class and one line in `config/payment.php`.
+Staff choose how customers pay in **Settings → Payment Gateways**: turn each gateway on or off, set the order customers see at checkout, and save the optional bKash and Nagad numbers. The gateways are Cash on Delivery (`cod`), Manual Payment (`manual`, bKash or Nagad verified by staff), Stripe (`stripe`), SSLCommerz (`sslcommerz`) and bKash (`bkash`). A gateway whose keys are missing from `.env` shows as Not Installed and cannot be turned on. No enabled gateway means no payment step. `PAYMENT_GATEWAYS` only sets which gateways start enabled on the first install. A new gateway is an enum case, a `PaymentGatewayInterface` class and one line in `config/payment.php`.
 
 ## How it works for customers
 
 1. **Browse the shop.** Search, filter by category and price, and open a product page with its image gallery.
 2. **Create an account.** Register with email and open the verification link (valid for 15 minutes; it can be resent every 5 minutes), or sign in with Google or Facebook.
 3. **Check out.** Add products to the cart and place the order with a phone number and a delivery address. Stock is held for the order. Any running offer is applied automatically and the customer gets an order ID.
-4. **Pay.** The customer picks a payment option at checkout. Cash on delivery needs nothing more. bKash or Nagad shows contact buttons (WhatsApp, Messenger, email) to send the transaction ID (TrxID). Card opens a payment page in the shop's own style, powered by Stripe, and the order is marked paid once Stripe confirms it.
+4. **Pay.** The customer picks a payment option at checkout. Cash on delivery needs nothing more. Manual Payment (bKash or Nagad) shows contact buttons (WhatsApp, Messenger, email) to send the transaction ID (TrxID). Stripe opens a payment page in the shop's own style and the order is marked paid once Stripe confirms it.
 5. **Receive.** Staff move the order from pending to processing, shipped and completed. The customer gets an email at each step, and the invoice becomes available once the payment is paid. While an unpaid order is still pending, the customer can cancel it from the order page.
 
 Orders can be tracked at `/track-order` with the order ID and email.
@@ -24,12 +24,14 @@ The backoffice is at `/backoffice/login` (change `backoffice` with `ADMIN_ROUTE_
 |---|---|
 | Dashboard | All staff |
 | Orders: status, payment, refund, cancel, invoice | `manage_orders` |
-| Products: images, stock, price, featured | `manage_products` |
-| Categories | `manage_categories` |
+| Products: images, stock, price, featured, SEO | `manage_products` |
+| Categories, including their SEO | `manage_categories` |
 | Sales reports | `view_reports` |
 | Banners / FAQs / Offers (Settings → Offers) | `manage_banners` / `manage_faqs` / `manage_offers` |
 | Customers (block/unblock) | `manage_customers` |
 | Staff and their payments | `manage_staff` |
+| Payment gateways (Settings → Payment Gateways): turn on or off, checkout order, bKash and Nagad numbers | `manage_payment_gateways` |
+| SEO (Settings → SEO): search engine defaults, link preview image, Google verification, sitemap URL to copy | `manage_seo_meta` |
 | Roles (Settings → Roles) / System settings | Admins only (`manage_roles` / `manage_system`) |
 
 Each staff member is paid either a fixed monthly salary or a percentage of the month's paid sales. Admins record each payment.

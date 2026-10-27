@@ -174,7 +174,7 @@ test('the parent category choice loads ten at a time, skips the edited category 
 
     $component = Livewire::actingAs(User::factory()->superAdmin()->create())->test(Index::class)
         ->call('createCategory')
-        ->assertSee(__('Load more…'));
+        ->assertSee(__('Load More'));
 
     expect($component->get('parentLevelOptions')[0])->toBe([
         'options' => $roots->take(10)->pluck('name', 'id')->all(),

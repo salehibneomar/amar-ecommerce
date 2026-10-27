@@ -16,7 +16,7 @@ return new class extends Migration
             $table->id();
             $table->string('title');
             $table->text('description');
-            $table->string('status')->default(FaqStatusEnum::Active->value)->index();
+            $table->string('status')->default(FaqStatusEnum::Draft->value)->index();
             $table->foreignId('updated_by')->nullable()->constrained('users')->nullOnDelete();
             $table->timestamps();
         });

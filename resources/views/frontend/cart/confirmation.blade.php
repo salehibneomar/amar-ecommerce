@@ -1,4 +1,4 @@
-<x-layouts::frontend :title="__('Order placed')">
+<x-layouts.frontend :title="__('Order placed')">
     <x-frontend.layout.page :title="__('Thank you! Your order is placed.')" :subtitle="__('Order ID: :order', ['order' => $order->public_order_id])">
         <x-frontend.orders.status :order="$order" :contact-links="$contactLinks" :pay-url="$payUrl" />
 
@@ -21,4 +21,6 @@
             </x-ui.alert>
         @endauth
     </x-frontend.layout.page>
-</x-layouts::frontend>
+
+    <x-analytics.event :event="$analyticsEvent" />
+</x-layouts.frontend>

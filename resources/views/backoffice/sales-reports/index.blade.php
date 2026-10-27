@@ -1,3 +1,3 @@
-<x-layouts::backoffice :title="__('Sales')">
+<x-layouts.backoffice :title="__('Sales')">
     <livewire:backoffice.sales-reports.index />
-</x-layouts::backoffice>
+</x-layouts.backoffice>

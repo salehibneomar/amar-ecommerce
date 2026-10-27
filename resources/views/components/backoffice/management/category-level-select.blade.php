@@ -14,7 +14,7 @@
         @if ($filter)
             <x-backoffice.management.filter model="{{ $model }}.{{ $level }}" :label="$labels[$level] ?? null" :options="$batch['options']" :has-more="$batch['has_more']" load-more="loadMoreCategoryLevel" :load-more-params="[$model, $level]" />
         @else
-            <x-ui.load-more-select model="{{ $model }}.{{ $level }}" :label="$labels[$level] ?? null" :options="$batch['options']" :placeholder="$level === 0 ? $placeholder : $subPlaceholder" :has-more="$batch['has_more']" load-more="loadMoreCategoryLevel" :load-more-params="[$model, $level]" :required="$required && $level === 0" :disabled="$batch['disabled']" live />
+            <x-ui.select model="{{ $model }}.{{ $level }}" :label="$labels[$level] ?? null" :options="$batch['options']" :placeholder="$level === 0 ? $placeholder : $subPlaceholder" :has-more="$batch['has_more']" load-more="loadMoreCategoryLevel" :load-more-params="[$model, $level]" :required="$required && $level === 0" :disabled="$batch['disabled']" live />
         @endif
     </div>
 @endforeach

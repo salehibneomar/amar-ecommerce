@@ -1,4 +1,4 @@
-<x-layouts::frontend :title="__('Payment')">
+<x-layouts.frontend :title="__('Payment')">
     <x-frontend.layout.page :title="__('Complete your payment')" :subtitle="isset($order) ? __('Order ID: :order', ['order' => $order->public_order_id]) : __('Your order is placed when the payment goes through.')">
         <div class="grid gap-8 lg:grid-cols-[1fr_20rem]">
             <x-ui.card as="section" class="h-fit p-5">
@@ -59,4 +59,4 @@
             @endisset
         </div>
     </x-frontend.layout.page>
-</x-layouts::frontend>
+</x-layouts.frontend>

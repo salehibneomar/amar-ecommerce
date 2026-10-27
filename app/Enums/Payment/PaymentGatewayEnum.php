@@ -2,53 +2,48 @@
 
 namespace App\Enums\Payment;
 
+use App\Interfaces\Payment\PaymentGatewayInterface;
+use App\Resolvers\Payment\PaymentGatewayResolver;
+
 enum PaymentGatewayEnum: string
 {
     case Cod = 'cod';
     case Manual = 'manual';
     case Stripe = 'stripe';
+    case SslCommerz = 'sslcommerz';
+    case Bkash = 'bkash';
 
     /**
      * @return list<self>
      */
-    public static function enabled(): array
+    public static function available(): array
     {
-        return array_values(array_filter(array_map(self::tryFrom(...), paymentGateways())));
+        return array_values(array_filter(self::cases(), fn (self $gateway): bool => paymentGatewayClass($gateway->value) !== null));
+    }
+
+    public function driver(): PaymentGatewayInterface
+    {
+        return app(PaymentGatewayResolver::class)->resolve($this);
     }
 
     public function label(): string
     {
-        return match ($this) {
-            self::Cod => __('Cash on Delivery'),
-            self::Manual => __('bKash or Nagad'),
-            self::Stripe => __('Card'),
-        };
+        return $this->driver()->label();
     }
 
     public function vendor(): ?string
     {
-        return match ($this) {
-            self::Cod, self::Manual => null,
-            self::Stripe => 'Stripe',
-        };
+        return $this->driver()->vendor();
     }
 
     public function description(): string
     {
-        return match ($this) {
-            self::Cod => __('Pay in cash when your order arrives.'),
-            self::Manual => __('Send the payment and share the transaction ID with us.'),
-            self::Stripe => __('Pay securely online with a debit or credit card.'),
-        };
+        return $this->driver()->description();
     }
 
     public function icon(): string
     {
-        return match ($this) {
-            self::Cod => 'payments',
-            self::Manual => 'smartphone',
-            self::Stripe => 'credit_card',
-        };
+        return $this->driver()->icon();
     }
 
     /**
@@ -56,10 +51,7 @@ enum PaymentGatewayEnum: string
      */
     public function pageView(): ?string
     {
-        return match ($this) {
-            self::Cod, self::Manual => null,
-            self::Stripe => 'frontend.payments.stripe',
-        };
+        return $this->driver()->pageView();
     }
 
     public function isManual(): bool
@@ -69,9 +61,11 @@ enum PaymentGatewayEnum: string
 
     public function isOnline(): bool
     {
-        return match ($this) {
-            self::Cod, self::Manual => false,
-            self::Stripe => true,
-        };
+        return $this->driver()->isOnline();
+    }
+
+    public function isConfigured(): bool
+    {
+        return $this->driver()->isConfigured();
     }
 }

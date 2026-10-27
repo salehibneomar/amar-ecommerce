@@ -58,6 +58,7 @@
                                     <x-backoffice.management.action icon="photo" :label="__('Media')" variant="filled" color="green" wire:click="viewMedia({{ $category->id }})" />
                                 @endif
                                 <x-backoffice.management.action icon="arrow-up-tray" :label="__('Upload')" variant="filled" color="violet" wire:click="uploadMedia({{ $category->id }})" />
+                                <x-backoffice.management.action icon="globe-alt" :label="__('SEO')" variant="filled" color="amber" wire:click="editSeoMeta({{ $category->id }})" />
                                 <x-backoffice.management.action icon="trash" :label="__('Delete')" variant="danger" wire:click="confirmDeleteCategory({{ $category->id }})" />
                             </x-backoffice.management.actions>
                         </flux:table.cell>
@@ -79,15 +80,13 @@
             </div>
             <flux:textarea wire:model="description" :label="__('Description')" rows="3" />
             <div class="grid grid-cols-1 gap-4 md:grid-cols-2">
-                <flux:select wire:model="categoryStatus" :label="__('Status')">
-                    @foreach ($this->statusOptions as $value => $label)
-                        <flux:select.option value="{{ $value }}">{{ $label }}</flux:select.option>
-                    @endforeach
-                </flux:select>
+                <x-ui.select model="categoryStatus" :label="__('Status')" :options="$this->statusOptions" />
                 <flux:input wire:model="sortOrder" type="number" min="1" :label="__('Display Order')" />
             </div>
             <x-backoffice.form.toggle-field wire:model="isFeatured" :label="__('Featured Category')" />
         </x-backoffice.management.form-modal>
+
+        <x-backoffice.seo-meta.form-modal :image-field="$this->seoMetaImageField" :image="$seoMetaImage" :remove-image="$removeSeoMetaImage" />
 
         <x-backoffice.management.form-modal wire:model="showDeleteConfirmation" size="md" :title="__('Delete category?')">
             <flux:text>{{ __('Products in this category will become uncategorised.') }}</flux:text>

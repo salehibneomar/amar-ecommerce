@@ -3,7 +3,7 @@
 <head>
     <meta charset="utf-8">
     <title>{{ $invoiceNumber }}</title>
-    @include('pdf.partials.styles')
+    <x-pdf.styles />
 </head>
 <body>
     <table>

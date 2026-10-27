@@ -204,7 +204,7 @@ class ProductService
             'discount_percentage' => filled($data['discount_percentage'] ?? null) ? (int) $data['discount_percentage'] : null,
             'quantity' => $quantity,
             'status' => match (true) {
-                $status === ProductStatusEnum::Archived => $status,
+                ! in_array($status, ProductStatusEnum::listed(), true) => $status,
                 $quantity > 0 => ProductStatusEnum::InStock,
                 default => ProductStatusEnum::OutOfStock,
             },

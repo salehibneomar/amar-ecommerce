@@ -1,3 +1,3 @@
-<x-layouts::frontend.auth :title="__('Log in')">
+<x-layouts.frontend.auth :title="__('Log in')">
     <livewire:frontend.auth.login />
-</x-layouts::frontend.auth>
+</x-layouts.frontend.auth>

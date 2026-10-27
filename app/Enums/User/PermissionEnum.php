@@ -6,6 +6,7 @@ enum PermissionEnum: string
 {
     case ManageOrders = 'manage_orders';
     case ViewReports = 'view_reports';
+    case ManagePaymentGateways = 'manage_payment_gateways';
     case ManageProducts = 'manage_products';
     case ManageCategories = 'manage_categories';
     case ManageBanners = 'manage_banners';
@@ -14,13 +15,17 @@ enum PermissionEnum: string
     case ManageCustomers = 'manage_customers';
     case ManageStaff = 'manage_staff';
     case ManageRoles = 'manage_roles';
+    case ManageAnalytics = 'manage_analytics';
+    case ManageSeoMeta = 'manage_seo_meta';
     case ManageSystem = 'manage_system';
+    case ManageTheme = 'manage_theme';
 
     public function label(): string
     {
         return match ($this) {
             self::ManageOrders => __('Manage orders'),
             self::ViewReports => __('View sales reports'),
+            self::ManagePaymentGateways => __('Manage payment gateways'),
             self::ManageProducts => __('Manage products'),
             self::ManageCategories => __('Manage categories'),
             self::ManageBanners => __('Manage banners'),
@@ -29,24 +34,28 @@ enum PermissionEnum: string
             self::ManageCustomers => __('Manage customers'),
             self::ManageStaff => __('Manage staff and payments'),
             self::ManageRoles => __('Manage roles'),
+            self::ManageAnalytics => __('Manage analytics'),
+            self::ManageSeoMeta => __('Manage SEO'),
             self::ManageSystem => __('Manage system settings'),
+            self::ManageTheme => __('Manage theme'),
         };
     }
 
     public function group(): string
     {
         return match ($this) {
-            self::ManageOrders, self::ViewReports => __('Sales'),
+            self::ManageOrders, self::ViewReports, self::ManagePaymentGateways => __('Sales'),
             self::ManageProducts, self::ManageCategories => __('Catalog'),
             self::ManageBanners, self::ManageFaqs, self::ManageOffers => __('Content'),
             self::ManageCustomers, self::ManageStaff, self::ManageRoles => __('People'),
-            self::ManageSystem => __('System'),
+            self::ManageAnalytics, self::ManageSeoMeta => __('Marketing'),
+            self::ManageSystem, self::ManageTheme => __('System'),
         };
     }
 
     public function isAdminOnly(): bool
     {
-        return in_array($this, [self::ManageRoles, self::ManageSystem], true);
+        return in_array($this, [self::ManageRoles, self::ManageSystem, self::ManageTheme], true);
     }
 
     /**

@@ -5,6 +5,7 @@ namespace App\Livewire\Backoffice\Products;
 use App\Enums\Catalog\ProductBadgeEnum;
 use App\Enums\Catalog\ProductStatusEnum;
 use App\Livewire\Concerns\InteractsWithCategoryLevels;
+use App\Livewire\Concerns\InteractsWithSeoMeta;
 use App\Livewire\Concerns\InteractsWithTable;
 use App\Models\Product;
 use App\Services\Backoffice\Catalog\CategoryService;
@@ -24,7 +25,7 @@ use Livewire\WithPagination;
  */
 class Index extends Component
 {
-    use InteractsWithCategoryLevels, InteractsWithTable, WithFileUploads, WithPagination;
+    use InteractsWithCategoryLevels, InteractsWithSeoMeta, InteractsWithTable, WithFileUploads, WithPagination;
 
     public string $status = '';
 
@@ -81,7 +82,7 @@ class Index extends Component
 
     public string $quantity = '';
 
-    public string $productStatus = 'archived';
+    public string $productStatus = 'draft';
 
     public string $badge = '';
 
@@ -491,6 +492,11 @@ class Index extends Component
             : null;
     }
 
+    protected function seoMetaOwnerType(): string
+    {
+        return Product::class;
+    }
+
     public function render(): View
     {
         return view('components.backoffice.products.index');
@@ -512,7 +518,7 @@ class Index extends Component
             'isFeatured',
         ]);
 
-        $this->productStatus = ProductStatusEnum::Archived->value;
+        $this->productStatus = ProductStatusEnum::Draft->value;
         $this->resetValidation();
     }
 

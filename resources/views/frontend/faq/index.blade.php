@@ -1,4 +1,4 @@
-<x-layouts::frontend :title="__('FAQ')">
+<x-layouts.frontend :title="__('FAQ')">
     <x-frontend.layout.page :title="__('Frequently asked questions')" :subtitle="__('Quick answers about orders, delivery and payments.')"
         x-data="{
             search: '',
@@ -28,4 +28,4 @@
 
         <x-frontend.content.contact-cta :title="__('Still have a question?')" :description="__('Reach us on WhatsApp, Facebook or email and we will help you out.')" />
     </x-frontend.layout.page>
-</x-layouts::frontend>
+</x-layouts.frontend>

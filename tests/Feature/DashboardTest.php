@@ -50,7 +50,7 @@ test('the dashboard summarises customers revenue orders and products', function 
         ->assertViewHas('panels', fn (array $panels): bool => $panels['orders']['pipeline']['total'] === 2
             && $panels['orders']['pipeline']['pending'] === 1
             && array_column($panels['orders']['pipeline']['stages'], 'value') === [1, 0, 0, 1, 0]
-            && array_column($panels['inventory'], 'value') === [2, 0, 1])
+            && array_column($panels['inventory'], 'value') === [0, 2, 0, 0, 1])
         ->assertSeeInOrder(['Blocked Customer', 'New Customer', 'Old Customer'])
         ->assertSee(['AE-DONE01', '1 open order'])
         ->assertDontSee('Staff Member');

@@ -40,8 +40,6 @@ class PageService
 
     private const PRODUCTS_PER_PAGE = 12;
 
-    private const LISTED_STATUSES = [ProductStatusEnum::InStock, ProductStatusEnum::OutOfStock];
-
     /**
      * @return Collection<int, Banner>
      */
@@ -191,7 +189,7 @@ class PageService
      */
     public function getListedProducts(): Collection
     {
-        return $this->cachedProducts(['listed'], fn (Builder $query): Builder => $query, self::LISTED_STATUSES);
+        return $this->cachedProducts(['listed'], fn (Builder $query): Builder => $query, ProductStatusEnum::listed());
     }
 
     public function countProducts(): int
@@ -204,10 +202,11 @@ class PageService
      */
     public function getSitemapProducts(): array
     {
-        return $this->rememberFrontendCacheVariant(FrontendCacheKeyEnum::Products, ['sitemap'], function (): array {
+        return $this->rememberFrontendCacheVariant(FrontendCacheKeyEnum::Products, ['sitemap', isSeoPageNoindexEnabled()], function (): array {
             /** @var Collection<int, Product> $products */
             $products = Product::query()
-                ->whereIn('status', self::LISTED_STATUSES)
+                ->whereIn('status', ProductStatusEnum::listed())
+                ->when(isSeoPageNoindexEnabled(), fn (Builder $query) => $query->whereDoesntHave('seoMeta', fn (Builder $seoMeta) => $seoMeta->where('noindex', true)))
                 ->orderByDesc('id')
                 ->get(['id', 'slug', 'updated_at', 'type']);
 
@@ -274,7 +273,7 @@ class PageService
         $load = function () use ($search, $categoryIds, $sort, $minPrice, $maxPrice, $page): array {
             $paginator = Product::query()
                 ->with('media')
-                ->whereIn('status', self::LISTED_STATUSES)
+                ->whereIn('status', ProductStatusEnum::listed())
                 ->when($search !== '', fn (Builder $query): Builder => $query->where(fn (Builder $query): Builder => $query->where('name', 'like', "%{$search}%")->orWhere('sku', $search)))
                 ->when($categoryIds !== [], fn (Builder $query): Builder => $query->whereIn('category_id', $categoryIds))
                 ->when($minPrice !== null, fn (Builder $query): Builder => $query->whereRaw(self::FINAL_PRICE_SQL.' >= ?', [$minPrice]))
@@ -307,9 +306,9 @@ class PageService
     public function getProductBySlug(string $slug): Product
     {
         return Product::query()
-            ->with(['media', 'category'])
+            ->with(['media', 'category', 'seoMeta.media'])
             ->where('slug', $slug)
-            ->where('status', '!=', ProductStatusEnum::Archived)
+            ->where(fn (Builder $query) => $query->whereIn('status', ProductStatusEnum::listed()))
             ->firstOrFail();
     }
 

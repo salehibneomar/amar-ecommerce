@@ -13,6 +13,8 @@ enum FrontendCacheKeyEnum: string
     case Faqs = 'frontend.faqs';
     case AiAssistantVectors = 'frontend.ai-assistant-vectors';
     case SystemSettings = 'frontend.system-settings';
+    case AnalyticsTrackers = 'frontend.analytics-trackers';
+    case PaymentGateways = 'frontend.payment-gateways';
 
     public function versionKey(): string
     {

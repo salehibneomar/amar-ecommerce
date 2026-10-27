@@ -153,6 +153,11 @@ function isSeoIndexingEnabled(): bool
     return (bool) config('seo.indexing_enabled', true);
 }
 
+function isSeoPageNoindexEnabled(): bool
+{
+    return (bool) config('seo.page_noindex_enabled', false);
+}
+
 function seoDescription(): string
 {
     return (string) config('seo.description', '');
@@ -163,6 +168,11 @@ function seoImage(): ?string
     return config('seo.image') ?: null;
 }
 
+function googleSiteVerification(): ?string
+{
+    return config('seo.google_site_verification') ?: null;
+}
+
 function categoryLevel(): int
 {
     return (int) config('app.category_level', 2);
@@ -171,6 +181,11 @@ function categoryLevel(): int
 function searchDebounceMs(): int
 {
     return (int) config('app.search_debounce_ms', 300);
+}
+
+function notificationLongPollSeconds(): int
+{
+    return (int) config('app.notification_long_poll_seconds', 300);
 }
 
 function validPhoneLength(): int
@@ -225,11 +240,6 @@ function paymentConfig(string $key, mixed $default = null): mixed
 function paymentGateways(): array
 {
     return array_values((array) paymentConfig('enabled', []));
-}
-
-function paymentDefaultMethod(): string
-{
-    return (string) paymentConfig('manual.default_method', 'bkash');
 }
 
 function paymentGatewayClass(string $gateway): ?string
@@ -469,17 +479,20 @@ function themePalettes(): array
     return config('theme.palettes', []);
 }
 
-function themeBrandColor(): string
+/**
+ * @return array<string, array{palette: array<int, string>, brand: int, brand_hover: int, brand_dark: int}>
+ */
+function themePresets(): array
 {
-    return themePalettes()['brand'][(int) config('theme.brand', 600)] ?? '#000000';
+    return config('theme.presets', []);
 }
 
-function themeBrandDarkColor(): string
+function themeTextLight(): string
 {
-    return themePalettes()['brand'][(int) config('theme.brand_dark', 500)] ?? themeBrandColor();
+    return (string) config('theme.text_light', '#ffffff');
 }
 
-function themeBrandForeground(): string
+function themeTextDark(): string
 {
-    return (string) config('theme.brand_foreground', '#ffffff');
+    return (string) config('theme.text_dark', '#09090b');
 }

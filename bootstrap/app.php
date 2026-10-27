@@ -29,6 +29,7 @@ return Application::configure(basePath: dirname(__DIR__))
             'livewire-*',
             'flux/*',
             'payments/webhook/*',
+            'payments/*/return',
         ]);
         $middleware->validateCsrfTokens(except: ['payments/webhook/*']);
         $middleware->alias([

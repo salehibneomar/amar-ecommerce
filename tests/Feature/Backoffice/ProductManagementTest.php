@@ -91,6 +91,12 @@ test('the product status follows the stock unless the product is archived', func
     $service->update($product->id, ['sku' => 'LAMP-01', 'name' => 'Desk Lamp', 'price' => 900, 'quantity' => 5, 'status' => ProductStatusEnum::Archived->value]);
 
     expect($product->refresh()->status)->toBe(ProductStatusEnum::Archived);
+
+    foreach ([ProductStatusEnum::Draft, ProductStatusEnum::Discontinued] as $status) {
+        $service->update($product->id, ['sku' => 'LAMP-01', 'name' => 'Desk Lamp', 'price' => 900, 'quantity' => 5, 'status' => $status->value]);
+
+        expect($product->refresh()->status)->toBe($status);
+    }
 });
 
 test('product service supports searching, filtering by status and category', function () {
@@ -131,11 +137,12 @@ test('the product category filter loads root categories five at a time and shows
 
     $component = Livewire::actingAs(User::factory()->superAdmin()->create())->test(Index::class)
         ->assertSet('categoryFilterOptions.0.has_more', true)
-        ->assertSeeHtml('value="__load_more__"')
+        ->assertSeeHtml('x-on:click="loadMoreOptions()"')
         ->assertCount('categoryFilterOptions.0.options', 5)
         ->call('loadMoreCategoryLevel', 'categoryFilter', 0)
         ->assertCount('categoryFilterOptions.0.options', 7)
         ->assertSet('categoryFilterOptions.0.has_more', false)
+        ->assertDontSeeHtml('x-on:click="loadMoreOptions()"')
         ->assertSet('categoryFilterOptions.1.disabled', true)
         ->set('categoryFilter.0', (string) $roots->first()->id)
         ->assertCount('categoryFilterOptions.1.options', 5)
@@ -208,7 +215,7 @@ test('with three levels a product can sit in a sub-sub-category and the root fil
 
     $component = Livewire::actingAs(User::factory()->superAdmin()->create())->test(Index::class)
         ->call('createProduct')
-        ->assertSeeHtml('wire:model.live="categoryLevels.0"')
+        ->assertSeeHtml('wire:key="categoryLevels.0-option-')
         ->assertCount('categoryLevelOptions', 3)
         ->assertSet('categoryLevelOptions.1.disabled', true)
         ->assertSet('categoryLevelOptions.2.disabled', true)
@@ -229,7 +236,7 @@ test('with three levels a product can sit in a sub-sub-category and the root fil
 
     $component->call('editProduct', $product->id)->assertSet('categoryLevels', [(string) $root->id, (string) $sub->id, (string) $leaf->id]);
 
-    expect(app(ProductService::class)->getProducts(categoryId: $root->id)->pluck('id')->all())->toBe([$product->id]);
+    expect(collect(app(ProductService::class)->getProducts(categoryId: $root->id)->items())->pluck('id')->all())->toBe([$product->id]);
 
     config(['app.category_level' => 2]);
 

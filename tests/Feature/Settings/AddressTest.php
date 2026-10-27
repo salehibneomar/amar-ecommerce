@@ -1,5 +1,6 @@
 <?php
 
+use App\Livewire\Backoffice\Settings\Profile;
 use App\Livewire\Frontend\Cart\Checkout;
 use App\Livewire\Frontend\Profile\Index as FrontendProfile;
 use App\Models\User;
@@ -28,7 +29,7 @@ test('customers can save separate shipping and billing addresses from their prof
 test('staff billing address follows the shipping address when marked the same', function () {
     $staff = User::factory()->editor()->create(['billing_address' => 'Old billing address']);
 
-    Livewire::actingAs($staff)->test('pages::settings.profile')
+    Livewire::actingAs($staff)->test(Profile::class)
         ->set('shippingAddress', 'Office 3, Banani, Dhaka')
         ->set('billingSameAsShipping', true)
         ->call('updateAddresses')

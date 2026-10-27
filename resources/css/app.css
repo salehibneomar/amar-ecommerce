@@ -107,21 +107,21 @@
 /* Primary buttons are solid brand in both panels, so the main action stands out from the tinted secondary ones. */
 [data-flux-button][data-tone='brand'],
 .dark [data-flux-button][data-tone='brand'] {
-    background-color: var(--color-brand-600);
+    background-color: var(--color-brand);
     color: var(--color-brand-foreground);
-    border-color: var(--color-brand-600);
+    border-color: var(--color-brand);
 }
 
 [data-flux-button][data-tone='brand']:hover,
 .dark [data-flux-button][data-tone='brand']:hover {
-    background-color: var(--color-brand-700);
+    background-color: var(--color-brand-hover);
 }
 
 /*
- * Checkboxes follow the button look: a checked box is a soft tint of the brand with a brand border and a brand check.
+ * Checkboxes follow the button look: a checked box has the bar tint with a brand border and a brand check.
  */
 ui-checkbox:is([data-checked], [data-indeterminate]) [data-flux-checkbox-indicator] {
-    background-color: color-mix(in oklab, var(--color-accent) 16%, var(--color-surface));
+    background-color: var(--color-tint);
     border-color: color-mix(in oklab, var(--color-accent) 45%, transparent);
 }
 
@@ -397,6 +397,7 @@ ui-checkbox:is([data-checked], [data-indeterminate]) [data-flux-checkbox-indicat
     --color-brand-900: var(--theme-brand-900);
     --color-brand-950: var(--theme-brand-950);
     --color-brand: var(--theme-brand);
+    --color-brand-hover: var(--theme-brand-hover);
     --color-brand-foreground: var(--theme-brand-foreground);
 
     --color-gold-50: var(--theme-gold-50);
@@ -440,8 +441,8 @@ ui-checkbox:is([data-checked], [data-indeterminate]) [data-flux-checkbox-indicat
     --color-bar-active: var(--color-white);
     --color-bar-active-line: var(--color-brand-200);
     --color-bar-active-foreground: color-mix(in oklab, var(--color-accent) 80%, black);
-    --color-tint: color-mix(in oklab, var(--color-accent) 14%, var(--color-surface));
-    --color-tint-line: color-mix(in oklab, var(--color-accent) 22%, transparent);
+    --color-tint: var(--color-bar);
+    --color-tint-line: var(--color-bar-line);
     --color-tint-foreground: color-mix(in oklab, var(--color-accent) 80%, black);
     --color-menu-hover: var(--color-bar);
     --color-row-hover: color-mix(in oklab, var(--color-brand-50) 60%, transparent);

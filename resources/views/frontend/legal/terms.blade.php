@@ -1,4 +1,4 @@
-<x-layouts::frontend :title="__('Terms')">
+<x-layouts.frontend :title="__('Terms')">
     <x-frontend.layout.page :title="__('Terms of use')">
         <x-frontend.cards.card>
             <x-frontend.content.legal-section :title="__('About these terms')">
@@ -46,4 +46,4 @@
             </x-frontend.content.legal-section>
         </x-frontend.cards.card>
     </x-frontend.layout.page>
-</x-layouts::frontend>
+</x-layouts.frontend>

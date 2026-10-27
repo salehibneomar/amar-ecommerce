@@ -7,7 +7,7 @@
 {{ __('We have received your order and will confirm it soon.') }}
 @endif
 
-@include('mail.partials.order-panel')
+<x-mail.order-panel :order="$order" />
 
 <x-mail::button :url="route('orders.track', ['order' => $order->public_order_id])">
 {{ __('Track your order') }}

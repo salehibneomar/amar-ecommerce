@@ -48,11 +48,7 @@
         <x-backoffice.management.form-modal wire:model="showForm" :title="$editingFaqId ? __('Edit FAQ') : __('Add FAQ')" submit="saveFaq">
             <flux:input wire:model="title" :label="__('Title')" />
             <flux:textarea wire:model="description" :label="__('Description')" rows="5" />
-            <flux:select wire:model="faqStatus" :label="__('Status')">
-                @foreach ($this->statusOptions as $value => $label)
-                    <flux:select.option value="{{ $value }}">{{ $label }}</flux:select.option>
-                @endforeach
-            </flux:select>
+            <x-ui.select model="faqStatus" :label="__('Status')" :options="$this->statusOptions" />
         </x-backoffice.management.form-modal>
 
         <x-backoffice.management.form-modal wire:model="showDeleteConfirmation" size="md" :title="__('Delete FAQ?')">

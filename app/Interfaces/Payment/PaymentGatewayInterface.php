@@ -8,6 +8,23 @@ use Illuminate\Http\Request;
 
 interface PaymentGatewayInterface
 {
+    public function label(): string;
+
+    public function description(): string;
+
+    public function icon(): string;
+
+    public function vendor(): ?string;
+
+    public function isOnline(): bool;
+
+    public function isConfigured(): bool;
+
+    /**
+     * @return view-string|null
+     */
+    public function pageView(): ?string;
+
     public function initiate(Payment $payment): ?string;
 
     /**

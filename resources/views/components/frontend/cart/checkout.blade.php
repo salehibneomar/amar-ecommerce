@@ -26,7 +26,7 @@
                             <flux:input wire:model="email" type="email" :label="__('Email Address')" required autocomplete="email" />
                         </div>
                     @endguest
-                    <flux:input wire:model="phone" type="tel" :label="__('Mobile Number')" placeholder="01XXXXXXXXX" required autocomplete="tel" />
+                    <flux:input wire:model="phone" type="tel" inputmode="tel" pattern="[0-9+\-\s\(\)\.]+" maxlength="20" :title="__('Use digits and phone symbols only, such as + - ( ) or spaces.')" x-on:input="if (/[^0-9+\-\s().]/.test($el.value)) { $el.value = $el.value.replace(/[^0-9+\-\s().]/g, ''); $el.dispatchEvent(new Event('input', { bubbles: true })) }" :label="__('Mobile Number')" placeholder="01XXXXXXXXX" required autocomplete="tel" />
                     <flux:textarea wire:model="shippingAddress" :label="__('Delivery Address')" :placeholder="__('House, road, area, district')" rows="3" required autocomplete="shipping street-address" />
                     <flux:checkbox wire:model="billingSameAsShipping" :label="__('Billing Address Same as Delivery')" />
                     <div x-show="! $wire.billingSameAsShipping" x-cloak>
@@ -79,5 +79,7 @@
                 </p>
             </x-ui.card>
         </form>
+
+        <x-analytics.event :event="$this->analyticsEvent" />
     @endif
 </div>

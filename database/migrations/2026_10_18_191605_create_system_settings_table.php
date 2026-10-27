@@ -14,6 +14,9 @@ return new class extends Migration
             $table->timestamp('maintenance_starts_at')->nullable();
             $table->timestamp('maintenance_ends_at')->nullable();
             $table->string('maintenance_secret')->nullable();
+            $table->string('theme_color', 32)->default('default');
+            $table->boolean('seo_indexing_enabled')->default(true);
+            $table->string('google_site_verification')->nullable();
             $table->timestamps();
         });
     }

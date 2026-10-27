@@ -61,6 +61,7 @@
                                     <x-backoffice.management.action icon="photo" :label="__('Images')" variant="filled" color="green" wire:click="viewMedia({{ $product->id }})" />
                                 @endif
                                 <x-backoffice.management.action icon="arrow-up-tray" :label="__('Upload')" variant="filled" color="violet" wire:click="uploadMedia({{ $product->id }})" />
+                                <x-backoffice.management.action icon="globe-alt" :label="__('SEO')" variant="filled" color="amber" wire:click="editSeoMeta({{ $product->id }})" />
                                 <x-backoffice.management.action icon="trash" :label="__('Delete')" variant="danger" wire:click="confirmDeleteProduct({{ $product->id }})" />
                             </x-backoffice.management.actions>
                         </flux:table.cell>
@@ -91,18 +92,9 @@
                 </div>
             @endif
             <div class="grid grid-cols-1 gap-4 md:grid-cols-3">
-                <flux:select wire:model="productStatus" :label="__('Status')">
-                    @foreach ($this->statusOptions as $value => $label)
-                        <flux:select.option value="{{ $value }}">{{ $label }}</flux:select.option>
-                    @endforeach
-                </flux:select>
+                <x-ui.select model="productStatus" :label="__('Status')" :options="$this->statusOptions" />
 
-                <flux:select wire:model="badge" :label="__('Badge')">
-                    <flux:select.option value="">{{ __('None') }}</flux:select.option>
-                    @foreach ($this->badgeOptions as $value => $label)
-                        <flux:select.option value="{{ $value }}">{{ $label }}</flux:select.option>
-                    @endforeach
-                </flux:select>
+                <x-ui.select model="badge" :label="__('Badge')" :options="$this->badgeOptions" :placeholder="__('None')" />
 
                 <flux:input wire:model="quantity" type="number" min="0" step="1" :label="__('Quantity in Stock')" required />
             </div>
@@ -213,6 +205,8 @@
                 </div>
             </x-slot:footer>
         </x-backoffice.management.form-modal>
+
+        <x-backoffice.seo-meta.form-modal :image-field="$this->seoMetaImageField" :image="$seoMetaImage" :remove-image="$removeSeoMetaImage" />
 
         <x-backoffice.management.form-modal wire:model="showDeleteConfirmation" size="md" :title="__('Delete product?')">
             <flux:text>{{ __('This product will be moved to the trash.') }}</flux:text>

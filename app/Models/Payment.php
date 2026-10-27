@@ -57,6 +57,6 @@ class Payment extends Model
 
     public function methodLabel(): string
     {
-        return $this->method?->label() ?? implode(' / ', array_filter([$this->gateway->vendor(), $this->gateway->label()]));
+        return $this->method?->label() ?? implode(' / ', array_unique(array_filter([$this->gateway->vendor(), $this->gateway->label()])));
     }
 }

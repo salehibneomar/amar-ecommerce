@@ -8,7 +8,7 @@ class DatabaseSeeder extends Seeder
 {
     public function run(): void
     {
-        $this->call(RoleSeeder::class);
+        $this->call([RoleSeeder::class, PaymentGatewaySeeder::class]);
 
         if (! config('database.seeding_enabled')) {
             $this->call(SuperAdminSeeder::class);
@@ -25,6 +25,7 @@ class DatabaseSeeder extends Seeder
             OfferSeeder::class,
             FaqSeeder::class,
             OrderSeeder::class,
+            NotificationSeeder::class,
         ]);
     }
 }

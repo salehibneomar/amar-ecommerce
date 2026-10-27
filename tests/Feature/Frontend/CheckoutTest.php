@@ -15,6 +15,7 @@ use App\Models\Category;
 use App\Models\Offer;
 use App\Models\Order;
 use App\Models\Payment;
+use App\Models\PaymentGateway;
 use App\Models\Product;
 use App\Models\User;
 use App\Services\Frontend\Shop\OrderService;
@@ -132,7 +133,8 @@ test('completed order steps are all marked as reached', function () {
 });
 
 test('order amounts are rounded to whole currency units', function () {
-    config(['app.currency_symbol' => 'Tk ', 'shop.support_email' => 'support@example.com', 'payment.enabled' => [PaymentGatewayEnum::Manual->value]]);
+    config(['app.currency_symbol' => 'Tk ', 'shop.support_email' => 'support@example.com']);
+    PaymentGateway::factory()->manual()->create();
     $customer = User::factory()->create();
     $product = Product::factory()->create(['price' => 605, 'discount_percentage' => 5]);
     Offer::factory()->create(['discount_percentage' => 10]);
@@ -476,7 +478,7 @@ test('manual payment instructions only show for orders paid by bKash or Nagad', 
 });
 
 test('with a payment process checkout opens a pending payment for the order total', function () {
-    config(['payment.enabled' => [PaymentGatewayEnum::Manual->value]]);
+    PaymentGateway::factory()->manual()->create();
     $customer = User::factory()->create();
 
     Livewire::actingAs($customer)->test(Counter::class)->call('add', Product::factory()->create(['price' => 300, 'discount_percentage' => null])->id);

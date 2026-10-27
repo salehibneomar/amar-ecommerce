@@ -3,8 +3,11 @@
 namespace App\Models;
 
 use App\Enums\System\FrontendCacheKeyEnum;
+use App\Enums\System\ThemeColorEnum;
+use App\Interfaces\Seo\SeoMetaInterface;
 use App\Traits\Cache\ClearsFrontendCacheTrait;
 use App\Traits\Model\MediaTrait;
+use App\Traits\Seo\SeoMetaTrait;
 use Carbon\CarbonImmutable;
 use Database\Factories\SystemSettingFactory;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
@@ -18,11 +21,15 @@ use Spatie\MediaLibrary\InteractsWithMedia;
  * @property CarbonImmutable|null $maintenance_starts_at
  * @property CarbonImmutable|null $maintenance_ends_at
  * @property string|null $maintenance_secret
+ * @property ThemeColorEnum $theme_color
+ * @property bool $seo_indexing_enabled
+ * @property string|null $google_site_verification
+ * @property-read SeoMeta|null $seoMeta
  */
-class SystemSetting extends Model implements HasMedia
+class SystemSetting extends Model implements HasMedia, SeoMetaInterface
 {
     /** @use HasFactory<SystemSettingFactory> */
-    use ClearsFrontendCacheTrait, HasFactory, InteractsWithMedia, MediaTrait {
+    use ClearsFrontendCacheTrait, HasFactory, InteractsWithMedia, MediaTrait, SeoMetaTrait {
         MediaTrait::registerMediaCollections insteadof InteractsWithMedia;
         MediaTrait::registerMediaConversions insteadof InteractsWithMedia;
     }
@@ -32,6 +39,9 @@ class SystemSetting extends Model implements HasMedia
         'maintenance_starts_at',
         'maintenance_ends_at',
         'maintenance_secret',
+        'theme_color',
+        'seo_indexing_enabled',
+        'google_site_verification',
     ];
 
     protected $hidden = [
@@ -59,6 +69,8 @@ class SystemSetting extends Model implements HasMedia
             'maintenance_enabled' => 'boolean',
             'maintenance_starts_at' => 'datetime',
             'maintenance_ends_at' => 'datetime',
+            'theme_color' => ThemeColorEnum::class,
+            'seo_indexing_enabled' => 'boolean',
         ];
     }
 

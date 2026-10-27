@@ -5,8 +5,16 @@ paths:
 
 # Views
 
+## Follow the boilerplate's existing UI/UX
+Build every screen inside the current UI/UX: reuse the existing layouts, x-ui and Flux components, spacing, colors, icons, flash messages and copy style. Don't invent new visual patterns, page structures or flows. Deliver what the developer asked for within that system, and ask before adding anything the existing components can't express.
+
 ## Markup only
 No `@php`, queries or business logic. Data comes from props, `compact()` or computed properties.
+
+## Where views live
+- `resources/views` holds only `index.blade.php` (the landing page) at its root. Every other page lives in its panel folder: `backoffice/<area>/<page>.blade.php` (admin pages and admin auth) or `frontend/<area>/<page>.blade.php`.
+- Anything included in another view is a component in `components/`, never a partial or `@include`. Layouts are `components/layouts/*` (`<x-layouts.backoffice>`), the document head is `<x-layouts.head>`, mail and PDF fragments are `components/mail/*` and `components/pdf/*`.
+- `mail/` and `pdf/` hold the mail and PDF templates. `errors/`, `flux/` and `vendor/` are framework override folders and keep their names.
 
 ## UI stack
 Flux UI + Heroicons in the backoffice, Material Symbols on the storefront, Tailwind 4, Alpine only for client-only behaviour. Named routes with `wire:navigate`. Every string in `__()`.
@@ -19,12 +27,14 @@ Components live in purpose folders under `resources/views/components`, never at 
 - `ui/`: `price`, `badge`, `tabs`, `error-page`, `theme-toggle`, `backdrop` (every dimmed overlay). Its look is the `scrim` utility in `app.css`, which also styles the backdrop of every storefront modal. Change the backdrop only there.
 - `ui/dropdown`: every action menu (`trigger` slot + `<x-ui.menu-item>`s). Never use `flux:dropdown` directly. Props: `position` (bottom, top, left, right), `align` (start, center, end), `gap`, `menu-class`, `lock-scroll` (page scrolls unless set). Menus in sticky or fixed bars pin automatically. Placement logic lives only in the `dropdown` Alpine component in `app.js` and `.dropdown-fixed` in `app.css`.
 - `ui/popover`: every free-form floating panel (`trigger` slot + content). Full width under the closest `[data-popover-anchor]` on phones, under the trigger from `sm`.
+- `ui/copy-text`: every read-only value staff copy (URLs, codes): plain text followed by an icon copy button with tooltip, and a success toast. Never a `readonly copyable` input for a value nobody edits.
 - `ui/search-input`: every live search box (debounce from `APP_SEARCH_DEBOUNCE_MS`, `clearable`). Never hand-write `wire:model.live.debounce` or a clear button for search.
 
 **Admin**
 - `backoffice/layout/`: `navigation` (the nav list, shared by the desktop `sidebar` and the mobile `navigation-drawer`), `user-menu`, `main-content-container` (`title`, `subtitle`, `breadcrumbs` props, `badge` and `actions` slots).
 - `backoffice/management/`: `table`, `form-modal`, `search`, `filter`, `per-page`, `pagination`, `details-modal`, `actions` wrapper, `action` for every row action (icon button with tooltip and `aria-label`, never a text button).
-- `backoffice/form/`: `toggle-field`, `permission-checkboxes`.
+- `backoffice/form/`: `toggle-field` (switch with a label in the field label style), `permission-checkboxes`.
+- `backoffice/seo-meta/`: `fields` (SEO title and description with counters, share image only when the host opts in with `hasSeoMetaImage()`, Hide From Search when enabled) and `form-modal` (the SEO row action modal). Any model with SEO uses these with `InteractsWithSeoMeta`, never its own SEO inputs.
 - `form/actions`: wraps the submit row of every page and modal form. Buttons sit at the end (right), full width on phones. Never hand-align a Save button. Only auth cards (full-width buttons), the checkout summary and inline search bars like order tracking are exempt.
 - Records with media (products, categories, banners): save without files first, then upload from the row's Upload action (`x-media.upload`, or `x-media.gallery-upload` for several images) and view from Media (`x-media.preview` or `x-media.gallery` with `:zoomable="false"`). Never put a file upload in the create or edit form.
 - Storefront image galleries use `x-media.gallery` (main image with thumbnails under it, not a slider).
@@ -54,7 +64,12 @@ Components live in purpose folders under `resources/views/components`, never at 
 By role (docs/HOW_TO.md §4): badges `rounded-sm`, menu items and small controls `rounded-md`, buttons, inputs and boxes inside cards `rounded-lg`, cards and panels `rounded-xl`, page sections `rounded-2xl`, avatars `rounded-full`. Nested elements step down. No arbitrary radii. Every card gets `shadow-card`, never a hard-coded shadow.
 
 ## Text
+Field labels use one style (small, normal weight, `zinc-600`) set in `app.css` for a `flux:label` that is a direct child of `flux:field`. Use the `label` prop or put `flux:label` straight inside `flux:field`, never inside a wrapper div, and never restyle a label. Extras such as a character counter go inside the label.
+
 User-facing text never contains a semicolon or an em dash. Split the sentence or use a comma. Empty values use `appEmptyValue()` or `<x-ui.empty-value />`, never a hard-coded `-`.
 
 ## Always use outlined icons
 Every icon in both panels uses the outline style. `x-ui.button` and `x-ui.menu-item` default to outline, so never pass `variant="mini"`, `"micro"` or `"solid"` (or the `icon:variant` / `icon-variant` versions). For a standalone `<flux:icon>`, set the size with a class instead (`size-4` for small, `size-5` for normal).
+
+## Every select uses x-ui.select
+Never use `flux:select` or a native `<select>`. Use `<x-ui.select model="..." :options="$this->...Options" />` (props: label, placeholder, live, required, disabled, hasMore, loadMore, loadMoreParams). Options are `value => label`, or `value => ['label' => ..., 'disabled' => bool]` for options that can't be picked. Long lists page in with `hasMore` and `loadMore` (a Livewire method). Its logic is `Alpine.data('select')` in `resources/js/app.js`.

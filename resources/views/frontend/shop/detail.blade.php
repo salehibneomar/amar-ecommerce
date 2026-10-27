@@ -1,4 +1,4 @@
-<x-layouts::frontend :title="$product->name" :description="plainText($product->description)" :image="$product->large_image_url" seo-type="product">
+<x-layouts.frontend :title="$seoMeta['title']" :description="$seoMeta['description']" :image="$seoMeta['image']" :noindex="$seoMeta['noindex']" seo-type="product">
     <div class="mx-auto max-w-main px-4 pt-6 pb-8 sm:px-6 lg:pb-12">
         <nav class="mb-6 flex flex-wrap items-center gap-1.5 text-sm text-zinc-500 dark:text-zinc-400" aria-label="{{ __('Breadcrumb') }}">
             <a href="{{ route('shop') }}" class="hover:text-brand-text" wire:navigate>{{ __('Shop') }}</a>
@@ -81,4 +81,5 @@
         @endif
     </div>
 
-</x-layouts::frontend>
+    <x-analytics.event :event="$analyticsEvent" />
+</x-layouts.frontend>

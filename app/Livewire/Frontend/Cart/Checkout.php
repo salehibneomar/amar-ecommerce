@@ -3,6 +3,7 @@
 namespace App\Livewire\Frontend\Cart;
 
 use App\Enums\Payment\PaymentGatewayEnum;
+use App\Livewire\Concerns\InteractsWithAnalytics;
 use App\Models\Offer;
 use App\Models\Product;
 use App\Models\User;
@@ -26,6 +27,8 @@ use Livewire\Component;
  */
 class Checkout extends Component
 {
+    use InteractsWithAnalytics;
+
     public string $name = '';
 
     public string $email = '';
@@ -145,6 +148,15 @@ class Checkout extends Component
     public function summary(): array
     {
         return $this->cartService->summary($this->items);
+    }
+
+    /**
+     * @return array{name: string, params: array<string, mixed>}|null
+     */
+    #[Computed]
+    public function analyticsEvent(): ?array
+    {
+        return $this->analyticsEventService->beginCheckoutEvent($this->items, $this->summary['total']);
     }
 
     /**

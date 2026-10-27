@@ -15,11 +15,7 @@
                     </x-ui.drawer-trigger>
                 </flux:field>
             </div>
-            <flux:select wire:model.live="sort" :label="__('Sort by')" class="min-w-0 flex-1 lg:w-52 lg:flex-none">
-                @foreach ($this->sortOptions as $value => $label)
-                    <flux:select.option :value="$value">{{ $label }}</flux:select.option>
-                @endforeach
-            </flux:select>
+            <x-ui.select model="sort" :label="__('Sort by')" :options="$this->sortOptions" class="min-w-0 flex-1 lg:w-52 lg:flex-none" live />
             @if ($this->hasFilters)
                 <x-ui.button icon="x-mark" class="shrink-0" wire:click="clearFilters">{{ __('Clear') }}</x-ui.button>
             @endif
@@ -38,4 +34,6 @@
 
         <x-backoffice.management.pagination :paginator="$this->products" :summary="__('Showing :from to :to of :total products')" />
     </div>
+
+    <x-analytics.event :event="$this->analyticsEvent" />
 </div>

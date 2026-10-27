@@ -2,6 +2,7 @@
 
 namespace App\Livewire\Frontend\Cart;
 
+use App\Livewire\Concerns\InteractsWithAnalytics;
 use App\Models\Offer;
 use App\Models\Product;
 use App\Services\Frontend\Shop\CartService;
@@ -17,6 +18,8 @@ use Livewire\Component;
  */
 class Index extends Component
 {
+    use InteractsWithAnalytics;
+
     protected CartService $cartService;
 
     public function boot(CartService $cartService): void
@@ -26,18 +29,24 @@ class Index extends Component
 
     public function updateQuantity(int $productId, int $quantity): void
     {
+        $previousQuantity = $this->cartService->quantityOf($productId);
+
         try {
             $this->cartService->updateQuantity($productId, $quantity);
         } catch (ValidationException $exception) {
             $this->dispatch('toast-show', slots: ['text' => $exception->validator->errors()->first()], dataset: ['variant' => 'danger']);
         }
 
+        $this->trackCartChange($productId, $previousQuantity);
         $this->refreshCart();
     }
 
     public function remove(int $productId): void
     {
+        $previousQuantity = $this->cartService->quantityOf($productId);
+
         $this->cartService->remove($productId);
+        $this->trackCartChange($productId, $previousQuantity);
         $this->refreshCart();
     }
 
@@ -74,5 +83,10 @@ class Index extends Component
     {
         $this->refresh();
         $this->dispatch('cart-updated');
+    }
+
+    private function trackCartChange(int $productId, int $previousQuantity): void
+    {
+        $this->trackAnalytics($this->analyticsEventService->cartChangeEvent($productId, $this->cartService->quantityOf($productId) - $previousQuantity));
     }
 }

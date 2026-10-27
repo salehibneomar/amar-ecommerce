@@ -23,7 +23,7 @@ The name before the suffix says the purpose, not the storage.
 
 ## Domain sub-folders
 - Never put a class at the root of `Services/Backoffice`, `Services/Frontend`, `Enums`, `Traits`, `Resolvers`, `Http/Middleware`, `Mail` or `Console/Commands`.
-- Reuse a domain first: Catalog, Content, Sales/Order, People/User, System, Notification, AiAssistant, Shop, Account, Pdf, Payment, Auth, Access (`Services/Backoffice/Catalog/ProductService.php`, `Enums/Order/OrderStatusEnum.php`). A new domain gets its own sub-folder.
+- Reuse a domain first: Catalog, Content, Sales/Order, People/User, System, Notification, Seo, AiAssistant, Analytics, Shop, Account, Pdf, Payment, Auth, Access (`Services/Backoffice/Catalog/ProductService.php`, `Enums/Order/OrderStatusEnum.php`). A new domain gets its own sub-folder.
 - Models, policies, providers, `Actions/Fortify` and `Concerns` stay flat.
 - Moving a class: update its namespace, every `use`, config, `phpstan.neon` and the docs, and drain queued mail first.
 

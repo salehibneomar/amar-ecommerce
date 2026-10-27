@@ -4,7 +4,7 @@ namespace App\Traits\Cache;
 
 use App\Enums\System\FrontendCacheKeyEnum;
 use Closure;
-use Illuminate\Cache\Repository;
+use Illuminate\Contracts\Cache\Repository;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;

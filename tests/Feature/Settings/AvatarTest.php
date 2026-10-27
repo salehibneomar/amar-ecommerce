@@ -1,5 +1,6 @@
 <?php
 
+use App\Livewire\Backoffice\Settings\Profile;
 use App\Livewire\Frontend\Profile\Index as CustomerProfile;
 use App\Models\User;
 use Illuminate\Http\UploadedFile;
@@ -13,7 +14,7 @@ beforeEach(function () {
 test('staff upload a square avatar with small and medium crops', function () {
     $user = User::factory()->superAdmin()->create();
 
-    Livewire::actingAs($user)->test('pages::settings.profile')
+    Livewire::actingAs($user)->test(Profile::class)
         ->set('avatarUpload', UploadedFile::fake()->image('holiday photo.jpg', 900, 600))
         ->assertHasNoErrors();
 

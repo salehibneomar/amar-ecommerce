@@ -1,3 +1,3 @@
-<x-layouts::backoffice :title="__('Users')">
+<x-layouts.backoffice :title="__('Users')">
     <livewire:backoffice.users.index :search="$search" />
-</x-layouts::backoffice>
+</x-layouts.backoffice>

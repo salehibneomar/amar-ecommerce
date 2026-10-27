@@ -83,12 +83,12 @@ class FortifyServiceProvider extends ServiceProvider
      */
     private function configureViews(): void
     {
-        Fortify::loginView(fn () => view('pages::auth.login'));
-        Fortify::verifyEmailView(fn () => view('pages::auth.verify-email', [
+        Fortify::loginView(fn () => view('backoffice.auth.login'));
+        Fortify::verifyEmailView(fn () => view('backoffice.auth.verify-email', [
             'resendAvailableIn' => app(EmailVerificationService::class)->cooldownSeconds(),
         ]));
         Fortify::confirmPasswordView(
-            fn () => view('pages::auth.confirm-password'),
+            fn () => view('backoffice.auth.confirm-password'),
         );
         Fortify::resetPasswordView(function (Request $request) {
             try {
@@ -102,10 +102,10 @@ class FortifyServiceProvider extends ServiceProvider
                 return redirect()->route('home')->with('error', $exception->validator->errors()->first());
             }
 
-            return view('pages::auth.reset-password');
+            return view('backoffice.auth.reset-password');
         });
         Fortify::requestPasswordResetLinkView(
-            fn () => view('pages::auth.forgot-password', [
+            fn () => view('backoffice.auth.forgot-password', [
                 'resendAvailableIn' => app(PasswordResetService::class)->cooldownSeconds(config('fortify.passwords')),
             ]),
         );

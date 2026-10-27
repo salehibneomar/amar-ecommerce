@@ -8,14 +8,14 @@ paths:
 # Config and helpers
 
 ## Settings flow
-`.env` → `config/<file>.php` → typed helper in `app/Helpers/config_helpers.php` → code. Nothing outside `config/` calls `env()`. Every new key goes into `.env.example` (and the settings table in `SETUP.md`) with a safe default in the config file.
+`.env` → `config/<file>.php` → typed helper in `app/Helpers/config_helpers.php` → code. Nothing outside `config/` calls `env()`. Every new key goes into `.env.example` (and the settings table in `docs/SETUP_ADVANCED.md`) with a safe default in the config file.
 
 ## Where things live
 - App-wide settings: `config/app.php`, including `currency` and `currency_symbol`.
 - Shop contact channels and the order prefix: `config/shop.php`.
-- Enabled payment gateways, the gateway class map, manual payment numbers and gateway keys: `config/payment.php` (read keys with `paymentGatewaySetting('<gateway>', '<key>')`).
+- The gateway class map, gateway keys and the first-install gateway list and manual numbers: `config/payment.php` (read keys with `paymentGatewaySetting('<gateway>', '<key>')`). Which gateways are on, their checkout order and the manual numbers live in the `payment_gateways` table, edited in Settings > Payment Gateways through `Backoffice/Payment/PaymentGatewaySettingService`.
 - Rate limits: `config/throttle.php`.
-- Media rules: `config/product.php`, `config/category.php`, `config/banner.php`, `config/user.php` and `config/system.php`. Leave out `disk` so files follow `MEDIA_DISK` (`config('filesystems.media')`: `public`, `assets` or `r2`). Add `disk` only to send one media type somewhere else. Never hard-code `Storage::disk('public')` or `/storage/` URLs for media; go through `MediaTrait` and `mediaDisk()`.
+- Media rules: `config/product.php`, `config/category.php`, `config/banner.php`, `config/user.php`, `config/system.php` and `config/seo.php` (share image). Leave out `disk` so files follow `MEDIA_DISK` (`config('filesystems.media')`: `public`, `assets` or `r2`). Add `disk` only to send one media type somewhere else. Never hard-code `Storage::disk('public')` or `/storage/` URLs for media; go through `MediaTrait` and `mediaDisk()`.
 
 Universal helpers such as `formatMoney()`, `formatDateTime()` and `sanitizeRichText()` live in `app/Helpers/helpers.php` and never mention a specific page.
 

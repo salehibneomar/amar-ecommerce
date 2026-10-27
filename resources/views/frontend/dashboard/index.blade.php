@@ -1,4 +1,4 @@
-<x-layouts::frontend :title="__('Dashboard')">
+<x-layouts.frontend :title="__('Dashboard')">
     <x-frontend.layout.page :title="__('Welcome, :name', ['name' => $user->name])" :subtitle="__('Your orders and account in one place.')">
         <x-slot:actions>
             <x-ui.button variant="primary" size="sm" icon="building-storefront" :href="route('shop')" wire:navigate>{{ __('Shop') }}</x-ui.button>
@@ -50,4 +50,4 @@
             </x-frontend.cards.card>
         @endif
     </x-frontend.layout.page>
-</x-layouts::frontend>
+</x-layouts.frontend>

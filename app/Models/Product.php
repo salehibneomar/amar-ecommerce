@@ -6,10 +6,12 @@ use App\Enums\Catalog\ProductBadgeEnum;
 use App\Enums\Catalog\ProductStatusEnum;
 use App\Enums\System\FrontendCacheKeyEnum;
 use App\Interfaces\AiAssistant\AiAssistantInterface;
+use App\Interfaces\Seo\SeoMetaInterface;
 use App\Traits\AiAssistant\ProductAiAssistantTrait;
 use App\Traits\Cache\ClearsFrontendCacheTrait;
 use App\Traits\Model\CmsUpdateTrackerTrait;
 use App\Traits\Model\MediaTrait;
+use App\Traits\Seo\SeoMetaTrait;
 use Carbon\CarbonImmutable;
 use Database\Factories\ProductFactory;
 use Illuminate\Database\Eloquent\Builder;
@@ -50,11 +52,12 @@ use Spatie\MediaLibrary\MediaCollections\Models\Media;
  * @property-read string|null $large_image_url
  * @property-read list<array{id: non-negative-int, thumbnail: string, large: string}> $gallery_images
  * @property-read Category|null $category
+ * @property-read SeoMeta|null $seoMeta
  */
-class Product extends Model implements AiAssistantInterface, HasMedia
+class Product extends Model implements AiAssistantInterface, HasMedia, SeoMetaInterface
 {
     /** @use HasFactory<ProductFactory<static>> */
-    use ClearsFrontendCacheTrait, CmsUpdateTrackerTrait, HasFactory, InteractsWithMedia, MediaTrait, ProductAiAssistantTrait, SoftDeletes {
+    use ClearsFrontendCacheTrait, CmsUpdateTrackerTrait, HasFactory, InteractsWithMedia, MediaTrait, ProductAiAssistantTrait, SeoMetaTrait, SoftDeletes {
         MediaTrait::registerMediaCollections insteadof InteractsWithMedia;
         MediaTrait::registerMediaConversions insteadof InteractsWithMedia;
     }
@@ -294,7 +297,7 @@ class Product extends Model implements AiAssistantInterface, HasMedia
     }
 
     /**
-     * @return Attribute<list<array{id: non-negative-int, thumbnail: string, large: string}>, never>
+     * @return Attribute<list<array{id: int, thumbnail: string, large: string}>, never>
      */
     protected function galleryImages(): Attribute
     {
@@ -321,6 +324,18 @@ class Product extends Model implements AiAssistantInterface, HasMedia
     public function orderItems(): HasMany
     {
         return $this->hasMany(OrderItem::class);
+    }
+
+    /**
+     * @return array{title: string|null, description: string|null, image: string|null}
+     */
+    public function seoMetaDefaults(): array
+    {
+        return [
+            'title' => $this->name,
+            'description' => plainText($this->description) ?: null,
+            'image' => $this->large_image_url,
+        ];
     }
 
     /**

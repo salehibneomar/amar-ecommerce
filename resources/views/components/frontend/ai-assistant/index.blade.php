@@ -47,7 +47,7 @@
             @foreach ($messages as $index => $item)
                 @if ($item['role'] === $userRole)
                     <div wire:key="assistant-message-{{ $index }}" class="flex items-start justify-end gap-3">
-                        <div class="max-w-[85%] rounded-xl rounded-tr-sm border border-accent/22 bg-accent/14 px-5 py-3 text-sm break-words text-zinc-900 dark:border-accent/35 dark:bg-accent/26 dark:text-zinc-50">{!! nl2br(e($item['text'])) !!}</div>
+                        <div class="max-w-[85%] rounded-xl rounded-tr-sm border border-tint-line bg-tint px-5 py-3 text-sm break-words text-zinc-900 dark:text-zinc-50">{!! nl2br(e($item['text'])) !!}</div>
                         @auth
                             <x-ui.avatar :src="auth()->user()->avatar_url" :initials="auth()->user()->initials()" size="sm" />
                         @else
@@ -75,7 +75,7 @@
 
             <div wire:loading.flex wire:target="send" class="flex-col gap-6">
                 <div class="flex items-start justify-end gap-3">
-                    <div class="max-w-[85%] rounded-xl rounded-tr-sm border border-accent/22 bg-accent/14 px-5 py-3 text-sm break-words text-zinc-900 dark:border-accent/35 dark:bg-accent/26 dark:text-zinc-50" x-text="pending"></div>
+                    <div class="max-w-[85%] rounded-xl rounded-tr-sm border border-tint-line bg-tint px-5 py-3 text-sm break-words text-zinc-900 dark:text-zinc-50" x-text="pending"></div>
                     @auth
                         <x-ui.avatar :src="auth()->user()->avatar_url" :initials="auth()->user()->initials()" size="sm" />
                     @else

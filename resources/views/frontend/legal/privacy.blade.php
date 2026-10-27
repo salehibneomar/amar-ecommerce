@@ -1,4 +1,4 @@
-<x-layouts::frontend :title="__('Privacy')">
+<x-layouts.frontend :title="__('Privacy')">
     <x-frontend.layout.page :title="__('Privacy policy')">
         <x-frontend.cards.card>
             <x-frontend.content.legal-section :title="__('What we collect')">
@@ -41,4 +41,4 @@
             </x-frontend.content.legal-section>
         </x-frontend.cards.card>
     </x-frontend.layout.page>
-</x-layouts::frontend>
+</x-layouts.frontend>

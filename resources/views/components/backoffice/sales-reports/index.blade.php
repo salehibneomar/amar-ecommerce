@@ -1,15 +1,7 @@
 <x-backoffice.layout.main-content-container :title="__('Sales Reports')" :subtitle="__('Paid orders only. Pending and failed payments are not counted.')">
     <div class="flex flex-wrap items-end gap-3">
-        <flux:select wire:model.live="month" :label="__('Month')" class="max-w-44">
-            @foreach ($this->monthOptions as $value => $label)
-                <flux:select.option :value="$value">{{ $label }}</flux:select.option>
-            @endforeach
-        </flux:select>
-        <flux:select wire:model.live="year" :label="__('Year')" class="max-w-32">
-            @foreach ($this->yearOptions as $value)
-                <flux:select.option :value="$value">{{ $value }}</flux:select.option>
-            @endforeach
-        </flux:select>
+        <x-ui.select model="month" :label="__('Month')" :options="$this->monthOptions" class="max-w-44" live />
+        <x-ui.select model="year" :label="__('Year')" :options="array_combine($this->yearOptions, $this->yearOptions)" class="max-w-32" live />
         <flux:icon.arrow-path class="mb-2 size-5 animate-spin text-zinc-400" wire:loading />
     </div>
 

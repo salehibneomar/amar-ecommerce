@@ -61,16 +61,8 @@
 
     <x-backoffice.management.form-modal wire:model="showForm" size="lg" :title="__('Record payment')" submit="savePayment">
         <div class="grid grid-cols-1 gap-4 sm:grid-cols-2">
-            <flux:select wire:model.live="periodMonth" :label="__('Month')">
-                @foreach ($this->monthOptions as $value => $label)
-                    <flux:select.option :value="$value">{{ $label }}</flux:select.option>
-                @endforeach
-            </flux:select>
-            <flux:select wire:model.live="periodYear" :label="__('Year')">
-                @foreach ($this->yearOptions as $value)
-                    <flux:select.option :value="$value">{{ $value }}</flux:select.option>
-                @endforeach
-            </flux:select>
+            <x-ui.select model="periodMonth" :label="__('Month')" :options="$this->monthOptions" live />
+            <x-ui.select model="periodYear" :label="__('Year')" :options="array_combine($this->yearOptions, $this->yearOptions)" live />
         </div>
 
         @if ($calculation = $this->calculation)

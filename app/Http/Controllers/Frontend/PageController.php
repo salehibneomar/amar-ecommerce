@@ -3,13 +3,19 @@
 namespace App\Http\Controllers\Frontend;
 
 use App\Http\Controllers\Controller;
+use App\Services\Backoffice\Seo\SeoMetaService;
+use App\Services\Frontend\Analytics\AnalyticsEventService;
 use App\Services\Frontend\Shop\PageService;
 use Illuminate\Contracts\View\View;
 use Illuminate\Http\Response;
 
 class PageController extends Controller
 {
-    public function __construct(private readonly PageService $pageService) {}
+    public function __construct(
+        private readonly PageService $pageService,
+        private readonly AnalyticsEventService $analyticsEventService,
+        private readonly SeoMetaService $seoMetaService,
+    ) {}
 
     public function landing(): View
     {
@@ -20,7 +26,7 @@ class PageController extends Controller
         $offer = $this->pageService->getActiveOffers()->first();
         $productsCount = $this->pageService->countProducts();
 
-        return view('frontend.landing.index', compact('slides', 'categories', 'featuredProducts', 'newArrivals', 'offer', 'productsCount'));
+        return view('index', compact('slides', 'categories', 'featuredProducts', 'newArrivals', 'offer', 'productsCount'));
     }
 
     public function shop(): View
@@ -34,16 +40,25 @@ class PageController extends Controller
         $relatedProducts = $this->pageService->getRelatedProducts($product);
         $offer = $this->pageService->getOfferFor($product);
         $categoryTrail = $this->pageService->getCategoryTrail($product->category_id);
+        $analyticsEvent = $this->analyticsEventService->viewItemEvent($product);
+        $seoMeta = $this->seoMetaService->forPage($product);
 
-        return view('frontend.shop.detail', compact('product', 'relatedProducts', 'offer', 'categoryTrail'));
+        return view('frontend.shop.detail', compact('product', 'relatedProducts', 'offer', 'categoryTrail', 'analyticsEvent', 'seoMeta'));
     }
 
     public function sitemap(): Response
     {
+        abort_unless($this->seoMetaService->isIndexingEnabled(), 404);
+
         $products = $this->pageService->getSitemapProducts();
         $pages = ['home', 'shop', 'faq', 'about', 'contact', 'terms', 'privacy', 'refund-policy'];
 
         return response()->view('frontend.sitemap', compact('products', 'pages'))->header('Content-Type', 'application/xml');
+    }
+
+    public function robots(): Response
+    {
+        return response()->view('frontend.robots')->header('Content-Type', 'text/plain');
     }
 
     public function faq(): View

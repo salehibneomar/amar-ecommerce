@@ -33,7 +33,7 @@
                             <x-ui.badge :color="$notification['status']->color()">{{ $notification['status']->label() }}</x-ui.badge>
                         </flux:table.cell>
                         <flux:table.cell>
-                            <x-backoffice.management.action :icon="$notification['status']->isRead() ? 'envelope' : 'envelope-open'" :label="$notification['status']->toggleLabel()" wire:click="toggleNotification('{{ $notification['id'] }}')" />
+                            <x-backoffice.management.action :icon="$notification['status']->isRead() ? 'envelope' : 'envelope-open'" :label="$notification['status']->toggleLabel()" :color="$notification['status']->color()" wire:click="toggleNotification('{{ $notification['id'] }}')" />
                         </flux:table.cell>
                     </flux:table.row>
                 @empty

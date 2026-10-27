@@ -8,25 +8,31 @@ use App\Enums\Payment\PaymentGatewayEnum;
 use App\Models\Order;
 use App\Models\Payment;
 use App\Resolvers\Payment\PaymentGatewayResolver;
+use App\Services\Backoffice\Payment\PaymentGatewaySettingService;
 use Illuminate\Http\Client\ConnectionException;
 use Illuminate\Http\Client\RequestException;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\URL;
 use Illuminate\Support\Str;
 use Illuminate\Validation\Rule;
 use Illuminate\Validation\Rules\Unique;
 use Illuminate\Validation\ValidationException;
+use RuntimeException;
 
 class PaymentService
 {
-    public function __construct(private readonly PaymentGatewayResolver $gatewayResolver) {}
+    public function __construct(
+        private readonly PaymentGatewayResolver $gatewayResolver,
+        private readonly PaymentGatewaySettingService $gatewaySettingService,
+    ) {}
 
     /**
      * @return list<PaymentGatewayEnum>
      */
     public function gateways(): array
     {
-        return array_values(array_filter(PaymentGatewayEnum::enabled(), fn (PaymentGatewayEnum $gateway): bool => paymentGatewayClass($gateway->value) !== null));
+        return array_values(array_filter($this->gatewaySettingService->enabledGateways(), fn (PaymentGatewayEnum $gateway): bool => $gateway->isConfigured()));
     }
 
     public function isManual(Order $order): bool
@@ -45,7 +51,18 @@ class PaymentService
     {
         $payment = $order->payment?->setRelation('order', $order);
 
-        return $payment && $this->isPayable($payment) ? $this->gatewayResolver->resolve($payment->gateway)->initiate($payment) : null;
+        return $payment && $this->isPayable($payment) ? URL::signedRoute('payments.show', $payment->reference) : null;
+    }
+
+    public function hostedUrl(Payment $payment): ?string
+    {
+        try {
+            return $this->gatewayResolver->resolve($payment->gateway)->initiate($payment);
+        } catch (ConnectionException|RequestException|RuntimeException $exception) {
+            report($exception);
+
+            return null;
+        }
     }
 
     /**
@@ -121,7 +138,7 @@ class PaymentService
             'max:64',
             Rule::unique('payments', 'transaction_id')
                 ->where('gateway', PaymentGatewayEnum::Manual->value)
-                ->where('method', $method->value ?? paymentDefaultMethod())
+                ->where('method', $method?->value)
                 ->ignore($ignoreOrderId, 'order_id'),
         ];
     }

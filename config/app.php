@@ -77,6 +77,8 @@ return [
 
     'search_debounce_ms' => (int) env('APP_SEARCH_DEBOUNCE_MS', 300),
 
+    'notification_long_poll_seconds' => (int) env('APP_NOTIFICATION_LONG_POLL_SECONDS', 300),
+
     'category_level' => min(3, max(1, (int) env('APP_CATEGORY_LEVEL', 2))),
 
     /*

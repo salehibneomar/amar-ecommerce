@@ -1,3 +1,3 @@
-<x-layouts::frontend :title="__('Settings')">
+<x-layouts.frontend :title="__('Settings')">
     <livewire:frontend.settings.index />
-</x-layouts::frontend>
+</x-layouts.frontend>

@@ -5,8 +5,12 @@
                 --theme-{{ $palette }}-{{ $shade }}: {{ $color }};
             @endforeach
         @endforeach
-        --theme-brand: {{ themeBrandColor() }};
-        --theme-brand-dark: {{ themeBrandDarkColor() }};
-        --theme-brand-foreground: {{ themeBrandForeground() }};
+        @foreach ($theme['palette'] as $shade => $color)
+            --theme-brand-{{ $shade }}: {{ $color }};
+        @endforeach
+        --theme-brand: {{ $theme['brand'] }};
+        --theme-brand-hover: {{ $theme['brand_hover'] }};
+        --theme-brand-dark: {{ $theme['brand_dark'] }};
+        --theme-brand-foreground: {{ $theme['foreground'] }};
     }
 </style>

@@ -76,11 +76,7 @@
                 <flux:input wire:model="startsAt" type="datetime-local" :label="__('Show From')" />
                 <flux:input wire:model="endsAt" type="datetime-local" :label="__('Show Until')" />
             </div>
-            <flux:select wire:model="bannerStatus" :label="__('Status')">
-                @foreach ($this->statusOptions as $value => $label)
-                    <flux:select.option value="{{ $value }}">{{ $label }}</flux:select.option>
-                @endforeach
-            </flux:select>
+            <x-ui.select model="bannerStatus" :label="__('Status')" :options="$this->statusOptions" />
         </x-backoffice.management.form-modal>
 
         <x-backoffice.management.form-modal wire:model="showDeleteConfirmation" size="md" :title="__('Delete banner?')">

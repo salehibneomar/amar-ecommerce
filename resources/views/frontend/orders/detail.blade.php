@@ -1,4 +1,4 @@
-<x-layouts::frontend :title="__('Order Details')">
+<x-layouts.frontend :title="__('Order Details')">
     <x-frontend.layout.page :title="__('Order :order', ['order' => $order->public_order_id])" :subtitle="__('Placed on :date', ['date' => formatDateTime($order->created_at)])">
         <x-slot:actions>
             <div class="flex gap-2">
@@ -22,7 +22,7 @@
                         <flux:heading size="lg">{{ __('Cancel this order?') }}</flux:heading>
                         <flux:text>{{ __('Order :order will be cancelled. This cannot be undone.', ['order' => $order->public_order_id]) }}</flux:text>
                     </div>
-                    <x-form.actions>
+                    <x-form.actions modal>
                         <flux:modal.close>
                             <x-ui.button>{{ __('Keep Order') }}</x-ui.button>
                         </flux:modal.close>
@@ -80,4 +80,4 @@
             </x-ui.card>
         </div>
     </x-frontend.layout.page>
-</x-layouts::frontend>
+</x-layouts.frontend>

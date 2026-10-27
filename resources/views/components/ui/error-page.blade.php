@@ -9,7 +9,7 @@
 <!DOCTYPE html>
 <html lang="{{ str_replace('_', '-', app()->getLocale()) }}" class="dark">
     <head>
-        @include('partials.head', ['title' => $title])
+        <x-layouts.head :title="$title" />
     </head>
     <body class="flex min-h-svh items-center justify-center bg-canvas px-4 text-zinc-800 antialiased dark:text-zinc-100">
         <main class="w-full max-w-xl text-center">

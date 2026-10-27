@@ -48,7 +48,7 @@ class Index extends Component
 
     public string $sortOrder = '1';
 
-    public string $bannerStatus = 'active';
+    public string $bannerStatus = 'draft';
 
     public string $startsAt = '';
 
@@ -319,7 +319,7 @@ class Index extends Component
         $this->reset(['editingBannerId', 'title', 'subtitle', 'link', 'startsAt', 'endsAt']);
         $this->sortOrder = '1';
         $this->showText = true;
-        $this->bannerStatus = BannerStatusEnum::Active->value;
+        $this->bannerStatus = BannerStatusEnum::Draft->value;
         $this->resetValidation();
     }
 

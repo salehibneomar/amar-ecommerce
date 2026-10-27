@@ -3,7 +3,7 @@
 use Illuminate\Mail\Markdown;
 
 test('pages take their brand colors from the theme config', function () {
-    config(['theme.palettes.brand.600' => '#ff0055', 'theme.palettes.brand.500' => '#ff3377']);
+    config(['theme.presets.default.palette.600' => '#ff0055', 'theme.presets.default.palette.500' => '#ff3377']);
 
     $this->get(route('home'))
         ->assertOk()
@@ -14,7 +14,7 @@ test('pages take their brand colors from the theme config', function () {
 });
 
 test('emails take their brand colors from the theme config', function () {
-    config(['theme.palettes.brand.600' => '#ff0055']);
+    config(['theme.presets.default.palette.600' => '#ff0055']);
 
     $html = (string) app(Markdown::class)->render('mail::button', ['url' => 'https://example.com', 'slot' => 'Open', 'color' => 'primary']);
 

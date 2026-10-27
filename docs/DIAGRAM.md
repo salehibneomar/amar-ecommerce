@@ -195,6 +195,24 @@ erDiagram
         timestamp maintenance_starts_at
         timestamp maintenance_ends_at
         string maintenance_secret
+        string theme_color
+        boolean seo_indexing_enabled
+        string google_site_verification
+    }
+    payment_gateways {
+        bigint id PK
+        string gateway UK "PaymentGatewayEnum"
+        boolean is_enabled
+        smallint sort_order
+        json settings "manual: bkash_number, nagad_number"
+    }
+    seo_metas {
+        bigint id PK
+        string seoable_type
+        bigint seoable_id
+        string title "max 70"
+        string description "max 160"
+        boolean noindex
     }
     notifications {
         uuid id PK
@@ -219,6 +237,10 @@ erDiagram
     categories ||--o{ categories : "parent of"
     categories ||--o{ products : contains
     products ||..o| ai_assistant_embeddings : "AI search vector (morph)"
+    products ||..o| seo_metas : "SEO (morph)"
+    categories ||..o| seo_metas : "SEO (morph)"
+    system_settings ||..o| seo_metas : "site SEO defaults (morph)"
+    seo_metas ||..o| media : "share image"
     products ||..o{ media : "images (up to 5, ordered)"
     banners ||..o{ media : image
     categories ||..o{ media : image
@@ -394,6 +416,7 @@ classDiagram
     namespace Payment {
         class PaymentGatewayInterface {
             <<interface>>
+            +isConfigured() bool
             +initiate(Payment) string
             +confirm(Payment) bool
             +status(Payment) PaymentStatusEnum
@@ -405,7 +428,10 @@ classDiagram
         class CodPaymentGatewayService
         class ManualPaymentGatewayService
         class StripePaymentGatewayService
+        class SslCommerzPaymentGatewayService
+        class BkashPaymentGatewayService
         class PaymentGatewayResolver
+        class PaymentGatewaySettingService
     }
     namespace AiAssistant {
         class AiAssistantProviderInterface {
@@ -446,10 +472,13 @@ classDiagram
     StaffPaymentService --> StaffService
     DashboardService --> BackofficeOrderService
     PaymentService --> PaymentGatewayResolver
+    PaymentService --> PaymentGatewaySettingService
     PaymentGatewayResolver --> PaymentGatewayInterface
     CodPaymentGatewayService ..|> PaymentGatewayInterface
     ManualPaymentGatewayService ..|> PaymentGatewayInterface
     StripePaymentGatewayService ..|> PaymentGatewayInterface
+    SslCommerzPaymentGatewayService ..|> PaymentGatewayInterface
+    BkashPaymentGatewayService ..|> PaymentGatewayInterface
     AiAssistantService --> AiAssistantSearchService
     AiAssistantService --> AiAssistantProviderResolver
     AiAssistantSearchService --> PageService
@@ -498,16 +527,16 @@ sequenceDiagram
     C->>App: Add to cart (session), open checkout
     App-->>C: Signed-in customers get their phone and addresses prefilled
     C->>App: Place order (guests add name and email, optionally create an account)
-    Note over C,App: Card skips this until Pay is clicked on the payment page
+    Note over C,App: Stripe skips this until Pay is clicked on the payment page
     App-->>C: Guest orders join the account once that email is verified or logs in
     App-->>C: Order ID + WhatsApp/Messenger/email links with the total pre-filled
     App-->>S: "New order" email to SHOP_OWNER_EMAIL
-    alt Card (Stripe)
+    alt Stripe
         App-->>C: Branded payment page with the cart (no order yet)
         C->>App: Pay places the order and creates the PaymentIntent
         C->>App: Return from Stripe, plus Stripe webhook
         App->>App: PaymentService::sync() asks Stripe, marks paid or failed
-    else bKash or Nagad
+    else Manual Payment (bKash or Nagad)
         C->>S: Pay with bKash/Nagad, send TrxID
         S->>App: Record contact, enter TrxID, mark paid
     else Cash on delivery

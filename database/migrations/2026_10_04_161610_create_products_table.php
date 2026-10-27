@@ -19,7 +19,7 @@ return new class extends Migration
             $table->unsignedInteger('price')->default(0);
             $table->unsignedTinyInteger('discount_percentage')->nullable();
             $table->unsignedInteger('quantity')->default(0);
-            $table->string('status')->default(ProductStatusEnum::Archived->value)->index();
+            $table->string('status')->default(ProductStatusEnum::Draft->value)->index();
             $table->string('badge')->nullable();
             $table->boolean('is_featured')->default(false)->index();
             $table->string('type', 30)->nullable()->index();

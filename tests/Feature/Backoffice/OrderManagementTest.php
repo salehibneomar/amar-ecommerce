@@ -15,6 +15,7 @@ use App\Mail\Order\OrderRequestedMail;
 use App\Mail\Order\OrderShippedMail;
 use App\Models\Order;
 use App\Models\Payment;
+use App\Models\PaymentGateway;
 use App\Models\Product;
 use App\Models\User;
 use Illuminate\Support\Facades\Http;
@@ -71,7 +72,7 @@ test('without a payment process staff mark the payment by hand and no payment re
 });
 
 test('with the manual process a paid order records the method and transaction id on its payment', function () {
-    config(['payment.enabled' => [PaymentGatewayEnum::Manual->value]]);
+    PaymentGateway::factory()->manual()->create();
     $admin = User::factory()->superAdmin()->create();
     $order = orderWith(Product::factory()->create());
     Payment::factory()->for($order)->create();
@@ -100,7 +101,7 @@ test('with the manual process a paid order records the method and transaction id
 });
 
 test('a manual payment needs a transaction id that is not used by another order', function () {
-    config(['payment.enabled' => [PaymentGatewayEnum::Manual->value]]);
+    PaymentGateway::factory()->manual()->create();
     Payment::factory()->paid()->create(['transaction_id' => 'USED123456']);
     $order = orderWith(Product::factory()->create());
     Payment::factory()->for($order)->create();
@@ -168,7 +169,7 @@ test('order details show items in their own tab', function () {
 });
 
 test('cancelling an order returns its items to stock and cancels the payment', function () {
-    config(['payment.enabled' => [PaymentGatewayEnum::Manual->value]]);
+    PaymentGateway::factory()->manual()->create();
     $product = Product::factory()->stock(3)->create();
     $order = orderWith($product, 2);
     Payment::factory()->for($order)->create();
@@ -184,7 +185,8 @@ test('cancelling an order returns its items to stock and cancels the payment', f
 });
 
 test('an order stays open when its card payment cannot be cancelled', function () {
-    config(['payment.enabled' => [PaymentGatewayEnum::Stripe->value], 'payment.stripe.secret' => 'sk_test_secret']);
+    config(['payment.stripe.key' => 'pk_test_key', 'payment.stripe.secret' => 'sk_test_secret']);
+    PaymentGateway::factory()->create(['gateway' => PaymentGatewayEnum::Stripe]);
     Http::fake(['*/payment_intents/pi_123/cancel' => Http::response(['error' => ['message' => 'Down']], 500)]);
     $product = Product::factory()->stock(3)->create();
     $order = orderWith($product, 2);
@@ -206,7 +208,8 @@ test('card payments show the gateway with the method', function () {
 
     Livewire::actingAs(User::factory()->superAdmin()->create())->test(Index::class)
         ->call('viewDetails', $order->id)
-        ->assertSee('Stripe / Card');
+        ->assertSee('Stripe')
+        ->assertDontSee('Stripe / Stripe');
 });
 
 test('a paid order must be refunded before it is cancelled', function () {

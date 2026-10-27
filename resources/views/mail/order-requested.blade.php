@@ -3,7 +3,7 @@
 
 {{ __(':name just placed an order. Please review and confirm it.', ['name' => $order->customer_name]) }}
 
-@include('mail.partials.order-panel')
+<x-mail.order-panel :order="$order" />
 
 **{{ __('Email') }}:** {{ $order->customer_email }}<br>
 **{{ __('Phone') }}:** {{ $order->phone }}

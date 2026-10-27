@@ -5,7 +5,7 @@
 
 {{ __('Your order has been cancelled. If you think this is a mistake or you already paid, please contact us with your order ID.') }}
 
-@include('mail.partials.order-panel')
+<x-mail.order-panel :order="$order" />
 
 <x-mail::button :url="route('contact')">
 {{ __('Contact us') }}

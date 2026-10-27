@@ -23,7 +23,7 @@ trait ProductAiAssistantTrait
     {
         return static::query()
             ->with(['category.parent.parent', 'aiAssistantEmbedding'])
-            ->where('status', '!=', ProductStatusEnum::Archived);
+            ->whereIn('status', ProductStatusEnum::listed());
     }
 
     /**

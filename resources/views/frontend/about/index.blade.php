@@ -1,4 +1,4 @@
-<x-layouts::frontend :title="__('About')">
+<x-layouts.frontend :title="__('About')">
     <x-frontend.layout.page :title="__('About us')" :subtitle="__('Quality products and honest service, delivered to your door.')">
         <x-frontend.cards.card :title="__('Our story')">
             <div class="space-y-4 text-sm leading-relaxed text-zinc-600 dark:text-zinc-300">
@@ -15,4 +15,4 @@
 
         <x-frontend.content.contact-cta :title="__('Have a question?')" :description="__('We are happy to help with anything about products, orders or payments.')" />
     </x-frontend.layout.page>
-</x-layouts::frontend>
+</x-layouts.frontend>

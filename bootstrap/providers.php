@@ -6,6 +6,7 @@ use App\Providers\AuthMailProvider;
 use App\Providers\DevServerProvider;
 use App\Providers\FortifyServiceProvider;
 use App\Providers\MediaProvider;
+use App\Providers\SeoMetaProvider;
 use App\Providers\SystemSettingProvider;
 
 return [
@@ -15,5 +16,6 @@ return [
     MediaProvider::class,
     DevServerProvider::class,
     SystemSettingProvider::class,
+    SeoMetaProvider::class,
     FortifyServiceProvider::class,
 ];

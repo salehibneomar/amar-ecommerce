@@ -1,4 +1,4 @@
-<x-layouts::frontend :title="__('My orders')">
+<x-layouts.frontend :title="__('My orders')">
     <x-frontend.layout.page :title="__('My orders')">
         @if ($orders->isEmpty())
             <x-frontend.content.empty-state icon="receipt_long" :title="__('No orders yet')">
@@ -20,4 +20,4 @@
             {{ $orders->links() }}
         @endif
     </x-frontend.layout.page>
-</x-layouts::frontend>
+</x-layouts.frontend>

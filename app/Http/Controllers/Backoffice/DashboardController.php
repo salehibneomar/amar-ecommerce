@@ -16,6 +16,6 @@ class DashboardController extends Controller
         $user = $request->user();
         ['stats' => $stats, 'panels' => $panels] = $this->dashboardService->forUser($user);
 
-        return view('dashboard', compact('user', 'stats', 'panels'));
+        return view('backoffice.dashboard.index', compact('user', 'stats', 'panels'));
     }
 }

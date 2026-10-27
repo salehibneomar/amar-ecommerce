@@ -29,8 +29,14 @@ class PaymentController extends Controller
         $orderUrl = URL::signedRoute('orders.confirmation', $payment->order->public_order_id);
         $view = $payment->gateway->pageView();
 
-        if ($view === null || ! $this->paymentService->isPayable($payment)) {
+        if (! $this->paymentService->isPayable($payment)) {
             return redirect($orderUrl);
+        }
+
+        if ($view === null) {
+            $hostedUrl = $this->paymentService->hostedUrl($payment);
+
+            return $hostedUrl ? redirect()->away($hostedUrl) : redirect($orderUrl)->with('error', __(':gateway is not available right now. Please try again later.', ['gateway' => $payment->gateway->label()]));
         }
 
         $order = $this->orderService->getOrderWithItems($payment->order);
@@ -62,7 +68,7 @@ class PaymentController extends Controller
         $orderUrl = URL::signedRoute('orders.confirmation', $payment->order->public_order_id);
 
         if ($page['unavailable'] ?? false) {
-            return response()->json(['message' => __('Card payment is not available right now. Your order is saved, so you can pay from the order page.'), 'redirect' => $orderUrl], 503);
+            return response()->json(['message' => __(':gateway is not available right now. Your order is saved, so you can pay from the order page.', ['gateway' => $payment->gateway->label()]), 'redirect' => $orderUrl], 503);
         }
 
         return response()->json([
@@ -81,6 +87,11 @@ class PaymentController extends Controller
             PaymentStatusEnum::Pending => ['info', __('Your payment is being processed. We will update the order soon.')],
             default => ['error', __('Your payment did not go through. Please try again.')],
         });
+    }
+
+    public function callback(Payment $payment): RedirectResponse
+    {
+        return redirect()->route('payments.return', $payment->reference, 303);
     }
 
     public function webhook(PaymentGatewayEnum $gateway, Request $request): Response

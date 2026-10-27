@@ -1,4 +1,4 @@
-<x-layouts::frontend :title="__('Contact')">
+<x-layouts.frontend :title="__('Contact')">
     <x-frontend.layout.page :title="__('Contact us')" :subtitle="__('Questions about products, orders or delivery? Reach us on any channel below.')">
         <div class="grid gap-5 sm:grid-cols-2 lg:grid-cols-4">
             @foreach ($channels as $channel)
@@ -19,4 +19,4 @@
             </p>
         </x-frontend.cards.card>
     </x-frontend.layout.page>
-</x-layouts::frontend>
+</x-layouts.frontend>

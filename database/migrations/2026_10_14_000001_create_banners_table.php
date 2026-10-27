@@ -16,7 +16,7 @@ return new class extends Migration
             $table->boolean('show_text')->default(true);
             $table->string('link')->nullable();
             $table->unsignedInteger('sort_order')->default(1);
-            $table->string('status')->default(BannerStatusEnum::Active->value)->index();
+            $table->string('status')->default(BannerStatusEnum::Draft->value)->index();
             $table->timestamp('starts_at')->nullable();
             $table->timestamp('ends_at')->nullable();
             $table->foreignId('updated_by')->nullable()->constrained('users')->nullOnDelete();

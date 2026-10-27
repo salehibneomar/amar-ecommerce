@@ -27,7 +27,7 @@ Status legend: 🔴 fix before launch · 🟠 should fix soon · 🟢 nice to ha
 |---|---|---|
 | 🟠 | **Product image size** | The `large` product image is cropped to 1000×1000 (`config/product.php`). Raising it to about 2000px and fitting instead of cropping would keep detail and shape |
 | 🟢 | **Saved addresses** | Each user has one shipping and one billing address as free text. Several saved addresses or split fields (city, area, postcode) are not built |
-| 🟢 | **SEO extras** | Meta description, OpenGraph/Twitter tags, canonical URLs, `noindex` on private pages and `/sitemap.xml` are in place. Still open: structured data (JSON-LD) for products and submitting the sitemap in Google Search Console |
+| 🟢 | **SEO extras** | Meta description, OpenGraph/Twitter tags, canonical URLs, `noindex` on private pages, `/sitemap.xml`, Settings → SEO and per product and category SEO are in place. Still open: clean URLs (`/product-slug`, `/category-slug`) with redirects, category SEO on a category page, structured data (JSON-LD) for products and breadcrumbs, and submitting the sitemap in Google Search Console |
 | 🟠 | **AI assistant v3** | The beta assistant chats and suggests products (RAG). Adding or removing cart items by chat is planned in OUR_RAG.md (section 14). Replies are not streamed, the chat resets on reload, and vector search runs in PHP over cached vectors (fine for a few thousand products) |
 | 🟢 | **Automatic payment verification** | Stripe is verified automatically. bKash and Nagad are still checked by hand, and the gateway interface is ready for their APIs |
 | 🟠 | **Online payment v2** | Unpaid Stripe orders keep their stock until staff cancel them (no auto cancel), refunds are not sent to Stripe (staff refund in the Stripe dashboard), and no email goes out when an online payment succeeds |
@@ -48,6 +48,6 @@ Status legend: 🔴 fix before launch · 🟠 should fix soon · 🟢 nice to ha
 ## Suggested order
 
 1. Everything in section 1.
-2. SEO basics.
+2. SEO extras: clean URLs and JSON-LD.
 3. The server-side resend cooldown.
 4. Section 3 as the business grows.

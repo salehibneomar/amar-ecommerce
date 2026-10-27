@@ -4,6 +4,7 @@ namespace App\Services\Backoffice\System;
 
 use App\Enums\System\FrontendCacheKeyEnum;
 use App\Enums\System\MaintenanceStatusEnum;
+use App\Enums\System\ThemeColorEnum;
 use App\Models\SystemSetting;
 use App\Traits\Cache\FrontendCacheTrait;
 use Carbon\CarbonImmutable;
@@ -24,7 +25,7 @@ class SystemSettingService
     ];
 
     /**
-     * @var array{maintenance_enabled: bool, maintenance_starts_at: int|null, maintenance_ends_at: int|null, maintenance_secret: string|null, brand: array<string, string|null>}|null
+     * @var array{maintenance_enabled: bool, maintenance_starts_at: int|null, maintenance_ends_at: int|null, maintenance_secret: string|null, theme_color: string, brand: array<string, string|null>}|null
      */
     private ?array $settings = null;
 
@@ -123,8 +124,46 @@ class SystemSettingService
         $this->settings = null;
     }
 
+    public function themeColor(): ThemeColorEnum
+    {
+        return ThemeColorEnum::tryFrom($this->settings()['theme_color']) ?? ThemeColorEnum::Default;
+    }
+
     /**
-     * @return array{maintenance_enabled: bool, maintenance_starts_at: int|null, maintenance_ends_at: int|null, maintenance_secret: string|null, brand: array<string, string|null>}
+     * @return array{palette: array<int, string>, brand: string, brand_hover: string, brand_dark: string, foreground: string}
+     */
+    public function theme(?ThemeColorEnum $color = null): array
+    {
+        $presets = themePresets();
+        $preset = $presets[($color ?? $this->themeColor())->value] ?? $presets[ThemeColorEnum::Default->value];
+        $palette = $preset['palette'];
+
+        return [
+            'palette' => $palette,
+            'brand' => $palette[$preset['brand']],
+            'brand_hover' => $palette[$preset['brand_hover']],
+            'brand_dark' => $palette[$preset['brand_dark']],
+            'foreground' => readableTextColor($palette[$preset['brand']], themeTextLight(), themeTextDark()),
+        ];
+    }
+
+    /**
+     * @return array<string, array{label: string, theme: array{palette: array<int, string>, brand: string, brand_hover: string, brand_dark: string, foreground: string}}>
+     */
+    public function themeOptions(): array
+    {
+        return array_column(array_map(fn (ThemeColorEnum $color): array => [$color->value, ['label' => $color->label(), 'theme' => $this->theme($color)]], ThemeColorEnum::cases()), 1, 0);
+    }
+
+    public function saveThemeColor(ThemeColorEnum $color): void
+    {
+        $this->setting()->update(['theme_color' => $color]);
+
+        $this->settings = null;
+    }
+
+    /**
+     * @return array{maintenance_enabled: bool, maintenance_starts_at: int|null, maintenance_ends_at: int|null, maintenance_secret: string|null, theme_color: string, brand: array<string, string|null>}
      */
     private function settings(): array
     {
@@ -136,6 +175,7 @@ class SystemSettingService
                 'maintenance_starts_at' => $setting?->maintenance_starts_at?->getTimestamp(),
                 'maintenance_ends_at' => $setting?->maintenance_ends_at?->getTimestamp(),
                 'maintenance_secret' => $setting?->maintenance_secret,
+                'theme_color' => $setting?->theme_color->value ?? ThemeColorEnum::Default->value,
                 'brand' => array_map(fn (string $configPath): ?string => $setting?->mediaUrl($configPath), self::BRAND_MEDIA),
             ];
         });

@@ -8,7 +8,6 @@ use Illuminate\Database\Eloquent\Relations\MorphOne;
 
 /**
  * @method static Builder<static> query()
- * @method MorphOne<AiAssistantEmbedding, $this> morphOne(string $related, string $name, ?string $type = null, ?string $id = null, ?string $localKey = null)
  */
 trait AiAssistantTrait
 {

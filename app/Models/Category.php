@@ -4,9 +4,11 @@ namespace App\Models;
 
 use App\Enums\Catalog\CategoryStatusEnum;
 use App\Enums\System\FrontendCacheKeyEnum;
+use App\Interfaces\Seo\SeoMetaInterface;
 use App\Traits\Cache\ClearsFrontendCacheTrait;
 use App\Traits\Model\CmsUpdateTrackerTrait;
 use App\Traits\Model\MediaTrait;
+use App\Traits\Seo\SeoMetaTrait;
 use Carbon\CarbonImmutable;
 use Database\Factories\CategoryFactory;
 use Illuminate\Database\Eloquent\Casts\Attribute;
@@ -33,11 +35,12 @@ use Spatie\MediaLibrary\InteractsWithMedia;
  * @property CarbonImmutable $updated_at
  * @property CarbonImmutable|null $deleted_at
  * @property-read string|null $image_thumbnail_url
+ * @property-read SeoMeta|null $seoMeta
  */
-class Category extends Model implements HasMedia
+class Category extends Model implements HasMedia, SeoMetaInterface
 {
     /** @use HasFactory<CategoryFactory> */
-    use ClearsFrontendCacheTrait, CmsUpdateTrackerTrait, HasFactory, InteractsWithMedia, MediaTrait, SoftDeletes {
+    use ClearsFrontendCacheTrait, CmsUpdateTrackerTrait, HasFactory, InteractsWithMedia, MediaTrait, SeoMetaTrait, SoftDeletes {
         MediaTrait::registerMediaCollections insteadof InteractsWithMedia;
         MediaTrait::registerMediaConversions insteadof InteractsWithMedia;
     }
@@ -120,6 +123,18 @@ class Category extends Model implements HasMedia
     public function isParent(): bool
     {
         return $this->parent_id === null;
+    }
+
+    /**
+     * @return array{title: string|null, description: string|null, image: string|null}
+     */
+    public function seoMetaDefaults(): array
+    {
+        return [
+            'title' => $this->name,
+            'description' => plainText($this->description) ?: null,
+            'image' => $this->mediaUrl('category.media.image', 'large'),
+        ];
     }
 
     /**

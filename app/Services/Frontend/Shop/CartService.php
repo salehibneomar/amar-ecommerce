@@ -53,6 +53,11 @@ class CartService
         return array_sum($this->quantities());
     }
 
+    public function quantityOf(int $productId): int
+    {
+        return $this->quantities()[$productId] ?? 0;
+    }
+
     public function add(int $productId): void
     {
         $product = Product::query()->whereKey($productId)->where('status', ProductStatusEnum::InStock)->first();

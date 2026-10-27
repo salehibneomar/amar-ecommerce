@@ -1,6 +1,7 @@
 <?php
 
 use App\Enums\Content\BannerStatusEnum;
+use App\Enums\User\PermissionEnum;
 use App\Livewire\Backoffice\Banners\Index;
 use App\Models\Banner;
 use App\Models\User;
@@ -8,6 +9,26 @@ use App\Services\Backoffice\Content\BannerService;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\Storage;
 use Livewire\Livewire;
+
+test('guests cannot access banner management', function () {
+    $this->get(route('manage.banners.index'))
+        ->assertRedirect(route('login'));
+});
+
+test('staff need the manage banners permission to open banner management', function () {
+    $staff = User::factory()->editor()->create();
+
+    $this->actingAs($staff)
+        ->get(route('manage.banners.index'))
+        ->assertRedirect(route('dashboard'));
+
+    $staff->givePermissionTo(PermissionEnum::ManageBanners->value);
+
+    $this->actingAs($staff->fresh())
+        ->get(route('manage.banners.index'))
+        ->assertOk()
+        ->assertSeeLivewire('backoffice.banners.index');
+});
 
 test('banners can be filtered by status', function () {
     $live = Banner::factory()->create();

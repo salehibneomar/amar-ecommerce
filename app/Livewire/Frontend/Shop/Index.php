@@ -2,6 +2,7 @@
 
 namespace App\Livewire\Frontend\Shop;
 
+use App\Livewire\Concerns\InteractsWithAnalytics;
 use App\Models\Product;
 use App\Services\Frontend\Shop\PageService;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
@@ -13,11 +14,12 @@ use Livewire\Component;
 use Livewire\WithPagination;
 
 /**
+ * @property-read LengthAwarePaginator<int, Product> $products
  * @property-read array<string, string> $sortOptions
  */
 class Index extends Component
 {
-    use WithPagination;
+    use InteractsWithAnalytics, WithPagination;
 
     private const CATEGORY_PAGE_SIZE = 5;
 
@@ -108,6 +110,15 @@ class Index extends Component
     public function products(): LengthAwarePaginator
     {
         return $this->pageService->searchProducts($this->search, array_map('intval', $this->categoryIds), $this->sort, $this->priceBound($this->minPrice), $this->priceBound($this->maxPrice));
+    }
+
+    /**
+     * @return array{name: string, params: array<string, mixed>}|null
+     */
+    #[Computed]
+    public function analyticsEvent(): ?array
+    {
+        return $this->analyticsEventService->viewItemListEvent($this->products->items(), 'Shop');
     }
 
     /**

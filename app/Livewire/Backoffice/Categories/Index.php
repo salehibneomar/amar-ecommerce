@@ -4,6 +4,7 @@ namespace App\Livewire\Backoffice\Categories;
 
 use App\Enums\Catalog\CategoryStatusEnum;
 use App\Livewire\Concerns\InteractsWithCategoryLevels;
+use App\Livewire\Concerns\InteractsWithSeoMeta;
 use App\Livewire\Concerns\InteractsWithTable;
 use App\Models\Category;
 use App\Services\Backoffice\Catalog\CategoryService;
@@ -23,7 +24,7 @@ use Livewire\WithPagination;
  */
 class Index extends Component
 {
-    use InteractsWithCategoryLevels, InteractsWithTable, WithFileUploads, WithPagination;
+    use InteractsWithCategoryLevels, InteractsWithSeoMeta, InteractsWithTable, WithFileUploads, WithPagination;
 
     public string $status = '';
 
@@ -60,7 +61,7 @@ class Index extends Component
     /** @var array<int, int> */
     public array $categoryFilterLimits = [];
 
-    public string $categoryStatus = 'active';
+    public string $categoryStatus = 'draft';
 
     public string $sortOrder = '1';
 
@@ -378,6 +379,11 @@ class Index extends Component
             ->all();
     }
 
+    protected function seoMetaOwnerType(): string
+    {
+        return Category::class;
+    }
+
     public function render(): View
     {
         return view('components.backoffice.categories.index');
@@ -386,7 +392,7 @@ class Index extends Component
     private function resetForm(): void
     {
         $this->reset(['editingCategoryId', 'name', 'description', 'parentLevels', 'parentLevelsLimits', 'isFeatured']);
-        $this->categoryStatus = CategoryStatusEnum::Active->value;
+        $this->categoryStatus = CategoryStatusEnum::Draft->value;
         $this->sortOrder = '1';
         $this->resetValidation();
     }

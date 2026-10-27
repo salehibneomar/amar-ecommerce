@@ -2,6 +2,7 @@
 
 namespace App\Livewire\Frontend\Cart;
 
+use App\Livewire\Concerns\InteractsWithAnalytics;
 use App\Services\Frontend\Shop\CartService;
 use Illuminate\Contracts\View\View;
 use Illuminate\Validation\ValidationException;
@@ -11,6 +12,8 @@ use Livewire\Component;
 
 class Counter extends Component
 {
+    use InteractsWithAnalytics;
+
     protected CartService $cartService;
 
     public function boot(CartService $cartService): void
@@ -30,6 +33,8 @@ class Counter extends Component
         }
 
         unset($this->count);
+
+        $this->trackAnalytics($this->analyticsEventService->cartChangeEvent($productId, 1));
 
         if ($buyNow) {
             $this->redirectRoute('checkout', navigate: true);
