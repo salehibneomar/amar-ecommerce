@@ -25,9 +25,7 @@ export default defineConfig({
     ]),
     server: {
         host: lanHost ? '0.0.0.0' : '127.0.0.1',
-        port: 5792,
         hmr: lanHost ? { host: lanHost } : undefined,
-        strictPort: true,
         cors: true,
         watch: {
             ignored: [

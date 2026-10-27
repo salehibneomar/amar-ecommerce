@@ -1,8 +1,8 @@
 ---
 paths:
-  - app/**
-  - database/**
-  - resources/views/**
+  - app/Services/**
+  - app/Models/**
+  - database/migrations/**
 ---
 
 # Money and currency

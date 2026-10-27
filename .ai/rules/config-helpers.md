@@ -8,7 +8,7 @@ paths:
 # Config and helpers
 
 ## Settings flow
-`.env` → `config/<file>.php` → typed helper in `app/Helpers/config_helpers.php` → code. Nothing outside `config/` calls `env()`. Every new key goes into `.env.example` (and the settings table in `docs/SETUP_ADVANCED.md`) with a safe default in the config file.
+`.env` → `config/<file>.php` → typed helper in `app/Helpers/config_helpers.php` → code. Nothing outside `config/` calls `env()`. Every new key goes into `.env.example` with a safe default in the config file.
 
 ## Where things live
 - App-wide settings: `config/app.php`, including `currency` and `currency_symbol`.

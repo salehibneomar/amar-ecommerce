@@ -35,7 +35,7 @@ Write three lines, and ask only if one is unclear:
 - UI change: `npm run build` once.
 
 ## 4. Close the loop
-- Update `README.md` or `docs/` only when asked. New `.env` keys go in `.env.example` with a one-line comment.
+- Update `README.md`, `SETUP.md` or `docs/` only when asked. New `.env` keys go in `.env.example` with a one-line comment.
 - Report in three bullets: changed, tested, left for v2.
 
 ## v1 checklist

@@ -49,7 +49,7 @@ Route ─► Middleware ─► Controller / Livewire ─► Service ─► Model
 
 | Layer | Responsibility | Must not |
 |---|---|---|
-| Routes (`routes/web.php`, `routes/settings.php`) | URL, name, middleware | Contain logic |
+| Routes (`routes/web.php`, `routes/frontend/*.php`, `routes/backoffice/*.php`) | URL, name, middleware | Contain logic |
 | Middleware (`app/Http/Middleware`) | `admin`, `backoffice`, `customer`, `not-blocked`, throttles | Query business data |
 | Controllers (`app/Http/Controllers/{Frontend,Backoffice,Auth}`) | Call a service, return a view with `compact()` or a file | Hold business logic |
 | Livewire (`app/Livewire/{Frontend,Backoffice}`) | UI state, input validation, calling services | Import or query models |
@@ -101,7 +101,8 @@ resources/views/
 ├── components/backoffice/               layout/ (sidebar, nav), management/ (table kit), form/, per-area views
 ├── components/frontend/                 layout/, cards/, content/, orders/, drawers/, per-area views
 ├── components/{ui,brand,navigation,notifications,media,form,auth}/   Shared components by purpose
-├── mail/, pdf/invoice.blade.php, layouts/, pages/ (Fortify + settings), errors/
+├── index.blade.php                      Landing page (the only view at the root)
+├── mail/, pdf/invoice.blade.php, errors/, flux/ and vendor/ (framework overrides)
 .ai/                                     Agent rules (rules/) and playbooks (playbooks/)
 ```
 
@@ -290,7 +291,7 @@ Only **public, shared** data is cached. Admin screens and per-user data always r
 | `config/product.php`, `config/banner.php`, `config/category.php`, `config/user.php` | Media collections, limits, sizes and conversions. `file_prefix` names stored files (avatars are `avatar-…`) |
 | `config/throttle.php` | Rate limits and resend cooldowns |
 | `config/system.php` | Brand media (logo, icon, favicon): types, sizes and the `default` file each one falls back to |
-| `config/theme.php` | Brand and gold color palettes, plus the brand, dark-mode and foreground shades. `<x-brand.theme-colors />` (in `partials/head`) prints them as `--theme-*` CSS variables that the `@theme` tokens in `app.css` point at, and the mail theme (`vendor/mail/html/themes/brand.blade.php`) reads them too. Read with `themePalettes()`, `themeBrandColor()`, `themeBrandDarkColor()`, `themeBrandForeground()` |
+| `config/theme.php` | Brand presets (one per `ThemeColorEnum` case, picked in Settings → Appearance and saved as `system_settings.theme_color`), the gold palette and the light and dark text colors. `SystemSettingService::theme()` resolves the active preset, and `<x-brand.theme-colors />` (in `<x-layouts.head>`) prints it as `--theme-*` CSS variables that the `@theme` tokens in `app.css` point at. The mail theme (`vendor/mail/html/themes/brand.blade.php`) reads it too. Read with `themePresets()`, `themePalettes()`, `themeTextLight()`, `themeTextDark()` |
 | `config/ai-prompts.php` | All AI text: system prompt lines (`:shop`, `:results`, `:currency` placeholders), messages, masking tokens, stop words and per-model labels. Read with `aiPrompt()` / `aiPromptList()` |
 | `config/ai-assistant.php` | Assistant switch, history, message length, timeout, top matches, results, response cache minutes, `models` (classes that implement `AiAssistantInterface`), `drivers` (API format to class), and the `chat` and `embedding` jobs (driver, URL, key, model, reasoning or dimensions) |
 | `config/backoffice.php` (`route_prefix`) | `ADMIN_ROUTE_PREFIX`: one URL prefix for the whole admin area (Fortify login and password reset, dashboard, `manage/*`, `settings/*`). Routes, the guest redirect and the maintenance exception read `adminRoutePrefix()`; `config/fortify.php` reads the same env key |
@@ -312,7 +313,7 @@ Both helper files (autoloaded from `composer.json`) stay generic. `config_helper
   - shared: `x-ui.price`, `x-ui.badge`, `x-ui.tabs`, `x-media.upload`, `x-ui.copy-text` (read-only value with an icon copy button and a toast, such as the sitemap URL), `x-ui.error-page`, `x-ui.search-input` (every live search; debounce from `APP_SEARCH_DEBOUNCE_MS`, instant clear), `x-ui.dropdown` (every action menu, wraps `flux:dropdown`), `x-ui.popover` (floating panels such as the navbar search), `x-ui.backdrop`, `x-ui.load-more-select` (select that loads options in batches with a "Load more…" item; used by admin filters and the parent category field), `x-ui.seo` (description, canonical and OpenGraph/Twitter tags; storefront layout only, defaults from `config/seo.php` (`SEO_DESCRIPTION`, `SEO_IMAGE`, `SEO_INDEXING_ENABLED`), product pages pass their description and first image, `/sitemap.xml` lists public pages and in-stock or out-of-stock products, never archived ones).
 - Every admin table uses `InteractsWithTable` + `TableQueryTrait` + the `management-*` components.
 - Alpine handles client-only behaviour.
-- Brand colors come only from `config/theme.php` (see HOW_TO.md §4). Views use the `brand-*`, `gold-*` and surface tokens, never hex or raw palette names for brand elements. Changing a brand color needs no rebuild.
+- Brand colors come only from the `config/theme.php` presets (see HOW_TO.md §4). Views use the `brand-*`, `gold-*` and surface tokens, never hex or raw palette names for brand elements. Changing a brand color needs no rebuild.
 - Icons are Heroicons (through Flux) in the backoffice and Material Symbols on the storefront.
 - Run `npm run build` after Tailwind changes.
 

@@ -9,6 +9,9 @@ paths:
 ## Models
 Models hold relations, casts, accessors and scopes only, never workflows. Status and type columns cast to backed enums with `label()` and `color()`. Add `@property` PHPDoc for PHPStan.
 
+## Product types
+A child type extends `Product` and declares `$detailTable` and `$detailColumns` (`Shirt extends Product`, table `shirts`, keyed by `product_id`). `Product` joins, scopes and saves the detail table, and hydrates each row by its `type`, so generic code queries `Product` and never names a subclass. The detail table never repeats `products` columns (no `id` or timestamps). Polymorphic rows (`media`, embeddings, `seo_metas`) always store `App\Models\Product` (`Product::getMorphClass()`).
+
 ## Migrations
 Index filter and sort columns, and add unique constraints for business rules.
 

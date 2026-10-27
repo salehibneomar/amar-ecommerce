@@ -40,9 +40,7 @@ Status legend: 🔴 fix before launch · 🟠 should fix soon · 🟢 nice to ha
 
 | | Item | Details |
 |---|---|---|
-| 🟢 | **PHPStan warnings** | Mostly in older Livewire components: missing paginator generics, `list` vs `array` shapes, unnecessary `?->`. None break anything. Fix gradually when touching those files |
 | 🟢 | **`jobs` / `job_batches` tables** | Used only when `MAIL_QUEUE_ENABLED=true` (order emails). Otherwise empty |
-| 🟢 | **Order detail lists its lines inline** | `frontend/orders/detail.blade.php` repeats the order-line markup instead of using `x-frontend.orders.items` like tracking and confirmation |
 | 🟢 | **Seeded accounts share one password** | `123456`, local only. Keep `DB_SEEDING_ENABLED=false` live |
 
 ## Suggested order

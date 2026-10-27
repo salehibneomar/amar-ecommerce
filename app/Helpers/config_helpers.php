@@ -125,7 +125,7 @@ function appEdition(): string
 
 function appServerPort(): int
 {
-    return (int) config('app.server_port', 8000);
+    return (int) config('app.server_port', 8200);
 }
 
 function appCurrency(): string
